@@ -32,7 +32,7 @@ module llc(clk, rst, llc_req_in, llc_req_in_valid, llc_req_in_ready, llc_dma_req
 	output logic llc_mem_rsp_ready;
 
     input logic llc_rst_tb;
-    input logic llc_rst_tb_valid;
+	input logic llc_rst_tb_valid;
 	output logic llc_rst_tb_ready;
 
 	input logic llc_rsp_out_ready;
@@ -41,7 +41,7 @@ module llc(clk, rst, llc_req_in, llc_req_in_valid, llc_req_in_ready, llc_dma_req
 
 	input logic llc_dma_rsp_out_ready;
 	output logic llc_dma_rsp_out_valid;
-	output llc_rsp_out_t llc_dma_rsp_out; i
+	output llc_rsp_out_t llc_dma_rsp_out;
 
 	input logic llc_fwd_out_ready; 
 	output logic llc_fwd_out_valid;
@@ -61,4 +61,43 @@ module llc(clk, rst, llc_req_in, llc_req_in_valid, llc_req_in_ready, llc_dma_req
 	output logic llc_stats;
 `endif
 
+    llc_req_in_t llc_req_in_reg; 
+    llc_req_in_t llc_dma_req_in_reg; 
+    llc_rsp_in_t llc_rsp_in_reg; 
+    logic llc_rst_tb_reg; 
+
+    handle_incoming handle_incoming_u (.*); 
+
+    always @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_req_in_reg <= 0; 
+        end else if (llc_req_in_valid && llc_req_in_ready) begin
+            llc_req_in_reg <= llc_req_in; 
+        end
+    end
+
+    always @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_dma_req_in_reg <= 0; 
+        end else if (llc_dma_req_in_valid && llc_dma_req_in_ready) begin
+            llc_dma_req_in_reg <= llc_dma_req_in; 
+        end
+    end
+    
+    always @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_rsp_in_reg <= 0; 
+        end else if (llc_rsp_in_valid && llc_rsp_in_ready) begin
+            llc_rsp_in_reg <= llc_rsp_in; 
+        end
+    end
+
+    always @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_rst_tb_reg <= 0; 
+        end else if (llc_rst_tb_valid && llc_rst_tb_ready) begin
+            llc_rst_tb_reg <= llc_rst_tb; 
+        end
+    end
+    
 endmodule
