@@ -25,14 +25,14 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_req_in_valid;
       output logic llc_req_in_ready;
             
-      llc_req_in_t llc_req_in;
-      assign llc_req_in.coh_msg     = llc_req_in_data_coh_msg;
-      assign llc_req_in.hprot       = llc_req_in_data_hprot;
-      assign llc_req_in.addr        = llc_req_in_data_addr;
-      assign llc_req_in.line        = llc_req_in_data_line;
-      assign llc_req_in.req_id      = llc_req_in_data_req_id;
-      assign llc_req_in.word_offset = llc_req_in_data_word_offset;
-      assign llc_req_in.valid_words = llc_req_in_data_valid_words;
+      llc_req_in_t llc_req_in_i;
+      assign llc_req_in_i.coh_msg     = llc_req_in_data_coh_msg;
+      assign llc_req_in_i.hprot       = llc_req_in_data_hprot;
+      assign llc_req_in_i.addr        = llc_req_in_data_addr;
+      assign llc_req_in_i.line        = llc_req_in_data_line;
+      assign llc_req_in_i.req_id      = llc_req_in_data_req_id;
+      assign llc_req_in_i.word_offset = llc_req_in_data_word_offset;
+      assign llc_req_in_i.valid_words = llc_req_in_data_valid_words;
 
       //llc dma req in 
       input mix_msg_t llc_dma_req_in_data_coh_msg;
@@ -45,14 +45,14 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_dma_req_in_valid;
       output logic llc_dma_req_in_ready;
       
-      llc_req_in_t llc_dma_req_in;
-      assign llc_dma_req_in.coh_msg     = llc_dma_req_in_data_coh_msg;
-      assign llc_dma_req_in.hprot       = llc_dma_req_in_data_hprot;
-      assign llc_dma_req_in.addr        = llc_dma_req_in_data_addr;
-      assign llc_dma_req_in.line        = llc_dma_req_in_data_line;
-      assign llc_dma_req_in.req_id      = llc_dma_req_in_data_req_id;
-      assign llc_dma_req_in.word_offset = llc_dma_req_in_data_word_offset;
-      assign llc_dma_req_in.valid_words = llc_dma_req_in_data_valid_words;
+      llc_req_in_t llc_dma_req_in_i;
+      assign llc_dma_req_in_i.coh_msg     = llc_dma_req_in_data_coh_msg;
+      assign llc_dma_req_in_i.hprot       = llc_dma_req_in_data_hprot;
+      assign llc_dma_req_in_i.addr        = llc_dma_req_in_data_addr;
+      assign llc_dma_req_in_i.line        = llc_dma_req_in_data_line;
+      assign llc_dma_req_in_i.req_id      = llc_dma_req_in_data_req_id;
+      assign llc_dma_req_in_i.word_offset = llc_dma_req_in_data_word_offset;
+      assign llc_dma_req_in_i.valid_words = llc_dma_req_in_data_valid_words;
 
       //llc rsp in
       input coh_msg_t llc_rsp_in_data_coh_msg;
@@ -62,27 +62,27 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_rsp_in_valid;
       output logic llc_rsp_in_ready;
      
-      llc_rsp_in_t llc_rsp_in;
-      assign llc_rsp_in.coh_msg = llc_rsp_in_data_coh_msg;
-      assign llc_rsp_in.addr    = llc_rsp_in_data_addr;
-      assign llc_rsp_in.line    = llc_rsp_in_data_line;
-      assign llc_rsp_in.req_id  = llc_rsp_in_data_req_id;
+      llc_rsp_in_t llc_rsp_in_i;
+      assign llc_rsp_in_i.coh_msg = llc_rsp_in_data_coh_msg;
+      assign llc_rsp_in_i.addr    = llc_rsp_in_data_addr;
+      assign llc_rsp_in_i.line    = llc_rsp_in_data_line;
+      assign llc_rsp_in_i.req_id  = llc_rsp_in_data_req_id;
   
       //llc mem rsp 
       input line_t llc_mem_rsp_data_line;
       input logic llc_mem_rsp_valid;
       output logic llc_mem_rsp_ready;
       
-      llc_mem_rsp_t llc_mem_rsp;
-      assign llc_mem_rsp.line = llc_mem_rsp_data_line;
+      llc_mem_rsp_t llc_mem_rsp_i;
+      assign llc_mem_rsp_i.line = llc_mem_rsp_data_line;
       
       //llc rst tb
       input logic llc_rst_tb_valid;
       input logic llc_rst_tb_data;
       output logic llc_rst_tb_ready;
       
-      logic llc_rst tb; 
-      assign llc_rst_tb = llc_rst_tb_data;
+      logic llc_rst tb_i; 
+      assign llc_rst_tb_i = llc_rst_tb_data;
  
       //llc rsp out
       input logic llc_rsp_out_ready;
