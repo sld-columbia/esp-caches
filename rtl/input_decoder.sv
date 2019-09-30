@@ -199,7 +199,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
     logic update_dma_addr_from_req_next; 
     //multiplex set bits
     always_comb begin  
-        addr_for_set = {LLC_ADDR_BITS{1'b0}};
+        addr_for_set = {`LLC_ADDR_BITS{1'b0}};
         update_dma_addr_from_req_next = 1'b0;
         if (is_rsp_to_get) begin 
             addr_for_set = rsp_in_addr; 
@@ -218,8 +218,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
             line_br.set <= 0;
             update_dma_addr_from_req <= 1'b0;
         end else if (st_decode) begin 
-            line_br.tag <= addr_for_set[(ADDR_BIT - OFFSET_BITS -1): LLC_SET_BITS];
-            line_br.set <= addr_for_set[(LLC_SET_BITS - 1):0]; 
+            line_br.tag <= addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS];
+            line_br.set <= addr_for_set[(`LLC_SET_BITS - 1):0]; 
             update_dma_addr_from_req <= update_dma_addr_from_req_next; 
         end
     end
@@ -239,7 +239,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
         clr_req_stall_next = 1'b0;
         if (is_flush_to_resume || is_rst_to_resume) begin 
             incr_rst_flush_stalled_set_next = 1'b1;
-            if (rst_flush_stalled_set == {LLC_SET_BITS{1'b1}}) begin 
+            if (rst_flush_stalled_set == {`LLC_SET_BITS{1'b1}}) begin 
                 clr_rst_stall_next  =  1'b1; 
                 clr_flush stall = 1'b1; 
             end    
