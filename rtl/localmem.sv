@@ -6,7 +6,7 @@
 // llc memory 
 // author: Joseph Zuckerman
 
-module localmem ();  
+module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr_data_sharers, wr_data_owner, wr_data_hprot, wr_data_dirty_bit, wr_data_evict_way, wr_data_state, wr_en, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);  
     input logic clk, rst; 
 
     input llc_set_t rd_set;
@@ -18,35 +18,35 @@ module localmem ();
     input sharers_t wr_data_sharers; 
     input owner_t wr_data_owner; 
     input hprot_t wr_data_hprot; 
-    input logic wr_data_dirty_bits;  
+    input logic wr_data_dirty_bit;  
     input llc_way_t wr_data_evict_way;  
     input  llc_state_t wr_data_state;
     input logic wr_en;
 
-    output line_t rd_data_line[``NUM_PORTS];
-    output llc_tag_t rd_data_tag[``NUM_PORTS];
-    output sharers_t rd_data_sharers[``NUM_PORTS];
-    output owner_t rd_data_owner[``NUM_PORTS];
-    output hprot_t rd_data_hpro[``NUM_PORTS];
-    output logic rd_data_dirty_bit[``NUM_PORTS];
-    output llc_way_t rd_data_evict_way[``NUM_PORTS];
-    output llc_state_t rd_data_state[``NUM_PORTS];
+    output line_t rd_data_line[`NUM_PORTS];
+    output llc_tag_t rd_data_tag[`NUM_PORTS];
+    output sharers_t rd_data_sharers[`NUM_PORTS];
+    output owner_t rd_data_owner[`NUM_PORTS];
+    output hprot_t rd_data_hprot[`NUM_PORTS];
+    output logic rd_data_dirty_bit[`NUM_PORTS];
+    output llc_way_t rd_data_evict_way[`NUM_PORTS];
+    output llc_state_t rd_data_state[`NUM_PORTS];
 
-    owner_t rd_data_owner_tmp[``NUM_PORTS][``OWNER_BRAMS_PER_WAY];
-    sharers_t rd_data_sharers_tmp[``NUM_PORTS][``SHARERS_BRAMS_PER_WAY]; 
-    hprot_t rd_data_hprot_tmp[``NUM_PORTS][`HPROT_BRAMS_PER_WAY]; 
-    logic rd_data_sharers_tmp[``NUM_PORTS][`DIRTY_BIT_BRAMS_PER_WAY]; 
-    llc_state_t rd_data_state_tmp[``NUM_PORTS][`STATE_BRAMS_PER_WAY]; 
-    llc_tag_t rd_data_tag_tmp[``NUM_PORTS][`TAG_BRAMS_PER_WAY]; 
-    llc_way_t rd_data_evict_way_tmp[``NUM_PORTS][`EVICT_WAY_BRAMS_PER_WAY]; 
-    sharers_t rd_data_line_tmp[``NUM_PORTS][`LINE_BRAMS_PER_WAY]; 
+    owner_t rd_data_owner_tmp[`NUM_PORTS][`OWNER_BRAMS_PER_WAY];
+    sharers_t rd_data_sharers_tmp[`NUM_PORTS][`SHARERS_BRAMS_PER_WAY]; 
+    hprot_t rd_data_hprot_tmp[`NUM_PORTS][`HPROT_BRAMS_PER_WAY]; 
+    logic rd_data_sharers_tmp[`NUM_PORTS][`DIRTY_BIT_BRAMS_PER_WAY]; 
+    llc_state_t rd_data_state_tmp[`NUM_PORTS][`STATE_BRAMS_PER_WAY]; 
+    llc_tag_t rd_data_tag_tmp[`NUM_PORTS][`TAG_BRAMS_PER_WAY]; 
+    llc_way_t rd_data_evict_way_tmp[`NUM_PORTS][`EVICT_WAY_BRAMS_PER_WAY]; 
+    sharers_t rd_data_line_tmp[`NUM_PORTS][`LINE_BRAMS_PER_WAY]; 
     
     genvar i, j, k; 
     generate begin: memories
-        for (i = 0; i < (``NUM_PORTS / 2); i++) begin 
+        for (i = 0; i < (`NUM_PORTS / 2); i++) begin 
             //owner memory
             //need 4 bits for owner - 4096x4 BRAM
-            for (j = 0; j < ``OWNER_BRAMS_PER_WAY; j++) begin
+            for (j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin
                 BRAM_4096x4 owner_bram(
                     .CLK(clk), 1
                     .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
