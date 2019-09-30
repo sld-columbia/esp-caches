@@ -7,30 +7,219 @@
 // author: Joseph Zuckerman
 
 module localmem ();  
+    input logic clk, rst; 
 
-input logic clk, rst; 
+    input llc_set_t rd_set;
+    input logic rd_en;
 
-input llc_addr_t rd_addr_0, rd_addr_1, rd_addr_2, rd_addr_3, rd_addr_4, rd_addr_5, rd_addr_6, rd_addr_7, rd_addr_8, rd_addr_9, rd_addr_10, rd_addr_11, rd_addr_12, rd_addr_13, rd_addr_14, rd_addr_15;
+    input llc_addr_t wr_addr;
+    input line_t wr_data_line;
+    input llc_tag_t wr_data_tag;
+    input sharers_t wr_data_sharers; 
+    input owner_t wr_data_owner; 
+    input hprot_t wr_data_hprot; 
+    input logic wr_data_dirty_bits;  
+    input llc_way_t wr_data_evict_way;  
+    input  llc_state_t wr_data_state;
+    input logic wr_en;
 
-input llc_addr_t wr_addr;
-input line_t wr_data_line;
-input llc_tag_t wr_data_tag;
-input sharers_t wr_data_sharers; 
-input owner_t wr_data_owner; 
-input hprot_t wr_data_hprot; 
-input logic wr_data_dirty_bits;  
-input llc_way_t wr_data_evict_ways;  
-input  llc_state_t wr_data_state;
-input logic wr_en;
+    output line_t rd_data_line[``NUM_PORTS];
+    output llc_tag_t rd_data_tag[``NUM_PORTS];
+    output sharers_t rd_data_sharers[``NUM_PORTS];
+    output owner_t rd_data_owner[``NUM_PORTS];
+    output hprot_t rd_data_hpro[``NUM_PORTS];
+    output logic rd_data_dirty_bit[``NUM_PORTS];
+    output llc_way_t rd_data_evict_way[``NUM_PORTS];
+    output llc_state_t rd_data_state[``NUM_PORTS];
 
-output line_t rd_data_line_0, rd_data_line_1, rd_data_line_2, rd_data_line_3, rd_data_line_4, rd_data_line_5, rd_data_line_6, rd_data_line_7, rd_data_line_8, rd_data_line_9, rd_data_line_10, rd_data_line_11, rd_data_line_12, rd_data_line_13, rd_data_line_14, rd_data_line_15;
-output llc_tag_t rd_data_tag_0, rd_data_tag_1, rd_data_tag_2, rd_data_tag_3, rd_data_tag_4, rd_data_tag_5, rd_data_tag_6, rd_data_tag_7, rd_data_tag_8, rd_data_tag_9, rd_data_tag_10, rd_data_tag_11, rd_data_tag_12, rd_data_tag_13, rd_data_tag_14, rd_data_tag_15;
-output sharers_t rd_data_sharers_0, rd_data_sharers_1, rd_data_sharers_2, rd_data_sharers_3, rd_data_sharers_4, rd_data_sharers_5, rd_data_sharers_6, rd_data_sharers_7, rd_data_sharers_8, rd_data_sharers_9, rd_data_sharers_10, rd_data_sharers_11, rd_data_sharers_12, rd_data_sharers_13, rd_data_sharers_14, rd_data_sharers_15;
-output owner_t rd_data_owner_0, rd_data_owner_1, rd_data_owner_2, rd_data_owner_3, rd_data_owner_4, rd_data_owner_5, rd_data_owner_6, rd_data_owner_7, rd_data_owner_8, rd_data_owner_9, rd_data_owner_10, rd_data_owner_11, rd_data_owner_12, rd_data_owner_13, rd_data_owner_14, rd_data_owner_15;
-output hprot_t rd_data_hprot_0, rd_data_hprot_1, rd_data_hprot_2, rd_data_hprot_3, rd_data_hprot_4, rd_data_hprot_5, rd_data_hprot_6, rd_data_hprot_7, rd_data_hprot_8, rd_data_hprot_9, rd_data_hprot_10, rd_data_hprot_11, rd_data_hprot_12, rd_data_hprot_13, rd_data_hprot_14, rd_data_hprot_15;
-output logic rd_data_dirty_bit_0, rd_data_dirty_bit_1, rd_data_dirty_bit_2, rd_data_dirty_bit_3, rd_data_dirty_bit_4, rd_data_dirty_bit_5, rd_data_dirty_bit_6, rd_data_dirty_bit_7, rd_data_dirty_bit_8, rd_data_dirty_bit_9, rd_data_dirty_bit_10, rd_data_dirty_bit_11, rd_data_dirty_bit_12, rd_data_dirty_bit_13, rd_data_dirty_bit_14, rd_data_dirty_bit_15;
-output llc_way_t rd_data_evict_way_0, rd_data_evict_way_1, rd_data_evict_way_2, rd_data_evict_way_3, rd_data_evict_way_4, rd_data_evict_way_5, rd_data_evict_way_6, rd_data_evict_way_7, rd_data_evict_way_8, rd_data_evict_way_9, rd_data_evict_way_10, rd_data_evict_way_11, rd_data_evict_way_12, rd_data_evict_way_13, rd_data_evict_way_14, rd_data_evict_way_15;
-output llc_state_t rd_data_state_0, rd_data_state_1, rd_data_state_2, rd_data_state_3, rd_data_state_4, rd_data_state_5, rd_data_state_6, rd_data_state_7, rd_data_state_8, rd_data_state_9, rd_data_state_10, rd_data_state_11, rd_data_state_12, rd_data_state_13, rd_data_state_14, rd_data_state_15;
+    owner_t rd_data_owner_tmp[``NUM_PORTS][``OWNER_BRAMS_PER_WAY];
+    sharers_t rd_data_sharers_tmp[``NUM_PORTS][``SHARERS_BRAMS_PER_WAY]; 
+    hprot_t rd_data_hprot_tmp[``NUM_PORTS][`HPROT_BRAMS_PER_WAY]; 
+    logic rd_data_sharers_tmp[``NUM_PORTS][`DIRTY_BIT_BRAMS_PER_WAY]; 
+    llc_state_t rd_data_state_tmp[``NUM_PORTS][`STATE_BRAMS_PER_WAY]; 
+    llc_tag_t rd_data_tag_tmp[``NUM_PORTS][`TAG_BRAMS_PER_WAY]; 
+    llc_way_t rd_data_evict_way_tmp[``NUM_PORTS][`EVICT_WAY_BRAMS_PER_WAY]; 
+    sharers_t rd_data_line_tmp[``NUM_PORTS][`LINE_BRAMS_PER_WAY]; 
+    
+    genvar i, j, k; 
+    generate begin: memories
+        for (i = 0; i < (``NUM_PORTS / 2); i++) begin 
+            //owner memory
+            //need 4 bits for owner - 4096x4 BRAM
+            for (j = 0; j < ``OWNER_BRAMS_PER_WAY; j++) begin
+                BRAM_4096x4 owner_bram(
+                    .CLK(clk), 1
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_owner), 
+                    .Q0(rd_data_owner_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_owner), 
+                    .Q1(rd_data_owner_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //sharers memory 
+            //need 16 bits for sharers - 1024x16 BRAM
+            for (j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin
+                BRAM_1024x16 sharers_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_sharers), 
+                    .Q0(rd_data_sharers_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_sharers), 
+                    .Q1(rd_data_sharers_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
 
+            end
+            //hprot memory 
+            //need 1 bit for hport - 16384x1 BRAM
+            for (j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin
+                BRAM_16384x1 hprot_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_hprot), 
+                    .Q0(rd_data_hprot_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_hprot), 
+                    .Q1(rd_data_hprot_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //dirty bit memory 
+            //need 1 dirty bit1 - 16384x1 BRAM
+            for (j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin
+                BRAM_16384x1 dirty_bit_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_dirty_bit), 
+                    .Q0(rd_data_dirty_bit_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_dirty_bit), 
+                    .Q1(rd_data_dirty_bit_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //state memory 
+            //need 3 bits for state - 4096x4 BRAM
+            for (j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin
+                BRAM_4096x4 state_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_state), 
+                    .Q0(rd_data_state_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_state), 
+                    .Q1(rd_data_state_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //tag memory 
+            //need ~15-20 bits for tag - 512x32 BRAM
+            for (j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin
+                BRAM_512x32 tag_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_tag), 
+                    .Q0(rd_data_tag_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_tag), 
+                    .Q1(rd_data_tag_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //evict ways memory 
+            //need 2-5 bits for eviction  - 4096x4 BRAM
+            for (j = 0; j < `EVICT_WAY_BRAMS_PER_WAY; j++) begin
+                BRAM_4096x4 evict_way_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_evict_way), 
+                    .Q0(rd_data_evict_way_tmp[2*i][j]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_evict_way), 
+                    .Q1(rd_data_evict_way_tmp[2*i+1][j]), 
+                    .WE1(), 
+                    .CE1(rd_en));
+            end
+            //line memory 
+            //128 bits - using 512x32 BRAM, need 4 BRAMs per line 
+            for (j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
+                for (k = 0; k < BRAMS_PER_`LINE; k++) begin 
+                    BRAM_512x32 line_bram( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                    .D0(wr_data_line), 
+                    .Q0(rd_data_line_tmp[2*i][j][(32*(k+1)):(32*k)]),
+                    .WE0(),
+                    .CE0(rd_en),
+                    .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                    .D1(wr_data_line), 
+                    .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)):(32*k)]), 
+                    .WE1(), 
+                    .CE1(rd_en)); 
+                end
+            end 
+        end
+    endgenerate
+
+    always_comb begin 
+        for (int i = 0; i < `NUM_PORTS; i++) begin 
+            for (int j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin 
+                if (`OWNER_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
+                    rd_data_owner[i] = rd_data_owner_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
+                if (`SHARERS_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
+                    rd_data_sharers[i] = rd_data_sharers_tmp[i][j]; 
+                end
+            end
+            for (int j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin 
+                if (`HPROT_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
+                    rd_data_hprot[i] = rd_data_hprot_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
+                if (`DIRTY_BIT_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
+                    rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
+                if (`STATE_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
+                    rd_data_state[i] = rd_data_state_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin 
+                if (`TAG_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
+                    rd_data_tag[i] = rd_data_tag_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `EVICT_WAY_BRAMS_PER_WAY; j++) begin 
+                if (`EVICT_WAY_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
+                    rd_data_evict_way[i] = rd_data_evict_way_tmp[i][j]; 
+                end
+            end 
+            for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
+                if (`LINE_BRAMS_PER_WAY == 1 || j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
+                    rd_data_line[i] = rd_data_line_tmp[i][j]; 
+                end
+            end 
+    end 
 
 endmodule

@@ -407,4 +407,49 @@
 `define RPT_BM  RPT_OFF
 `define RPT_CU  RPT_OFF
 
+//memory
+
+`define NUM_PORTS (NUM_WAYS > 16) ? 16 : ((NUM_WAYS > 8) ? 8 : 4)
+
+//each BRAM is split between 2 ways
+//each way has NUM_SETS entries
+//this is the number of banks needed to hold each way
+//@TODO make evict ways and tags flexible for size
+`define HPROT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
+`define HPROT_BRAM_INDEX_BITS $clog2(HPROT_BRAMS_PER_WAY)
+`define SHARERS_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_16_BITS / 2))
+`define SHARERS_BRAM_INDEX_BITS $clog2(SHARERS_BRAMS_PER_WAY)
+`define HPROT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_1_BIT / 2))
+`define HPROT_BRAM_INDEX_BITS $clog2(HPROT_BRAMS_PER_WAY)
+`define DIRTY_BIT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_1_BIT / 2))
+`define DIRTY_BIT_BRAM_INDEX_BITS $clog2(DIRTY_BIT_BRAMS_PER_WAY)
+`define STATE_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
+`define STATE_BRAM_INDEX_BITS $clog2(STATE_BRAMS_PER_WAY)
+`define TAG_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_32_BITS / 2))
+`define TAG_BRAM_INDEX_BITS $clog2(TAG_BRAMS_PER_WAY)
+
+//assuming 16 or fewer ways - need to change this
+`define EVICT_WAY_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
+`define EVICT_WAY_BRAM_INDEX_BITS $clog2(EVICT_WAY_BRAMS_PER_WAY)
+
+`define LINE_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_32_BITS / 2))
+
+//each line is 128 bits, so need to split data across multiple BRAMs
+`define BRAMS_PER_LINE `BITS_PER_LINE / 32
+
+`define BRAM_SIZE_16_BITS 1024
+`define BRAM_SIZE_1_BIT 16384
+`define BRAM_SIZE_8_BITS 2048
+`define BRAM_SIZE_4_BITS 4096
+`define BRAM_SIZE_32_BITS 512
+`define BRAM_SIZE_2_BITS 8192
+
+`define BRAM_512_ADDR_WIDTH 9
+`define BRAM_1024_ADDR_WIDTH 10
+`define BRAM_2048_ADDR_WIDTH 11
+`define BRAM_4096_ADDR_WIDTH 12
+`define BRAM_8192_ADDR_WIDTH 13
+`define BRAM_16384_ADDR_WIDTH 14
+
+
 `endif // __CACHES_CONSTS_SVH__
