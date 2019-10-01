@@ -67,9 +67,57 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     llc_mem_rsp_t llc_mem_rsp_in;
     logic llc_rst_tb; 
 
-    handle_incoming handle_incoming_u (.*); 
+    //STATE MACHINE
+    localparam DECODE = 2'b00;
+    localparam READ = 2'b01; 
+    localparam PROCESS = 2'b11; 
+    localparam UPDATE = 2'b10; 
 
-    always @(posedge clk or negedge rst) begin 
+    logic[1:0] state, next_state; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            state <= DECODE; 
+        end else begin 
+            state <= next_state; 
+    end 
+
+    always_comb begin 
+        next_state = state; 
+        case(state) begin 
+            DECODE :   
+                if (decode_done && look) begin
+                    next_state = READ;
+                end else if (decode_done) begin 
+                    next_state = PROCESS;
+                end
+            READ : 
+                next_state = PROCESS; 
+            PROCESS : 
+                next_state = UPDATE; 
+            UPDATE : 
+                next_state = DECODE; 
+        endcase
+    end
+
+
+    logic decode_en, rd_en, look; 
+    assign decode_en = (state == DECODE); 
+    assign rd_en = (state == READ); 
+    
+    input_decoder input_decoder_u(.*);
+    
+    llc_tag_t tags_buf[`LLC_WAYS];
+    llc_state_t states_buf[`LLC_WAYS];
+    hprot_t hprots_buf[`LLC_WAYS];
+    line_t lines_buf[`LLC_WAYS];
+    sharers_t sharers_buf[`LLC_WAYS];
+    owner_t owners_buf[`LLC_WAYS];
+    logic dirty_bits_buf[`LLC_WAYS];
+    llc_way_t evict_ways_buf; 
+
+    localmem localmem_u(.*);
+
+    always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_req_in <= 0; 
         end else if (llc_req_in_valid && llc_req_in_ready) begin
@@ -77,7 +125,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_dma_req_in <= 0; 
         end else if (llc_dma_req_in_valid && llc_dma_req_in_ready) begin
@@ -85,7 +133,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
     
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_rsp_in <= 0; 
         end else if (llc_rsp_in_valid && llc_rsp_in_ready) begin
@@ -93,7 +141,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
     
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_mem_rsp <= 0; 
         end else if (llc_mem_rsp_valid && llc_mem_rsp_ready) begin
@@ -101,7 +149,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_rst_tb <= 0; 
         end else if (llc_rst_tb_valid && llc_rst_tb_ready) begin
@@ -110,7 +158,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
     
     logic rst_stall, clr_rst_stall, set_rst_stall;
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || set_rst_stall) begin 
             rst_stall <= 1'b1;
         end else if (clr_rst_stall) begin 
@@ -119,7 +167,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic flush_stall, clr_flush_stall, set_flush_stall; 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || clr_flush_stall) begin 
             flush_stall <= 1'b0; 
         end else if (set_flush_stall) begin 
@@ -128,7 +176,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic req_stall, clr_req_stall, set_req_stall; 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || clr_req_stall) begin 
             req_stall <= 1'b0; 
         end else if (set_req_stall) begin 
@@ -137,7 +185,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic req_in_stalled_valid, clr_req_in_stalled_valid, set_req_in_stalled_valid;  
-     always @(posedge clk or negedge rst) begin 
+     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || clr_req_in_stalled_valid) begin 
             req_in_stalled_valid <= 1'b0; 
         end else if (set_req_in_stalled_valid) begin 
@@ -147,7 +195,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     llc_set_t rst_flush_stalled_set;
     logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || clr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= 0; 
         end else if (incr_rst_flush_stalled_set) begin 
@@ -157,7 +205,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     line_addr_t dma_addr;
     logic update_dma_addr_from_req; 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req) begin 
@@ -166,7 +214,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic recall_pending, clr_recall_pending, set_recall_pending;    
-    always @(posedge_clk or negedge rst) begin 
+    always_ff @(posedge_clk or negedge rst) begin 
         if (!rst || clr_recall_pending) begin 
             recall_pending <= 1'b0;
         end else if (set_recall_pending) begin 
@@ -175,7 +223,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic dma_read_pending, clr_dma_read_pending, set_dma_read_pending;    
-    always @(posedge_clk or negedge rst) begin 
+    always_ff @(posedge_clk or negedge rst) begin 
         if (!rst || clr_dma_read_pending) begin 
             dma_read_pending <= 1'b0;
         end else if (set_dma_read_pending) begin 
@@ -184,7 +232,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic dma_write_pending, clr_dma_write_pending, set_dma_write_pending;    
-    always @(posedge_clk or negedge rst) begin 
+    always_ff @(posedge_clk or negedge rst) begin 
         if (!rst || clr_dma_write_pending) begin 
             dma_write_pending <= 1'b0;
         end else if (set_dma_write_pending) begin 
@@ -193,7 +241,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
     logic recall_valid, clr_recall_valid, set_recall_valid;    
-    always @(posedge_clk or negedge rst) begin 
+    always_ff @(posedge_clk or negedge rst) begin 
         if (!rst || clr_recall_valid) begin 
             recall_valid <= 1'b0;
         end else if (set_recall_valid) begin 

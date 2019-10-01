@@ -30,7 +30,7 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
     output owner_t rd_data_owner[`NUM_PORTS];
     output hprot_t rd_data_hprot[`NUM_PORTS];
     output logic rd_data_dirty_bit[`NUM_PORTS];
-    output llc_way_t rd_data_evict_way[`NUM_PORTS];
+    output llc_way_t rd_data_evict_way;
     output llc_state_t rd_data_state[`NUM_PORTS];
 
     owner_t rd_data_owner_tmp[`NUM_PORTS][`OWNER_BRAMS_PER_WAY];
@@ -39,7 +39,7 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
     logic rd_data_sharers_tmp[`NUM_PORTS][`DIRTY_BIT_BRAMS_PER_WAY]; 
     llc_state_t rd_data_state_tmp[`NUM_PORTS][`STATE_BRAMS_PER_WAY]; 
     llc_tag_t rd_data_tag_tmp[`NUM_PORTS][`TAG_BRAMS_PER_WAY]; 
-    llc_way_t rd_data_evict_way_tmp[`NUM_PORTS][`EVICT_WAY_BRAMS_PER_WAY]; 
+    llc_way_t rd_data_evict_way_tmp[`EVICT_WAY_BRAMS]; 
     sharers_t rd_data_line_tmp[`NUM_PORTS][`LINE_BRAMS_PER_WAY]; 
   
     //write enable decoder for ways 
@@ -48,7 +48,7 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
         for (int i = 0; i < `NUM_PORTS; i++) begin 
             wr_en_port[i] = 1'b0; 
             if (wr_way == i) begin 
-                wr_en_port[i] == 1'b1;
+                wr_en_port[i] == wr_en;
             end 
         end
     end
@@ -59,56 +59,56 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
     logic wr_en_dirty_bit_bank[`DIRTY_BIT_BRAMS_PER_WAY];
     logic wr_en_state_bank[`STATE_BRAMS_PER_WAY];
     logic wr_en_tag_bank[`TAG_BRAMS_PER_WAY];
-    logic wr_en_evict_way_bank[`EVICT_WAY_BRAMS_PER_WAY];
+    logic wr_en_evict_way[`EVICT_WAY_BRAMS_PER_WAY];
     logic wr_en_line_bank[`LINE_BRAMS_PER_WAY];
 
     always_comb begin 
             for (int j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin 
                 wr_en_owner_bank[j] = 1'b0;
                 if (`OWNER_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
-                    wr_en_owner_bank[j] = 1'b1;
+                    wr_en_owner_bank[j] = wr_en;
                 end
             end 
             for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
                 wr_en_sharers_bank[j] = 1'b0;
                 if (`SHARERS_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
-                    wr_en_sharers_bank[j] = 1'b1;
+                    wr_en_sharers_bank[j] = wr_en;
                 end
             end
             for (int j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin 
                 wr_en_hprot_bank[j] = 1'b0;
                 if (`HPROT_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
-                    wr_en_hprot_bank[j] = 1'b0;
+                    wr_en_hprot_bank[j] = wr_en;
                 end
             end 
             for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
                 wr_en_dirty_bit_bank[j] = 1'b0;
                 if (`DIRTY_BIT_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
-                    wr_en_dirty_bit_bank[j] = 1'b1;
+                    wr_en_dirty_bit_bank[j] = wr_en;
                 end
             end 
             for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
                 wr_en_state_bank[j] = 1'b0;
                 if (`STATE_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
-                    wr_en_state_bank[j] = 1'b1;
+                    wr_en_state_bank[j] = wr_en;
                 end
             end 
             for (int j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin 
                 wr_en_tag_bank[j] = 1'b0;
                 if (`TAG_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
-                    wr_en_tag_bank[j] = 1'b1;
+                    wr_en_tag_bank[j] = wr_en;
                 end
             end 
-            for (int j = 0; j < `EVICT_WAY_BRAMS_PER_WAY; j++) begin 
-                wr_en_evict_way_bank[j] = 1'b0;
-                if (`EVICT_WAY_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
-                    wr_en_evict_way_bank[j] = 1'b1;
+            for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
+                wr_en_evict_way[j] = 1'b0;
+                if (`EVICT_WAY_BRAMS == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
+                    wr_en_evict_way[j] = wr_en;
                 end
             end 
             for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
                 wr_en_line_bank[j] = 1'b0;
                 if (`LINE_BRAMS_PER_WAY == 1 || j == wr_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
-                    wr_en_line_bank[j] = 1'b1;
+                    wr_en_line_bank[j] = wr_en;
                 end
             end     
     end
@@ -213,22 +213,6 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
                     .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
                     .CE1(rd_en));
             end
-            //evict ways memory 
-            //need 2-5 bits for eviction  - 4096x4 BRAM
-            for (j = 0; j < `EVICT_WAY_BRAMS_PER_WAY; j++) begin
-                BRAM_4096x4 evict_way_bram( 
-                    .CLK(clk), 
-                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, rd_set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
-                    .D0(wr_data_evict_way), 
-                    .Q0(rd_data_evict_way_tmp[2*i][j]),
-                    .WE0(wr_en_port[2*i] & wr_en_evict_way_bank[j]),
-                    .CE0(rd_en),
-                    .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, rd_set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
-                    .D1(wr_data_evict_way), 
-                    .Q1(rd_data_evict_way_tmp[2*i+1][j]), 
-                    .WE1(wr_en_port[2*i+1] & wr_en_evict_way_bank[j]),
-                    .CE1(rd_en));
-            end
             //line memory 
             //128 bits - using 512x32 BRAM, need 4 BRAMs per line 
             for (j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
@@ -247,6 +231,22 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
                     .CE1(rd_en)); 
                 end
             end 
+        end
+            //evict ways memory 
+            //need 2-5 bits for eviction  - 4096x4 BRAM
+        for (j = 0; j < `EVICT_WAY_BRAMS; j++) begin
+            BRAM_4096x4 evict_way_bram( 
+                .CLK(clk), 
+                .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, rd_set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                .D0(wr_data_evict_way), 
+                .Q0(rd_data_evict_way_tmp[j]),
+                .WE0(wr_en_evict_way[j]),
+                .CE0(rd_en),
+                .A1(),
+                .D1(), 
+                .Q1(), 
+                .WE1(),
+                .CE1(1'b0));
         end
     endgenerate
 
@@ -282,17 +282,18 @@ module localmem (clk, rst, rd_set, rd_en, wr_addr, wr_data_line, wr_data_tag, wr
                     rd_data_tag[i] = rd_data_tag_tmp[i][j]; 
                 end
             end 
-            for (int j = 0; j < `EVICT_WAY_BRAMS_PER_WAY; j++) begin 
-                if (`EVICT_WAY_BRAMS_PER_WAY == 1 || j == rd_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
-                    rd_data_evict_way[i] = rd_data_evict_way_tmp[i][j]; 
-                end
-            end 
+            
             for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
                 if (`LINE_BRAMS_PER_WAY == 1 || j == rd_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
                     rd_data_line[i] = rd_data_line_tmp[i][j]; 
                 end
             end 
         end
+        for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
+            if (`EVICT_WAY_BRAMS == 1 || j == rd_set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin
+                rd_data_evict_way = rd_data_evict_way_tmp[j]; 
+            end
+        end 
     end
 
 endmodule

@@ -429,8 +429,9 @@
 `define TAG_BRAM_INDEX_BITS $clog2(TAG_BRAMS_PER_WAY)
 
 //assuming 16 or fewer ways - need to change this
-`define EVICT_WAY_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
-`define EVICT_WAY_BRAM_INDEX_BITS $clog2(EVICT_WAY_BRAMS_PER_WAY)
+//only need one entry per set
+`define EVICT_WAY_BRAMS $ceil(NUM_SETS / BRAM_SIZE_4_BITS)
+`define EVICT_WAY_BRAM_INDEX_BITS $clog2(EVICT_WAY_BRAMS)
 
 `define LINE_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_32_BITS / 2))
 
