@@ -47,6 +47,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
 
     always_comb begin 
         next_state = state;
+        decode_done = 1'b0;
         case(state) begin 
             IDLE: 
                 if (decode_en) begin 
@@ -58,6 +59,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
                 next_state = STALL;
             STALL:
                 next_state = IDLE;
+                decode_done = 1'b1; 
         endcase 
     end
 

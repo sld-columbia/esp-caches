@@ -106,16 +106,18 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     input_decoder input_decoder_u(.*);
     
-    llc_tag_t tags_buf[`LLC_WAYS];
-    llc_state_t states_buf[`LLC_WAYS];
-    hprot_t hprots_buf[`LLC_WAYS];
     line_t lines_buf[`LLC_WAYS];
+    llc_tag_t tags_buf[`LLC_WAYS];
     sharers_t sharers_buf[`LLC_WAYS];
     owner_t owners_buf[`LLC_WAYS];
+    hprot_t hprots_buf[`LLC_WAYS];
     logic dirty_bits_buf[`LLC_WAYS];
     llc_way_t evict_ways_buf; 
+    llc_state_t states_buf[`LLC_WAYS];
+    
+    localmem localmem_u(.*, .rd_data_line(lines_buf), .rd_data_tag(tags_buf), .rd_data_sharers(sharers_buf), .rd_data_owner(owners_buf), .rd_data_hprot(hprot), .rd_data_dirty_bit(dirty_bits_buf), .rd_data_evicty_way(evict_ways_buf), .rd_data_state(states_buf));
 
-    localmem localmem_u(.*);
+    process_response process_response_u();
 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
