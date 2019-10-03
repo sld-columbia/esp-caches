@@ -64,7 +64,7 @@
 `define MIX_MSG_TYPE_WIDTH	(COH_MSG_TYPE_WIDTH + DMA_MSG_TYPE_WIDTH)
 `define HSIZE_WIDTH		3
 // TODO: HPROT_WIDTH should be 1, but that triggers a bug of the memory generator
-`define HPROT_WIDTH		2
+`define HPROT_WIDTH	    1	
 `define INVACK_CNT_WIDTH	MAX_N_L2_BITS
 `define INVACK_CNT_CALC_WIDTH   (INVACK_CNT_WIDTH + 1)
 `define CACHE_ID_WIDTH          MAX_N_L2_BITS

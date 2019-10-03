@@ -18,34 +18,7 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
     output llc_way_t way;
     output logic evict;  
 
-    //STATE LOGIC
-    localparam IDLE = 1'b0;
-    localparam LOOKUP = 1'b1; 
-    logic state, next_state;
     
-    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
-            state <= IDLE;
-        end else begin
-            state <= LOOKUP; 
-        end
-    end
-
-    always_comb begin 
-        next_state = state; 
-        case (state) begin 
-            IDLE: 
-                if (lookup_en) begin 
-                    next_state = LOOKUP; 
-                end
-            LOOKUP: 
-                next_state = IDLE; 
-        endcase
-    end
-
-    logic st_lookup;
-    assign st_lookup = (state == LOOKUP); 
-
     //LOOKUP
     logic [`LLC_WAYS - 1:0] tag_hits_tmp, empty_ways_tmp, evict_valid_tmp, evict_not_sd_tmp; 
     llc_way_t way_tmp;
@@ -152,7 +125,7 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
         if (!rst) begin 
             way <= 0; 
             evict >= 1'b0; 
-        end else if (st_lookup) begin
+        end else if (lookup_en) begin
             way <= way_next;
             evict <= evict_next;
         end 

@@ -106,18 +106,90 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     input_decoder input_decoder_u(.*);
     
+    line_t rd_data_line[`LLC_WAYS];
+    llc_tag_t rd_data_tag[`LLC_WAYS];
+    sharers_t rd_data_sharers[`LLC_WAYS];
+    owner_t rd_data_owner[`LLC_WAYS];
+    hprot_t rd_data_hprot[`LLC_WAYS];
+    logic rd_data_dirty_bit[`LLC_WAYS];
+    llc_way_t rd_data_evict_way; 
+    llc_state_t rd_data_state[`LLC_WAYS];
+
     line_t lines_buf[`LLC_WAYS];
     llc_tag_t tags_buf[`LLC_WAYS];
     sharers_t sharers_buf[`LLC_WAYS];
     owner_t owners_buf[`LLC_WAYS];
     hprot_t hprots_buf[`LLC_WAYS];
     logic dirty_bits_buf[`LLC_WAYS];
-    llc_way_t evict_ways_buf; 
+    llc_way_t evict_way_buf; 
     llc_state_t states_buf[`LLC_WAYS];
-    
-    localmem localmem_u(.*, .rd_data_line(lines_buf), .rd_data_tag(tags_buf), .rd_data_sharers(sharers_buf), .rd_data_owner(owners_buf), .rd_data_hprot(hprot), .rd_data_dirty_bit(dirty_bits_buf), .rd_data_evicty_way(evict_ways_buf), .rd_data_state(states_buf));
 
-    process_response process_response_u();
+
+    //read into buffers
+    always @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            evict_ways_buf <= 0; 
+        end else if (rd_en) begin 
+            evict_way_buf <= rd_data_evict_way;
+        end else if (wr_en_evict_way_buf) begin 
+            evict_way_buf <= evict_way_buf_wr_data; 
+        end
+        for (int i = 0; i < `LLC_WAYS; i++) begin 
+            if (!rst) begin
+                lines_buf[i] <= 0; 
+            end else if (rd_en) begin 
+                lines_buf[i] <= rd_data_line[i];
+            end else if (wr_en_lines_buf && (wr_way == i)) begin 
+                lines_buf[i] <= lines_buf_wr_data;
+   
+            if (!rst) begin 
+                tags_buf[i] <= 0;
+            end else if (rd_en) 
+                tags_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_tags_buf && (wr_way == i)) begin 
+                tags_buf[i] <= tags_buf_wr_data;
+     
+           if (!rst) begin 
+                sharers_buf[i] <= 0;
+            end else if (rd_en) 
+                sharers_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_sharers_buf && (wr_way == i)) begin 
+                sharers_buf[i] <= sharers_buf_wr_data;
+
+           if (!rst) begin 
+                owners_buf[i] <= 0;
+            end else if (rd_en) 
+                owners_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_owners_buf && (wr_way == i)) begin 
+                owners_buf[i] <= owners_buf_wr_data;
+
+            if (!rst) begin 
+                hprots_buf[i] <= 0;
+            end else if (rd_en) 
+                hprots_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_hprots_buf && (wr_way == i)) begin 
+                hprots_buf[i] <= hprots_buf_wr_data;
+            
+            if (!rst) begin 
+                dirty_bits_buf[i] <= 0;
+            end else if (rd_en) 
+                dirty_bits_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_dirty_bits_buf && (wr_way == i)) begin 
+                dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
+            
+            if (!rst) begin 
+                states_buf[i] <= 0;
+            end else if (rd_en) 
+                states_buf[i] <= rd_data_tag[i]; 
+            end else if (wr_en_states_buf && (wr_way == i)) begin 
+                states_buf[i] <= states_buf_wr_data;
+
+       end
+    end
+
+    localmem localmem_u(.*);
+
+    process_response process_response_u(.*);
 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
