@@ -85,15 +85,13 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         next_state = state; 
         case(state) begin 
             DECODE :   
-                if (decode_done && look) begin
-                    next_state = READ;
-                end else if (decode_done) begin 
-                    next_state = PROCESS;
-                end
+                next_state = READ;
             READ : 
                 next_state = PROCESS; 
             PROCESS : 
-                next_state = UPDATE; 
+                if (process_done) begin 
+                    next_state = UPDATE; 
+                end
             UPDATE : 
                 next_state = DECODE; 
         endcase
@@ -103,7 +101,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic decode_en, rd_en, look; 
     assign decode_en = (state == DECODE); 
     assign rd_en = (state == READ); 
-    
+    assign update_en = (state == UPDATE); 
+
     input_decoder input_decoder_u(.*);
     
     line_t rd_data_line[`LLC_WAYS];
@@ -326,5 +325,54 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     //@TODO
     llc_set_t req_in_stalled_set; 
     llc_tag_t req_in_stalled_tag; 
+
+    //update cache
+    logic update_ecivt_way;
+    logic wr_rst_flush[`NUM_PORTS];
+    always_comb begin 
+        wr_rst_flush = {`NUM_PORTS{1'b0}};
+        wr_data_state = 0;
+        wr_data_dirty_bit = 1'b0; 
+        wr_data_sharers = 0;
+        wr_data_evict_way = 0;
+        wr_data_tag = 0; 
+        wr_data_hprot = 0; 
+        wr_data_owner = 0; 
+        wr_data_evict_way = 0; 
+        wr_en = 1'b0; 
+        wr_en_evict_way = 1'b0;
+        if (update_en) begin 
+            if (is_rst_to_resume) begin 
+                wr_rst_flush  = {`NUM_PORTS{1'b1}};
+                wr_data_state = `INVALID;
+                wr_data_dirty_bit = 1'b0; 
+                wr_data_sharers = 0; 
+                wr_data_evict_way = 0; 
+                wr_en_evict_way = 1'b1;
+            end else if (is_flush_to_resume) begin 
+                wr_data_state = `INVALID;
+                wr_data_dirty_bit = 1'b0; 
+                wr_data_sharers = 0; 
+                wr_data_evict_way = 0; 
+                for (int cur_way = 0; cur_way < `LLC_WAYS; cur_way++) begin 
+                    if (states_buf[cur_way] == `VALID && hprots_buf[cur_way] == `DATA) begin 
+                        wr_rst_flush[i] = 1'b1; 
+                    end
+                end
+            end else if (is_rsp_to_get || is_req_to_get || is_dma_req_to get
+                         is_dma_read_to_resume || is_dma_write_to_resume) begin 
+                wr_en = 1'b1; 
+                wr_data_tag = tags_buf[way]; 
+                wr_data_state = states_buf[way];
+                wr_data_line = lines_buf[way];  
+                wr_data_hprots = hprot_buf[way]; 
+                wr_data_owners = owners_buf[way]; 
+                wr_data_sharers = sharers_buf[way]; 
+                wr_data_dirty_bit = dirty_bits_buf[way];i
+                wr_data_evict_way = evict_ways_buf;
+                wr_en_evict_way = update_evict_ways;
+            end
+        end
+    end
 
 endmodule
