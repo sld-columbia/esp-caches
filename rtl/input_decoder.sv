@@ -40,13 +40,11 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
            can_get_rsp_in <= 1'b0; 
            can_get_req_in <= 1'b0; 
            can_get_dma_req_in <= 1'b0; 
-           req_in_stalled_valid <= 1'b0;
         end else if begin 
            can_get_rst_tb <= llc_rst_tb_valid; 
            can_get_rsp_in <= llc_rsp_in_valid; 
            can_get_req_in <= llc_req_in_valid; 
            can_get_dma_req_in <= llc_dma_req_in_valid;
-           req_in_stalled_valid <= req_in_stalled_valid_next;
         end
     end
    
@@ -55,14 +53,10 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
     logic is_rst_to_resume_next, is_flush_to_resume_next, is_dma_read_to_resume_next, is_dma_write_to_resume_next;
     logic is_rst_to_get_next, is_rsp_to_get_next,  is_req_to_get_next, is_dma_req_to_get_next; 
     logic do_get_req_next, do_get_dma_req_next; 
-    logic update_req_in_from_stalled_next, clr_req_in_stalled_valid_next; 
     
     llc_addr_t addr_for_set; 
     line_breakdown_llc_t line_br_next; 
 
-    logic update_dma_addr_from_req_next; 
-    logic incr_rst_flush_stalled_set_next; 
-    logic clr_rst_stall_next, clr_flush_stall_next, clr_req_stall_next;
 
     always_comb begin  
         is_rst_to_resume_next =  1'b0; 
@@ -75,8 +69,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
         is_dma_write_to_resume_next = 1'b0; 
         do_get_req_next = 1'b0; 
         do_get_dma_req_next = 1'b0;  
-        update_req_in_from_stalled_next = 1'b0;
-        clr_req_in_stalled_valid_next = 1'b0;
+        update_req_in_from_stalled = 1'b0;
+        clr_req_in_stalled_valid = 1'b0;
 
         //decoder logic
         if (recall_pending) begin 
@@ -101,8 +95,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
             is_rsp_to_get_next =  1'b1;
         end else if ((can_get_req_in &&  !req_stall)  ||  (!req_stall  && req_in_stalled_valid)) begin 
             if (req_in_stalled_valid) begin 
-                clr_req_in_stalled_valid_next = 1'b1;
-                update_req_in_from_stalled_next = 1'b1;   
+                clr_req_in_stalled_valid = 1'b1;
+                update_req_in_from_stalled = 1'b1;   
             end else
                 do_get_req_next = 1'b1;
             end
@@ -121,35 +115,35 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
 
         //multiplex addr bits
         addr_for_set = {`LLC_ADDR_BITS{1'b0}};
-        update_dma_addr_from_req_next = 1'b0;
+        update_dma_addr_from_req = 1'b0;
         if (is_rsp_to_get) begin 
             addr_for_set = rsp_in_addr; 
         end else if (is_req_to_get) begin 
             addr_for_set = req_in_addr;
         end else if (is_dma_req_to_get  || is_dma_read_to_resume || is_dma_write_to_resume) begin 
             addr_for_set = is_dma_req_to_get ? dma_req_in_addr : dma_addr; 
-            update_dma_addr_from_req_next = 1'b0;
+            update_dma_addr_from_req = 1'b1;
         end
         
         line_br_next.tag = addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS];
         line_br_next.set = addr_for_set[(`LLC_SET_BITS - 1):0]; 
 
         //set stall signals
-        incr_rst_flush_stalled_set_next = 1'b0;
-        clr_rst_stall_next = 1'b0;
-        clr_flush_stall_next = 1'b0; 
-        clr_req_stall_next = 1'b0;
+        incr_rst_flush_stalled_set = 1'b0;
+        clr_rst_stall = 1'b0;
+        clr_flush_stall = 1'b0; 
+        clr_req_stall = 1'b0;
         if (is_flush_to_resume || is_rst_to_resume) begin 
-            incr_rst_flush_stalled_set_next = 1'b1;
+            incr_rst_flush_stalled_set = 1'b1;
             if (rst_flush_stalled_set == {`LLC_SET_BITS{1'b1}}) begin 
-                clr_rst_stall_next  =  1'b1; 
-                clr_flush stall = 1'b1; 
+                clr_rst_stall  =  1'b1; 
+                clr_flush_stall = 1'b1; 
             end    
         end else if (is_rsp_to_get) begin 
             if ((req_stall == 1'b1) 
                 && (line_br.tag  == req_in_stalled_tag) 
                 && (line_br.set == req_in_stalled_set)) begin 
-                clr_req_stall_next = 1'b1;
+                clr_req_stall = 1'b1;
             end
         end
     end
@@ -167,15 +161,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
             is_dma_write_to_resume <= 1'b0;  
             do_get_req <= 1'b0;
             do_get_dma_req <= 1'b0;
-            clr_req_in_stalled_valid <= 1'b0; 
-            update_req_in_from_stalled <= 1'b0; 
             line_br.tag <= 0; 
             line_br.set <= 0;
-            update_dma_addr_from_req <= 1'b0;
-            incr_rst_flush_stalled_set <= 1'b0;
-            clr_rst_stall <= 1'b0; 
-            clr_flush_stall <= 1'b0; 
-            clr_req_stall <= 1'b0; 
         end else if (decode_en) begin 
             is_rst_to_resume <= is_rst_to_resume_next; 
             is_flush_to_resume <= is_flush_to_resume_next; 
@@ -187,15 +174,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
             is_dma_write_to_resume <= is_dma_write_to_resume_next; 
             do_get_req <= do_get_req_next;
             do_get_dma_req <= do_get_dma_req_next;
-            clr_req_in_stalled_valid <= clr_req_in_stalled_valid_next; 
-            update_req_in_from_stalled <= update_req_in_from_stalled_next;  
             line_br.tag <= line_br_next.tag;
             line_br.set <= line_br_next.set;
-            update_dma_addr_from_req <= update_dma_addr_from_req_next; 
-            incr_rst_flush_stalled_set <= incr_rst_flush_stalled_set_next; 
-            clr_rst_stall <= clr_rst_stall_next;
-            clr_flush_stall <= clr_flush_stall_next;
-            clr_req_stall <= clr_req_stall_next;
         end
     end
 
