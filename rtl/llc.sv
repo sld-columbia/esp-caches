@@ -322,9 +322,18 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    //@TODO
     llc_set_t req_in_stalled_set; 
     llc_tag_t req_in_stalled_tag; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            req_in_stalled_set <= 0; 
+            req_in_stalled_tag <= 0; 
+        end else if (update_req_in_stalled) begin 
+            req_in_stalled_set <= line_br.set; 
+            req_in_stalled_tag <= line_br.tag;
+        end
+    end
+
 
     //update cache
     logic update_ecivt_way;
