@@ -1,6 +1,6 @@
 #include "llc_wrap.h"
 
-llc_wrapper_conv::thread_llc_req_in_data_conv(){
+void llc_wrapper_conv::thread_llc_req_in_data_conv(){
     llc_req_in_t tmp = llc_req_in.data.read();
     llc_req_in_data_conv_coh_msg = tmp.coh_msg;
     llc_req_in_data_conv_hprot = tmp.hprot;
@@ -11,7 +11,7 @@ llc_wrapper_conv::thread_llc_req_in_data_conv(){
     llc_req_in_data_conv_valid_words = tmp.valid_words;
 }
 
-llc_wrapper_conv::thread_llc_dma_req_in_data_conv(){
+void llc_wrapper_conv::thread_llc_dma_req_in_data_conv(){
     llc_req_in_t tmp = llc_dma_req_in.data.read();
     llc_dma_req_in_data_conv_coh_msg = tmp.coh_msg;
     llc_dma_req_in_data_conv_hprot = tmp.hprot;
@@ -22,7 +22,7 @@ llc_wrapper_conv::thread_llc_dma_req_in_data_conv(){
     llc_dma_req_in_data_conv_valid_words = tmp.valid_words;
 }
 
-llc_wrapper_conv::thread_llc_rsp_in_data_conv(){
+void llc_wrapper_conv::thread_llc_rsp_in_data_conv(){
     llc_rsp_in_t tmp = llc_rsp_in.data.read();
     llc_rsp_in_data_conv_coh_msg = tmp.coh_msg;
     llc_rsp_in_data_conv_addr = tmp.addr;
@@ -30,16 +30,16 @@ llc_wrapper_conv::thread_llc_rsp_in_data_conv(){
     llc_rsp_in_data_conv_req_id = tmp.req_id;
 }
 
-llc_wrapper_conv::thread_llc_mem_rsp_data_conv(){
+void llc_wrapper_conv::thread_llc_mem_rsp_data_conv(){
     llc_mem_rsp_t tmp = llc_mem_rsp.data.read();
     llc_mem_rsp_data_conv_line = tmp.line;
 }
 
-llc_wrapper_conv::thread_llc_rst_tb_data_conv(){
+void llc_wrapper_conv::thread_llc_rst_tb_data_conv(){
     llc_rst_tb_data_conv = llc_rst_tb.data.read();
 }
 
-llc_wrapper_conv::thread_llc_rsp_out_data_conv(){
+void llc_wrapper_conv::thread_llc_rsp_out_data_conv(){
     llc_rsp_out_t tmp;
     tmp.coh_msg = llc_rsp_out_data_conv_coh_msg.read();
     tmp.addr = llc_rsp_out_data_conv_addr.read();
@@ -51,7 +51,7 @@ llc_wrapper_conv::thread_llc_rsp_out_data_conv(){
     llc_rsp_out.data.write(tmp);
 }
 
-llc_wrapper_conv::thread_llc_dma_rsp_out_data_conv(){
+void llc_wrapper_conv::thread_llc_dma_rsp_out_data_conv(){
     llc_rsp_out_t tmp;
     tmp.coh_msg = llc_dma_rsp_out_data_conv_coh_msg.read();
     tmp.addr = llc_dma_rsp_out_data_conv_addr.read();
@@ -63,7 +63,7 @@ llc_wrapper_conv::thread_llc_dma_rsp_out_data_conv(){
     llc_dma_rsp_out.data.write(tmp);
 }
 
-llc_wrapper_conv::thread_llc_fwd_out_data_conv(){
+void llc_wrapper_conv::thread_llc_fwd_out_data_conv(){
     llc_fwd_out_t tmp; 
     tmp.coh_msg = llc_fwd_out_data_conv_coh_msg.read();
     tmp.addr = llc_fwd_out_data_conv_addr.read();
@@ -72,7 +72,7 @@ llc_wrapper_conv::thread_llc_fwd_out_data_conv(){
     llc_fwd_out.data.write(tmp);
 }
 
-llc_wrapper_conv::thread_llc_mem_req_data_conv(){
+void llc_wrapper_conv::thread_llc_mem_req_data_conv(){
     llc_mem_req_t tmp;
     tmp.hwrite = llc_mem_req_data_conv_hwrite.read();
     tmp.hsize = llc_mem_req_data_conv_hsize.read();
@@ -82,16 +82,16 @@ llc_wrapper_conv::thread_llc_mem_req_data_conv(){
     llc_mem_req.data.write(tmp);
 }
 
-llc_wrapper_conv::thread_llc_rst_tb_done_data_conv(){
+void llc_wrapper_conv::thread_llc_rst_tb_done_data_conv(){
     bool tmp = llc_rst_tb_done_data_conv.read();
     llc_rst_tb_done.data.write(tmp);
 }
 
 #ifdef STATS_ENABLE
-llc_wrapper_conv::thread_llc_stats_data_conv(){
+void llc_wrapper_conv::thread_llc_stats_data_conv(){
     bool tmp = llc_stats_data_conv.read();
     llc_stats.data.write(tmp);
 }
 #endif
 
-NCSC_MODULE_EXPORT(llc_wrapper_conv); 
+NCSC_MODULE_EXPORT(llc_wrapper_conv) 

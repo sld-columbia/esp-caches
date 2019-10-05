@@ -8,7 +8,6 @@
 
 class llc_wrapper : public ncsc_foreign_module 
 {
-
 public:
     sc_in<bool> clk;
     sc_in<bool> rst;
@@ -178,12 +177,12 @@ public:
 #endif
 {}
 
-        cost char* hdl_name() const { return "llc_wrapper"; }
+        const char* hdl_name() const { return "llc_wrapper"; }
 };
 
 class llc_wrapper_conv : public sc_module 
 {
-public 
+public: 
     sc_in<bool> clk;
     sc_in<bool> rst;
 
@@ -216,16 +215,53 @@ public
         , llc_fwd_out("llc_fwd_out")
         , llc_mem_req("llc_mem_req")
         , llc_rst_tb_done("llc_rst_tb_done")
-        , llc_req_in_data_conv("llc_req_in_data_conv") 
-        , llc_dma_req_in_data_conv("llc_dma_req_in_data_conv")
-        , llc_rsp_in_data_conv("llc_rsp_in_data_conv") 
-        , llc_mem_rsp_data_conv("llc_mem_rsp_data_conv") 
-        , llc_rst_tb_data_conv("llc_rst_tb_data_conv") 
-        , llc_rsp_out_data_conv("llc_rsp_out_data_conv")
-        , llc_dma_rsp_out_data_conv("llc_dma_rsp_out_data_conv")
-        , llc_fwd_out_data_conv("llc_fwd_out_data_conv")
-        , llc_mem_req_data_conv("llc_mem_req_data_conv") 
-        , llc_rst_tb_done_data_conv("llc_rst_tb_done_data_conv") 
+        , llc_req_in_data_conv_coh_msg("llc_req_in_data_conv_coh_msg")
+        , llc_req_in_data_conv_hprot("llc_req_in_data_conv_hprot")
+        , llc_req_in_data_conv_addr("llc_req_in_data_conv_addr")
+        , llc_req_in_data_conv_line("llc_req_in_data_conv_line")
+        , llc_req_in_data_conv_req_id("llc_req_in_data_conv_req_id")
+        , llc_req_in_data_conv_word_offset("llc_req_in_data_conv_word_offset")
+        , llc_req_in_data_conv_valid_words("llc_req_in_data_conv_valid_words")
+        , llc_dma_req_in_data_conv_coh_msg("llc_dma_req_in_data_conv_coh_msg")
+        , llc_dma_req_in_data_conv_hprot("llc_dma_req_in_data_conv_hprot")
+        , llc_dma_req_in_data_conv_addr("llc_dma_req_in_data_conv_addr")
+        , llc_dma_req_in_data_conv_line("llc_dma_req_in_data_conv_line")
+        , llc_dma_req_in_data_conv_req_id("llc_dma_req_in_data_conv_req_id")
+        , llc_dma_req_in_data_conv_word_offset("llc_dma_req_in_data_conv_word_offset")
+        , llc_dma_req_in_data_conv_valid_words("llc_dma_req_in_data_conv_valid_words")
+        , llc_rsp_in_data_conv_coh_msg("llc_rsp_in_data_conv_coh_msg")
+        , llc_rsp_in_data_conv_addr("llc_rsp_in_data_conv_addr")
+        , llc_rsp_in_data_conv_line("llc_rsp_in_data_conv_line")
+        , llc_rsp_in_data_conv_req_id("llc_rsp_in_data_conv_req_id")
+        , llc_mem_rsp_data_conv_line("llc_mem_rsp_data_conv_line")
+        , llc_rst_tb_data_conv("llc_rst_tb_data_conv")
+        , llc_rsp_out_data_conv_coh_msg("llc_rsp_out_data_conv_coh_msg")
+        , llc_rsp_out_data_conv_addr("llc_rsp_out_data_conv_addr")
+        , llc_rsp_out_data_conv_line("llc_rsp_out_data_conv_line")
+        , llc_rsp_out_data_conv_invack_cnt("llc_rsp_out_data_conv_invack_cnt")
+        , llc_rsp_out_data_conv_req_id("llc_rsp_out_data_conv_req_id")
+        , llc_rsp_out_data_conv_dest_id("llc_rsp_out_data_conv_dest_id")
+        , llc_rsp_out_data_conv_word_offset("llc_rsp_out_data_conv_word_offset")
+        , llc_dma_rsp_out_data_conv_coh_msg("llc_dma_rsp_out_data_conv_coh_msg")
+        , llc_dma_rsp_out_data_conv_addr("llc_dma_rsp_out_data_conv_addr")
+        , llc_dma_rsp_out_data_conv_line("llc_dma_rsp_out_data_conv_line")
+        , llc_dma_rsp_out_data_conv_invack_cnt("llc_dma_rsp_out_data_conv_invack_cnt")
+        , llc_dma_rsp_out_data_conv_req_id("llc_dma_rsp_out_data_conv_req_id")
+        , llc_dma_rsp_out_data_conv_dest_id("llc_dma_rsp_out_data_conv_dest_id")
+        , llc_dma_rsp_out_data_conv_word_offset("llc_dma_rsp_out_data_conv_word_offset")
+        , llc_fwd_out_data_conv_coh_msg("llc_fwd_out_data_conv_coh_msg")
+        , llc_fwd_out_data_conv_addr("llc_fwd_out_data_conv_addr")
+        , llc_fwd_out_data_conv_req_id("llc_fwd_out_data_conv_req_id")
+        , llc_fwd_out_data_conv_dest_id("llc_fwd_out_data_conv_dest_id")
+        , llc_mem_req_data_conv_hwrite("llc_mem_req_data_conv_hwrite")
+        , llc_mem_req_data_conv_hsize("llc_mem_req_data_conv_hsize")
+        , llc_mem_req_data_conv_hprot("llc_mem_req_data_conv_hprot")
+        , llc_mem_req_data_conv_addr("llc_mem_req_data_conv_addr")
+        , llc_mem_req_data_conv_line("llc_mem_req_data_conv_line")
+        , llc_rst_tb_done_data_conv("llc_rst_tb_done_data_conv")
+#ifdef STATS_ENABLE
+        , llc_stats_data_conv("llc_stats_data_conv")
+#endif
         , cosim("cosim") 
     {
         SC_METHOD(thread_llc_req_in_data_conv);
@@ -242,7 +278,7 @@ public
         SC_METHOD(thread_llc_rsp_out_data_conv);
         sensitive << llc_rsp_out_data_conv_coh_msg << llc_rsp_out_data_conv_addr << llc_rsp_out_data_conv_line << llc_rsp_out_data_conv_invack_cnt 
                   << llc_rsp_out_data_conv_req_id << llc_rsp_out_data_conv_dest_id << llc_rsp_out_data_conv_word_offset;
-        SC_METHOD(thread_llc_dma_rsp_out_data_conv);i
+        SC_METHOD(thread_llc_dma_rsp_out_data_conv);
         sensitive << llc_dma_rsp_out_data_conv_coh_msg << llc_dma_rsp_out_data_conv_addr << llc_dma_rsp_out_data_conv_line << llc_dma_rsp_out_data_conv_invack_cnt 
                   << llc_dma_rsp_out_data_conv_req_id << llc_dma_rsp_out_data_conv_dest_id << llc_dma_rsp_out_data_conv_word_offset;
         SC_METHOD(thread_llc_fwd_out_data_conv);
@@ -286,7 +322,7 @@ public
         cosim.llc_mem_rsp_data_line(llc_mem_rsp_data_conv_line);
         cosim.llc_mem_rsp_ready(llc_mem_rsp.ready);
         cosim.llc_rst_tb_valid(llc_rst_tb.valid);
-        cosim.llc_rst_tb_data(llc_rst_tb_data_conv_;
+        cosim.llc_rst_tb_data(llc_rst_tb_data_conv);
         cosim.llc_rst_tb_ready(llc_rst_tb.ready);
         cosim.llc_rsp_out_valid(llc_rsp_out.valid);
         cosim.llc_rsp_out_data_coh_msg(llc_rsp_out_data_conv_coh_msg);
@@ -324,7 +360,7 @@ public
         cosim.llc_rst_tb_done_ready(llc_rst_tb_done.ready);
 #ifdef STATS_ENABLE
         cosim.llc_stats_valid (llc_stats.valid );
-        cosim.llc_stats_data(llc_stats_data_conv_;
+        cosim.llc_stats_data(llc_stats_data_conv);
         cosim.llc_stats_ready(llc_stats.ready);
 #endif
 
