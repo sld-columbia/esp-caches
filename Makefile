@@ -1,16 +1,19 @@
 FLAGS ?=
 FLAGS += -NOWarn SCK505
 FLAGS += -SCTOP sc_main
+FLAGS += -DCLOCK_PERIOD=12.5
 
 INCDIR ?=
 INCDIR += -I./rtl
 INCDIR += -I./sim
 INCDIR += -I./defs
+INCDIR += -I../esp/accelerators/common/syn-templates/
+INCDIR += -I../esp/systemc/common/caches
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
 
 SC_TB ?=
-SC_TB += src/llc_tb.cpp
-SC_TB += src/sc_main.cpp
+SC_TB += sim/llc_tb.cpp
+SC_TB += sim/sc_main.cpp
 
 #SC_SRC ?=
 #/SC_SRC += src/scc.cpp
