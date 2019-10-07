@@ -9,10 +9,7 @@ INCDIR += -I./sim
 INCDIR += -I../esp/accelerators/common/syn-templates/
 INCDIR += -I../esp/systemc/common/caches
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
-
-VINCDIR ?=
-VINCDIR += +incdir+rtl
-VINCDIR += +incdir+defs 
+INCDIR += +incdir+defs 
 
 SC_TB ?=
 SC_TB += sim/llc_tb.cpp
@@ -25,7 +22,9 @@ RTL_COSIM_SRC ?=
 RTL_COSIM_SRC += sim/llc_wrap.cpp
 
 RTL_SRC ?=
-RTL_SRC += rtl/llc_wrapper.sv
+RTL_SRC += rtl/*
+#RTL_SRC += rtl/llc_wrapper.sv
+#RTL_SRC += rtl/llc.sv
 
 #sc-sim-gui: $(SC_TB) $(SC_SRC)
 #	ncsc_run  $(INCDIR) $(FLAGS) -GUI $^
@@ -34,7 +33,7 @@ RTL_SRC += rtl/llc_wrapper.sv
 #	ncsc_run  $(INCDIR) $(FLAGS) $^
 
 rtl-sim: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
-	ncsc_run -DRTL_SIM $(VINCDIR) $(INCDIR) $(FLAGS) $^
+	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
 
 rtl-sim-gui: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^

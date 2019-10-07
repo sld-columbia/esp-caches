@@ -158,6 +158,16 @@ interface llc_mem_rsp_t;
     line_t line;
 endinterface
 
+interface line_breakdown_l2_t;
+    l2_tag_t tag;
+    l2_set_t set;
+endinterface
+
+interface line_breakdown_llc_t;
+    llc_tag_t tag;
+    llc_set_t set;
+endinterface
+
 /*
  * Ongoing transaction buffer tuypes
  */
@@ -383,14 +393,5 @@ public:
     }
 };
 */ 
-interface line_breakdown_l2_t;
-    l2_tag_t tag;
-    l2_set_t set;
-endinterface
-
-interface line_breakdown_llc_t;
-    llc_tag_t tag;
-    llc_set_t set;
-endinterface
 
 `endif // __CACHE_TYPES_HPP__

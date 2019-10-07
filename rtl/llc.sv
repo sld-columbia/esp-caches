@@ -337,7 +337,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     //update cache
     logic update_ecivt_way;
-    logic wr_rst_flush[`NUM_PORTS];
+    logic [(`NUM_PORTS-1):0] wr_rst_flush;
     always_comb begin 
         wr_rst_flush = {`NUM_PORTS{1'b0}};
         wr_data_state = 0;

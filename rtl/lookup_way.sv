@@ -6,7 +6,7 @@
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, way, evict); 
+module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_ways_buf, lookup_en, way, evict); 
     
     input logic clk, rst; 
     input llc_tag_t tag; 
@@ -46,9 +46,9 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
                 end 
                 
                 if (empty_ways_tmp[j] && empty_ways_tmp[j-1:0] == 0) begin 
-                    evict_way = j; 
+                    empty_way = j; 
                 end else begin 
-                    evict_way = {`LLC_WAYS{1'bZ}};
+                    empty_way = {`LLC_WAYS{1'bZ}};
                 end 
                 
                 if (evict_valid_tmp[j] && evict_valid_tmp[j-1:0] == 0) begin 
@@ -75,9 +75,9 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
         end 
         
         if (empty_ways_tmp[0]) begin 
-            evict_way = 0; 
+            empty_way = 0; 
         end else begin 
-            evict_way = {`LLC_WAYS{1'bZ}};
+            empty_way = {`LLC_WAYS{1'bZ}};
         end 
         
         if (evict_valid_tmp[0]) begin 
@@ -109,10 +109,10 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
             way_next = empty_way;
             evict_next = 1'b0; 
         end else if (evict_valid) begin 
-            way_next = evict_valid_way;
+            way_next = evict_way_valid;
             evict_next = 1'b1;
         end else if (evict_not_sd) begin 
-            way_next = evict_not_sd_way;
+            way_next = evict_way_not_sd;
             evict_next = 1'b1;
         end else begin 
             way_next = evict_ways_buf;
@@ -124,7 +124,7 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             way <= 0; 
-            evict <>= 1'b0; 
+            evict <= 1'b0; 
         end else if (lookup_en) begin
             way <= way_next;
             evict <= evict_next;

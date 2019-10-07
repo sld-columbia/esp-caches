@@ -6,10 +6,10 @@
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
 
-module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_valid, llc_dma_req_in_valid, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, update_req_in_from_stalled, llc_rst_tb_ready, llc_rsp_in_ready, llc_req_in_ready, llc_dma_req_in_ready, look, set, incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall); 
+module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, update_req_in_from_stalled, clr_req_in_stalled_valid, llc_rst_tb_ready, llc_rsp_in_ready, llc_req_in_ready, llc_dma_req_in_ready, look, set, incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall, update_dma_addr_from_req, line_br, is_rst_to_resume, is_flush_to_resume, is_dma_read_to_resume, is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get); 
    
     input logic clk, rst; 
-    input logic llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_valid, llc_dma_req_in_valid; 
+    input logic llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid; 
     input logic recall_pending, recall_valid;
     input logic dma_read_pending, dma_write_pending; 
     input logic flush_stall, rst_stall, req_stall; 
@@ -27,11 +27,11 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
     output logic incr_rst_flush_stalled_set; 
     output logic clr_rst_stall, clr_flush_stall, clr_req_stall;
     output logic update_dma_addr_from_req; 
-    output line_breakdown_llc_t line_br; 
+    line_breakdown_llc_t line_br; 
     output logic is_rst_to_resume, is_flush_to_resume, is_dma_read_to_resume, is_dma_write_to_resume;
-    output is_rst_to_get, is_rsp_to_get,  is_req_to_get, is_dma_req_to_get; 
+    output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get; 
 
-    //STATE LOGIC
+    //STATE LOGI
 
     logic can_get_rst_tb, can_get_rsp_in, can_get_req_in, can_get_dma_req_in; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -40,7 +40,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
            can_get_rsp_in <= 1'b0; 
            can_get_req_in <= 1'b0; 
            can_get_dma_req_in <= 1'b0; 
-        end else if begin 
+        end else begin 
            can_get_rst_tb <= llc_rst_tb_valid; 
            can_get_rsp_in <= llc_rsp_in_valid; 
            can_get_req_in <= llc_req_in_valid; 
@@ -55,8 +55,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
     logic do_get_req_next, do_get_dma_req_next; 
     
     llc_addr_t addr_for_set; 
-    line_breakdown_llc_t line_br_next; 
-
+    line_breakdown_llc_t line_br_next(); 
 
     always_comb begin  
         is_rst_to_resume_next =  1'b0; 
@@ -97,7 +96,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
             if (req_in_stalled_valid) begin 
                 clr_req_in_stalled_valid = 1'b1;
                 update_req_in_from_stalled = 1'b1;   
-            end else
+            end else begin
                 do_get_req_next = 1'b1;
             end
             is_req_to_get_next = 1'b1;
@@ -188,7 +187,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_vaild, llc_req_in_v
     assign look =  is_flush_to_resume | is_rsp_to_get | 
                    is_req_to_get | is_dma_req_to_get | 
                    (is_dma_read_to_resume & ~recall_pending) | 
-                   (is_dma_write_to_resule & ~recall_pendind); 
+                   (is_dma_write_to_resume & ~recall_pending); 
     
     assign set = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br.set; 
     
