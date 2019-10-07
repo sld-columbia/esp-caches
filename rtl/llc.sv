@@ -68,10 +68,11 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic llc_rst_tb; 
 
     //STATE MACHINE
-    localparam DECODE = 2'b00;
-    localparam READ = 2'b01; 
-    localparam PROCESS = 2'b11; 
-    localparam UPDATE = 2'b10; 
+    localparam DECODE = 3'b000;
+    localparam READ = 3'b001;
+    localparam LOOKUP = 3'b011; 
+    localparam PROCESS = 3'b010; 
+    localparam UPDATE = 3'b110; 
 
     logic[1:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -86,30 +87,31 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_comb begin 
         next_state = state; 
         case(state) 
-            DECODE : begin   
+            DECODE :  
                 next_state = READ;
-            end
-            READ : begin  
+            READ :   
+                next_state = LOOKUP;
+            LOOKUP : 
                 next_state = PROCESS; 
-            end
-            PROCESS : begin  
+            PROCESS :   
                 if (process_done) begin 
                     next_state = UPDATE; 
                 end
-            end
-            UPDATE : begin  
+            UPDATE :   
                 next_state = DECODE; 
-            end
         endcase
     end
 
 
     logic decode_en, rd_en, update_en; 
-    assign decode_en = (state == DECODE); 
+    assign decode_en = (state == DECODE);
+    assign lookup_en = (state == LOOKUP);  
     assign rd_en = (state == READ); 
     assign update_en = (state == UPDATE); 
 
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume; 
+    
+    line_breakdown_llc_t line_br();
     input_decoder input_decoder_u(.*);
     
     line_t rd_data_line[`LLC_WAYS];
@@ -141,7 +143,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic dirty_bits_buf_wr_data;
     state_t states_buf_wr_data;
     //read into buffers
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             evict_way_buf <= 0; 
         end else if (rd_en) begin 
@@ -207,11 +209,20 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             end
        end
     end
-
+    llc_set_t set_in, rd_set, set;     
+    assign set_in = rd_en ? rd_set : set;
+    read_set read_set_u(.*);
+     
     localmem localmem_u(.*);
 
     llc_way_t way;
-    process_response process_response_u(.*);
+    logic evict;
+    llc_tag_t tag; 
+    assign tag = line_br.tag;
+ 
+    lookup_way lookup_way_u(.*); 
+
+    //process_request process_request_u(.*);
 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 

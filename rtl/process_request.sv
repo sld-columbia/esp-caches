@@ -9,11 +9,10 @@
 module process_request(); 
     input logic clk, rst; 
     input llc_tag_t tag;
-    input llc_tag_t states_buf[`LLC_WAYS];
-    input llc_state_t states_buf[`LLC_WAYS];
     input llc_way_t evict_ways_buf;
     input logic process_en; 
 
+    input llc_way_t way
     input logic is_flush_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get; 
     input llc_set_t set;  
 
@@ -28,8 +27,7 @@ module process_request();
     output llc_mem_req_t llc_mem_req; 
     output logic llc_mem_req_valid; 
    
-    output llc_way_t way
-    output logic evict; 
+    
     output logic clr_flush_stall, clr_req_stall;
     output logic clr_rst_flush_stalled_set; 
     output logic set_recall_valid; 
@@ -46,7 +44,6 @@ module process_request();
 
     //STATE LOGIC
     localparam IDLE = 2'b00; 
-    localparam LOOKUP = 2'b10;
     localparam PROCESS_FLUSH_RESUME = 2'b11; 
     localparam PROCESS_RST = 2'b01;
     localparam PROCESS_RSP 
@@ -64,10 +61,6 @@ module process_request();
         next_state = state; 
         case (state) begin 
             IDLE: 
-                if (process_en) begin 
-                    next_state = LOOKUP;
-                end
-            LOOKUP: 
                 if (is_flush_to_resume) begin 
                     next_state = PROCESS_FLUSH_RESUME;
                 end else begin 

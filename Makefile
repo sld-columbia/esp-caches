@@ -22,7 +22,8 @@ RTL_COSIM_SRC ?=
 RTL_COSIM_SRC += sim/llc_wrap.cpp
 
 RTL_SRC ?=
-RTL_SRC += rtl/*
+RTL_SRC += rtl/llc_wrapper.sv rtl/llc.sv rtl/lookup_way.sv rtl/localmem.sv rtl/read_set.sv rtl/input_decoder.sv
+
 #RTL_SRC += rtl/llc_wrapper.sv
 #RTL_SRC += rtl/llc.sv
 
