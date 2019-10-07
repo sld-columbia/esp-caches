@@ -6,10 +6,13 @@ FLAGS += -DCLOCK_PERIOD=12.5
 INCDIR ?=
 INCDIR += -I./rtl
 INCDIR += -I./sim
-INCDIR += -I./defs
 INCDIR += -I../esp/accelerators/common/syn-templates/
 INCDIR += -I../esp/systemc/common/caches
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
+
+VINCDIR ?=
+VINCDIR += +incdir+rtl
+VINCDIR += +incdir+defs 
 
 SC_TB ?=
 SC_TB += sim/llc_tb.cpp
@@ -31,7 +34,7 @@ RTL_SRC += rtl/llc_wrapper.sv
 #	ncsc_run  $(INCDIR) $(FLAGS) $^
 
 rtl-sim: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
-	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
+	ncsc_run -DRTL_SIM $(VINCDIR) $(INCDIR) $(FLAGS) $^
 
 rtl-sim-gui: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^

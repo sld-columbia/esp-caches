@@ -359,7 +359,7 @@ public:
         cosim.llc_rst_tb_done_data(llc_rst_tb_done_data_conv);
         cosim.llc_rst_tb_done_ready(llc_rst_tb_done.ready);
 #ifdef STATS_ENABLE
-        cosim.llc_stats_valid (llc_stats.valid );
+        cosim.llc_stats_valid (llc_stats.valid);
         cosim.llc_stats_data(llc_stats_data_conv);
         cosim.llc_stats_ready(llc_stats.ready);
 #endif

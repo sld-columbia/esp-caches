@@ -25,7 +25,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_req_in_valid;
       output logic llc_req_in_ready;
             
-      llc_req_in_t llc_req_in_i;
+      llc_req_in_t llc_req_in_i();
       assign llc_req_in_i.coh_msg     = llc_req_in_data_coh_msg;
       assign llc_req_in_i.hprot       = llc_req_in_data_hprot;
       assign llc_req_in_i.addr        = llc_req_in_data_addr;
@@ -45,7 +45,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_dma_req_in_valid;
       output logic llc_dma_req_in_ready;
       
-      llc_req_in_t llc_dma_req_in_i;
+      llc_req_in_t llc_dma_req_in_i();
       assign llc_dma_req_in_i.coh_msg     = llc_dma_req_in_data_coh_msg;
       assign llc_dma_req_in_i.hprot       = llc_dma_req_in_data_hprot;
       assign llc_dma_req_in_i.addr        = llc_dma_req_in_data_addr;
@@ -62,7 +62,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_rsp_in_valid;
       output logic llc_rsp_in_ready;
      
-      llc_rsp_in_t llc_rsp_in_i;
+      llc_rsp_in_t llc_rsp_in_i();
       assign llc_rsp_in_i.coh_msg = llc_rsp_in_data_coh_msg;
       assign llc_rsp_in_i.addr    = llc_rsp_in_data_addr;
       assign llc_rsp_in_i.line    = llc_rsp_in_data_line;
@@ -73,7 +73,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_mem_rsp_valid;
       output logic llc_mem_rsp_ready;
       
-      llc_mem_rsp_t llc_mem_rsp_i;
+      llc_mem_rsp_t llc_mem_rsp_i();
       assign llc_mem_rsp_i.line = llc_mem_rsp_data_line;
       
       //llc rst tb
@@ -81,7 +81,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       input logic llc_rst_tb_data;
       output logic llc_rst_tb_ready;
       
-      logic llc_rst tb_i; 
+      logic llc_rst_tb_i; 
       assign llc_rst_tb_i = llc_rst_tb_data;
  
       //llc rsp out
@@ -95,7 +95,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output cache_id_t llc_rsp_out_data_dest_id;
       output word_offset_t llc_rsp_out_data_word_offset;
 
-      llc_rsp_out_t llc_rsp_out;
+      llc_rsp_out_t llc_rsp_out();
       assign llc_rsp_out.coh_msg     = llc_rsp_out_data_coh_msg;
       assign llc_rsp_out.addr        = llc_rsp_out_data_addr;
       assign llc_rsp_out.line        = llc_rsp_out_data_line;
@@ -115,7 +115,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output cache_id_t llc_dma_rsp_out_data_dest_id;
       output word_offset_t llc_dma_rsp_out_data_word_offset;
 
-      llc_rsp_out_t llc_dma_rsp_out;
+      llc_rsp_out_t llc_dma_rsp_out();
       assign llc_dma_rsp_out.coh_msg     = llc_dma_rsp_out_data_coh_msg;
       assign llc_dma_rsp_out.addr        = llc_dma_rsp_out_data_addr;
       assign llc_dma_rsp_out.line        = llc_dma_rsp_out_data_line;
@@ -132,7 +132,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output cache_id_t llc_fwd_out_data_req_id;
       output cache_id_t llc_fwd_out_data_dest_id;
       
-      llc_fwd_out_t llc_fwd_out; 
+      llc_fwd_out_t llc_fwd_out(); 
       assign llc_fwd_out.coh_msg = llc_fwd_out_data_coh_msg;
       assign llc_fwd_out.addr    = llc_fwd_out_data_addr;
       assign llc_fwd_out.req_id  = llc_fwd_out_data_req_id;
@@ -147,7 +147,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output line_addr_t llc_mem_req_data_addr;
       output line_t llc_mem_req_data_line;
 
-      llc_mem_req_t llc_mem_req;
+      llc_mem_req_t llc_mem_req();
       assign llc_mem_req.hwrite = llc_mem_req_data_hwrite;
       assign llc_mem_req.hsize  = llc_mem_req_data_hsize;
       assign llc_mem_req.hprot  = llc_mem_req_data_hprot;

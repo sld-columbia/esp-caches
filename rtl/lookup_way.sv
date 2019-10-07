@@ -124,7 +124,7 @@ module lookup_way (clk, rst, tags_buf, states_buf, evict_ways_buf, lookup_en, wa
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             way <= 0; 
-            evict >= 1'b0; 
+            evict <>= 1'b0; 
         end else if (lookup_en) begin
             way <= way_next;
             evict <= evict_next;

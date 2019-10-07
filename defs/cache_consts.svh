@@ -13,7 +13,7 @@
 
 // System configuration
 `define MAX_N_L2 16
-`define MAX_N_L2_BITS $clog2(MAX_N_L2)
+`define MAX_N_L2_BITS $clog2(`MAX_N_L2)
 
 /*
  * Caches
@@ -33,41 +33,41 @@
 `define WORD_BITS	2 // defined in l2,llc/stratus/project.tcl
 `endif
 
-`define OFFSET_BITS	(BYTE_BITS + WORD_BITS)
+`define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)
 
-`define LINE_RANGE_HI	(ADDR_BITS - 1)
-`define LINE_RANGE_LO	OFFSET_BITS
-`define TAG_RANGE_HI	LINE_RANGE_HI
-`define SET_RANGE_LO	LINE_RANGE_LO
-`define OFF_RANGE_HI	(OFFSET_BITS - 1)
+`define LINE_RANGE_HI	(`ADDR_BITS - 1)
+`define LINE_RANGE_LO	`OFFSET_BITS
+`define TAG_RANGE_HI	`LINE_RANGE_HI
+`define SET_RANGE_LO	`LINE_RANGE_LO
+`define OFF_RANGE_HI	(`OFFSET_BITS - 1)
 `define OFF_RANGE_LO	0
-`define W_OFF_RANGE_HI	OFF_RANGE_HI
-`define W_OFF_RANGE_LO	(OFFSET_BITS - WORD_BITS)
-`define B_OFF_RANGE_HI	(W_OFF_RANGE_LO - 1)
-`define B_OFF_RANGE_LO	OFF_RANGE_LO
+`define W_OFF_RANGE_HI	`OFF_RANGE_HI
+`define W_OFF_RANGE_LO	(`OFFSET_BITS - `WORD_BITS)
+`define B_OFF_RANGE_HI	(`W_OFF_RANGE_LO - 1)
+`define B_OFF_RANGE_LO	`OFF_RANGE_LO
 
-`define SET_OFFSET	(1 << OFFSET_BITS)
-`define WORD_OFFSET	(1 << BYTE_BITS)
-`define LINE_ADDR_BITS  (ADDR_BITS - SET_RANGE_LO)
+`define SET_OFFSET	(1 << `OFFSET_BITS)
+`define WORD_OFFSET	(1 << `BYTE_BITS)
+`define LINE_ADDR_BITS  (`ADDR_BITS - `SET_RANGE_LO)
 
 // Cache sizes
-`define BYTES_PER_WORD		(1 << BYTE_BITS)
-`define BITS_PER_WORD		(BYTES_PER_WORD << 3)
-`define BITS_PER_HALFWORD	(BITS_PER_WORD >> 1)
-`define BITS_PER_LINE		(BITS_PER_WORD * WORDS_PER_LINE)
-`define WORDS_PER_LINE		(1 << WORD_BITS)
+`define BYTES_PER_WORD		(1 << `BYTE_BITS)
+`define BITS_PER_WORD		(`BYTES_PER_WORD << 3)
+`define BITS_PER_HALFWORD	(`BITS_PER_WORD >> 1)
+`define BITS_PER_LINE		(`BITS_PER_WORD * `WORDS_PER_LINE)
+`define WORDS_PER_LINE		(1 << `WORD_BITS)
 
 // Cache data types width
 `define CPU_MSG_TYPE_WIDTH	2
 `define COH_MSG_TYPE_WIDTH	2
 `define DMA_MSG_TYPE_WIDTH      1
-`define MIX_MSG_TYPE_WIDTH	(COH_MSG_TYPE_WIDTH + DMA_MSG_TYPE_WIDTH)
+`define MIX_MSG_TYPE_WIDTH	(`COH_MSG_TYPE_WIDTH + `DMA_MSG_TYPE_WIDTH)
 `define HSIZE_WIDTH		3
 // TODO: HPROT_WIDTH should be 1, but that triggers a bug of the memory generator
 `define HPROT_WIDTH	    1	
-`define INVACK_CNT_WIDTH	MAX_N_L2_BITS
-`define INVACK_CNT_CALC_WIDTH   (INVACK_CNT_WIDTH + 1)
-`define CACHE_ID_WIDTH          MAX_N_L2_BITS
+`define INVACK_CNT_WIDTH	`MAX_N_L2_BITS
+`define INVACK_CNT_CALC_WIDTH   (`INVACK_CNT_WIDTH + 1)
+`define CACHE_ID_WIDTH          `MAX_N_L2_BITS
 
 //
 // L2
@@ -81,14 +81,14 @@
 `define L2_SETS      256  // defined in l2/stratus/project.tcl
 `endif
 
-`define L2_WAY_BITS	$clog2(L2_WAYS)
-`define L2_SET_BITS	$clog2(L2_SETS)
-`define L2_LINES	(L2_SETS * L2_WAYS)
-`define L2_ADDR_BITS    (L2_SET_BITS+L2_WAY_BITS)
-`define L2_TAG_BITS	(ADDR_BITS - OFFSET_BITS - L2_SET_BITS)
-`define L2_TAG_RANGE_LO	(ADDR_BITS - L2_TAG_BITS)
-`define L2_SET_RANGE_HI	(L2_TAG_RANGE_LO - 1)
-`define L2_TAG_OFFSET	(1 << L2_TAG_RANGE_LO)
+`define L2_WAY_BITS	$clog2(`L2_WAYS)
+`define L2_SET_BITS	$clog2(`L2_SETS)
+`define L2_LINES	(`L2_SETS * `L2_WAYS)
+`define L2_ADDR_BITS    (`L2_SET_BITS+`L2_WAY_BITS)
+`define L2_TAG_BITS	(`ADDR_BITS - `OFFSET_BITS - `L2_SET_BITS)
+`define L2_TAG_RANGE_LO	(`ADDR_BITS - `L2_TAG_BITS)
+`define L2_SET_RANGE_HI	(`L2_TAG_RANGE_LO - 1)
+`define L2_TAG_OFFSET	(1 << `L2_TAG_RANGE_LO)
 
 // Ongoing transaction buffers
 `define N_REQS		4	// affects REQS_BITS
@@ -107,14 +107,14 @@
 `define LLC_SETS      256  // defined in l2/stratus/project.tcl
 `endif
 
-`define LLC_WAY_BITS		$clog2(LLC_WAYS)
-`define LLC_SET_BITS		$clog2(LLC_SETS)
-`define LLC_LINES		(LLC_SETS * LLC_WAYS)
-`define LLC_ADDR_BITS           (LLC_SET_BITS+LLC_WAY_BITS)
-`define LLC_TAG_BITS		(ADDR_BITS - OFFSET_BITS - LLC_SET_BITS)
-`define LLC_TAG_RANGE_LO	(ADDR_BITS - LLC_TAG_BITS)
-`define LLC_SET_RANGE_HI	(LLC_TAG_RANGE_LO - 1)
-`define LLC_TAG_OFFSET		(1 << LLC_TAG_RANGE_LO)
+`define LLC_WAY_BITS		$clog2(`LLC_WAYS)
+`define LLC_SET_BITS		$clog2(`LLC_SETS)
+`define LLC_LINES		(`LLC_SETS * `LLC_WAYS)
+`define LLC_ADDR_BITS           (`LLC_SET_BITS+`LLC_WAY_BITS)
+`define LLC_TAG_BITS		(`ADDR_BITS - `OFFSET_BITS - `LLC_SET_BITS)
+`define LLC_TAG_RANGE_LO	(`ADDR_BITS - `LLC_TAG_BITS)
+`define LLC_SET_RANGE_HI	(`LLC_TAG_RANGE_LO - 1)
+`define LLC_TAG_OFFSET		(1 << `LLC_TAG_RANGE_LO)
 `define LLC_LOOKUP_WAYS         16
 
 /*
@@ -257,17 +257,18 @@
 `define EXTERNAL 1
 `define DMA_UNROLL INTERNAL
 
-`if (DMA_UNROLL == EXTERNAL)
+//@TODO
+//`if (DMA_UNROLL == EXTERNAL)
 
-`define DMA_READ REQ_DMA_READ
-`define DMA_WRITE REQ_DMA_WRITE
+//`define DMA_READ REQ_DMA_READ
+//`define DMA_WRITE REQ_DMA_WRITE
 
-`elif (DMA_UNROLL == INTERNAL)
+//`elif (DMA_UNROLL == INTERNAL)
 
 `define DMA_READ REQ_DMA_READ_BURST
 `define DMA_WRITE REQ_DMA_WRITE_BURST
 
-`endif
+//`endif
 
 //
 // L2
@@ -402,38 +403,39 @@
 
 `define RPT_OFF 0
 `define RPT_ON  1
-`define RPT_TB  RPT_ON
-`define RPT_RTL RPT_ON
-`define RPT_BM  RPT_OFF
-`define RPT_CU  RPT_OFF
+`define RPT_TB  `RPT_ON
+`define RPT_RTL `RPT_ON
+`define RPT_BM  `RPT_OFF
+`define RPT_CU  `RPT_OFF
 
 //memory
 
-`define NUM_PORTS (NUM_WAYS > 16) ? 16 : ((NUM_WAYS > 8) ? 8 : 4)
+`define NUM_PORTS (`NUM_WAYS > 16) ? 16 : ((`NUM_WAYS > 8) ? 8 : 4)
 
 //each BRAM is split between 2 ways
 //each way has NUM_SETS entries
 //this is the number of banks needed to hold each way
 //@TODO make evict ways and tags flexible for size
-`define HPROT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
-`define HPROT_BRAM_INDEX_BITS $clog2(HPROT_BRAMS_PER_WAY)
-`define SHARERS_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_16_BITS / 2))
-`define SHARERS_BRAM_INDEX_BITS $clog2(SHARERS_BRAMS_PER_WAY)
-`define HPROT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_1_BIT / 2))
-`define HPROT_BRAM_INDEX_BITS $clog2(HPROT_BRAMS_PER_WAY)
-`define DIRTY_BIT_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_1_BIT / 2))
-`define DIRTY_BIT_BRAM_INDEX_BITS $clog2(DIRTY_BIT_BRAMS_PER_WAY)
-`define STATE_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_4_BITS / 2))
-`define STATE_BRAM_INDEX_BITS $clog2(STATE_BRAMS_PER_WAY)
-`define TAG_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_32_BITS / 2))
-`define TAG_BRAM_INDEX_BITS $clog2(TAG_BRAMS_PER_WAY)
+`define HPROT_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_4_BITS / 2))
+`define HPROT_BRAM_INDEX_BITS $clog2(`HPROT_BRAMS_PER_WAY)
+`define SHARERS_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_16_BITS / 2))
+`define SHARERS_BRAM_INDEX_BITS $clog2(`SHARERS_BRAMS_PER_WAY)
+`define OWNER_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_4_BITS / 2))
+`define OWNER_BRAM_INDEX_BITS $clog2(`OWNER_BRAMS_PER_WAY)
+`define DIRTY_BIT_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_1_BIT / 2))
+`define DIRTY_BIT_BRAM_INDEX_BITS $clog2(`DIRTY_BIT_BRAMS_PER_WAY)
+`define STATE_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_4_BITS / 2))
+`define STATE_BRAM_INDEX_BITS $clog2(`STATE_BRAMS_PER_WAY)
+`define TAG_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_32_BITS / 2))
+`define TAG_BRAM_INDEX_BITS $clog2(`TAG_BRAMS_PER_WAY)
 
 //assuming 16 or fewer ways - need to change this
 //only need one entry per set
-`define EVICT_WAY_BRAMS $ceil(NUM_SETS / BRAM_SIZE_4_BITS)
-`define EVICT_WAY_BRAM_INDEX_BITS $clog2(EVICT_WAY_BRAMS)
+`define EVICT_WAY_BRAMS $ceil(`NUM_SETS / `BRAM_SIZE_4_BITS)
+`define EVICT_WAY_BRAM_INDEX_BITS $clog2(`EVICT_WAY_BRAMS)
 
-`define LINE_BRAMS_PER_WAY $ceil(NUM_SETS / (BRAM_SIZE_32_BITS / 2))
+`define LINE_BRAMS_PER_WAY $ceil(`NUM_SETS / (`BRAM_SIZE_32_BITS / 2))
+`define LINE_BRAM_INDEX_BITS $clog2(`LINE_BRAMS_PER_WAY)
 
 //each line is 128 bits, so need to split data across multiple BRAMs
 `define BRAMS_PER_LINE `BITS_PER_LINE / 32
