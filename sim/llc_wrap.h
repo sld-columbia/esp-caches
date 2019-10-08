@@ -171,7 +171,7 @@ public:
         , llc_rst_tb_done_data("llc_rst_tb_done_data")
         , llc_rst_tb_done_ready("llc_rst_tb_done_ready")
 #ifdef STATS_ENABLE
-        , llc_stats_valid ("llc_stats_valid ")
+        , llc_stats_valid ("llc_stats_valid")
         , llc_stats_data("llc_stats_data")
         , llc_stats_ready("llc_stats_ready")
 #endif

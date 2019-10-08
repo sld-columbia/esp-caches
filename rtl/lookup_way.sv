@@ -35,64 +35,31 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_ways_buf, lookup_e
 
     //way priority encoder
     llc_way_t hit_way, empty_way, evict_way_valid, evict_way_not_sd;
-    genvar j; 
-    generate 
-        for (j = `LLC_WAYS-1; j > 0; j--) begin : gen_encoder
-            always_comb begin 
-                if (tag_hits_tmp[j] && tag_hits_tmp[j-1:0] == 0) begin 
-                    hit_way = j; 
-                end else begin 
-                    hit_way = {`LLC_WAYS{1'bZ}};
-                end 
-                
-                if (empty_ways_tmp[j] && empty_ways_tmp[j-1:0] == 0) begin 
-                    empty_way = j; 
-                end else begin 
-                    empty_way = {`LLC_WAYS{1'bZ}};
-                end 
-                
-                if (evict_valid_tmp[j] && evict_valid_tmp[j-1:0] == 0) begin 
-                    evict_way_valid = j; 
-                end else begin 
-                    evict_way_valid = {`LLC_WAYS{1'bZ}};
-                end 
-                
-                if (evict_not_sd_tmp[j] && evict_not_sd_tmp[j-1:0] == 0) begin 
-                    evict_way_not_sd = j; 
-                end else begin 
-                    evict_way_not_sd = {`LLC_WAYS{1'bZ}};
-                end 
-            end
+    always_comb begin 
+        hit_way = 0;
+        empty_way = 0; 
+        evict_way_valid = 0;
+        evict_way_not_sd = 0; 
+        for (int j = `LLC_WAYS-1; j >= 0; j--) begin 
+            if (tag_hits_tmp[j]) begin 
+                hit_way = j; 
+            end 
+
+            if (empty_ways_tmp[j]) begin 
+                empty_way = j; 
+            end 
+        
+            if (evict_valid_tmp[j]) begin 
+                evict_way_valid = j; 
+            end 
+        
+            if (evict_not_sd_tmp[j]) begin 
+                evict_way_not_sd = j; 
+            end 
         end
-    endgenerate
+    end
 
     //handle case for 0 bit
-    always_comb begin 
-       if (tag_hits_tmp[0]) begin 
-            hit_way = 0; 
-        end else begin 
-            hit_way = {`LLC_WAYS{1'bZ}};
-        end 
-        
-        if (empty_ways_tmp[0]) begin 
-            empty_way = 0; 
-        end else begin 
-            empty_way = {`LLC_WAYS{1'bZ}};
-        end 
-        
-        if (evict_valid_tmp[0]) begin 
-            evict_way_valid = 0; 
-        end else begin 
-            evict_way_valid = {`LLC_WAYS{1'bZ}};
-        end 
-        
-        if (evict_not_sd_tmp[0]) begin 
-            evict_way_not_sd = 0; 
-        end else begin 
-            evict_way_not_sd = {`LLC_WAYS{1'bZ}};
-        end  
-    end 
-    
     logic tag_hit, empty_way_found, evict_valid, evict_not_sd; 
     assign tag_hit = |tag_hits_tmp; 
     assign empty_way_found = |empty_ways_tmp;
