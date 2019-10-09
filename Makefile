@@ -5,7 +5,9 @@ FLAGS ?=
 FLAGS += -NOWarn SCK505
 FLAGS += -SCTOP sc_main
 FLAGS += -DCLOCK_PERIOD=12.5
+FLAGS += -DRTL_CACHE
 FLAGS += -TOP glbl
+FLAGS += -access +R
 
 INCDIR ?=
 INCDIR += -I./rtl
@@ -27,7 +29,8 @@ RTL_COSIM_SRC ?=
 RTL_COSIM_SRC += sim/llc_wrap.cpp
 
 RTL_SRC ?=
-RTL_SRC += rtl/llc_wrapper.sv rtl/llc.sv rtl/lookup_way.sv rtl/localmem.sv rtl/read_set.sv rtl/input_decoder.sv
+#RTL_SRC += rtl/llc_wrapper.sv rtl/llc.sv rtl/lookup_way.sv rtl/localmem.sv rtl/read_set.sv rtl/input_decoder.sv
+RTL_SRC += ./rtl/*.sv
 RTL_SRC += $(ESPROOT)/tech/virtex7/mem/*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/glbl.v
 RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v

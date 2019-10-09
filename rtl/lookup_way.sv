@@ -6,13 +6,13 @@
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_ways_buf, lookup_en, way, evict); 
+module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, evict); 
     
     input logic clk, rst; 
     input llc_tag_t tag; 
     input llc_tag_t tags_buf[`LLC_WAYS];
     input llc_state_t states_buf[`LLC_WAYS];
-    input llc_way_t evict_ways_buf;
+    input llc_way_t evict_way_buf;
     input logic lookup_en; 
 
     output llc_way_t way;
@@ -27,7 +27,7 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_ways_buf, lookup_e
             tag_hits_tmp[i] = (tags_buf[i] == tag && states_buf[i] != `INVALID);
             empty_ways_tmp[i] = (states_buf[i] == `INVALID); 
             
-            way_tmp = i + evict_ways_buf;
+            way_tmp = i + evict_way_buf;
             evict_valid_tmp[way_tmp] = (states_buf[way_tmp] == `VALID);
             evict_not_sd_tmp = (states_buf[way_tmp] != `SD); 
         end
@@ -82,7 +82,7 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_ways_buf, lookup_e
             way_next = evict_way_not_sd;
             evict_next = 1'b1;
         end else begin 
-            way_next = evict_ways_buf;
+            way_next = evict_way_buf;
             evict_next = 1'b1; 
         end 
     end

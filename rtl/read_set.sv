@@ -5,12 +5,12 @@
 // input_decoder.sv 
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
-module read_set (clk, rst, rd_en,  rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rd_set, set,  incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall, update_dma_addr_from_req, line_br, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall); 
+module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rd_set, set,  incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall, update_dma_addr_from_req, line_br, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall); 
 
     input logic clk, rst;
-    input logic rd_en;
+    input logic rd_set_en;
     input line_addr_t rsp_in_addr, req_in_addr, dma_req_in_addr;
-    input addr_t dma_addr; 
+    input line_addr_t dma_addr; 
     input llc_set_t rst_flush_stalled_set, req_in_stalled_set;
     input llc_tag_t req_in_stalled_tag; 
     input logic is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall;    
@@ -21,7 +21,7 @@ module read_set (clk, rst, rd_en,  rst_flush_stalled_set, req_in_stalled_set, re
     output logic update_dma_addr_from_req; 
     line_breakdown_llc_t line_br; 
     
-    llc_addr_t addr_for_set; 
+    line_addr_t addr_for_set; 
     line_breakdown_llc_t line_br_next(); 
 
     always_comb begin 
@@ -64,7 +64,7 @@ module read_set (clk, rst, rd_en,  rst_flush_stalled_set, req_in_stalled_set, re
         if (!rst) begin 
             line_br.tag <= 0; 
             line_br.set <= 0;
-        end else if (rd_en) begin 
+        end else if (rd_set_en) begin 
             line_br.tag <= line_br_next.tag;
             line_br.set <= line_br_next.set;
         end

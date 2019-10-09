@@ -74,7 +74,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     localparam PROCESS = 3'b010; 
     localparam UPDATE = 3'b110; 
 
-    logic[1:0] state, next_state; 
+    logic[2:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             state <= DECODE; 
@@ -92,7 +92,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             READ :   
                 next_state = LOOKUP;
             LOOKUP : 
-                next_state = PROCESS; 
+                next_state = PROCESS;
             PROCESS :   
                 if (process_done) begin 
                     next_state = UPDATE; 
@@ -103,15 +103,18 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
 
-    logic decode_en, rd_en, update_en; 
+    logic decode_en, rd_set_en, update_en; 
     assign decode_en = (state == DECODE);
     assign lookup_en = (state == LOOKUP);  
-    assign rd_en = (state == READ); 
+    assign rd_set_en = (state == READ); 
     assign update_en = (state == UPDATE); 
 
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume; 
     
     line_breakdown_llc_t line_br();
+    
+    logic look, rd_en;
+    assign rd_en = look;
     input_decoder input_decoder_u(.*);
     
     line_t rd_data_line[`LLC_WAYS];
@@ -141,7 +144,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     owner_t owners_buf_wr_data;
     hprot_t hprots_buf_wr_data;
     logic dirty_bits_buf_wr_data;
-    state_t states_buf_wr_data;
+    llc_state_t states_buf_wr_data;
     //read into buffers
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -209,8 +212,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             end
        end
     end
+    
     llc_set_t set_in, rd_set, set;     
     assign set_in = rd_en ? rd_set : set;
+   
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    assign req_in_addr = llc_req_in.addr;
+    assign rsp_in_addr = llc_rsp_in.addr;
+    assign dma_req_in_addr = llc_dma_req_in.addr; 
     read_set read_set_u(.*);
      
     localmem localmem_u(.*);
@@ -224,6 +233,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     //process_request process_request_u(.*);
 
+    logic update_req_in_from_stalled;
+    //@TODO update req_in_stalled
+    llc_req_in_t req_in_stalled();
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_req_in.coh_msg <= 0; 
@@ -233,6 +245,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             llc_req_in.req_id <= 0; 
             llc_req_in.word_offset <= 0; 
             llc_req_in.valid_words <= 0; 
+       end else if (update_req_in_from_stalled) begin
+            llc_req_in.coh_msg <= req_in_stalled.coh_msg; 
+            llc_req_in.hprot <= req_in_stalled.hprot; 
+            llc_req_in.addr <= req_in_stalled.addr; 
+            llc_req_in.line <= req_in_stalled.line; 
+            llc_req_in.req_id <= req_in_stalled.req_id; 
+            llc_req_in.word_offset <= req_in_stalled.word_offset; 
+            llc_req_in.valid_words <= req_in_stalled.valid_words; 
         end else if (llc_req_in_valid && llc_req_in_ready) begin
             llc_req_in.coh_msg <= llc_req_in_i.coh_msg; 
             llc_req_in.hprot <= llc_req_in_i.hprot; 
@@ -405,7 +425,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     logic wr_en, wr_data_dirty_bit, wr_en_evict_way;
     hprot_t wr_data_hprot;
-    state_t wr_data_state;
+    llc_state_t wr_data_state;
     sharers_t wr_data_sharers;
     llc_tag_t wr_data_tag;
     owner_t wr_data_owner; 
