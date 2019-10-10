@@ -96,13 +96,13 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output word_offset_t llc_rsp_out_data_word_offset;
 
       llc_rsp_out_t llc_rsp_out();
-      assign llc_rsp_out.coh_msg     = llc_rsp_out_data_coh_msg;
-      assign llc_rsp_out.addr        = llc_rsp_out_data_addr;
-      assign llc_rsp_out.line        = llc_rsp_out_data_line;
-      assign llc_rsp_out.invack_cnt  = llc_rsp_out_data_invack_cnt;
-      assign llc_rsp_out.req_id      = llc_rsp_out_data_req_id;
-      assign llc_rsp_out.dest_id     = llc_rsp_out_data_dest_id;
-      assign llc_rsp_out.word_offset = llc_rsp_out_data_word_offset;
+      assign llc_rsp_out_data_coh_msg = llc_rsp_out.coh_msg;
+      assign llc_rsp_out_data_addr = llc_rsp_out.addr;
+      assign llc_rsp_out_data_line = llc_rsp_out.line;
+      assign llc_rsp_out_data_invack_cnt = llc_rsp_out.invack_cnt;
+      assign llc_rsp_out_data_req_id = llc_rsp_out.req_id;
+      assign llc_rsp_out_data_dest_id = llc_rsp_out.dest_id;
+      assign llc_rsp_out_data_word_offset = llc_rsp_out.word_offset;
         
       //llc dma rsp out
       input logic llc_dma_rsp_out_ready;
@@ -116,13 +116,13 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output word_offset_t llc_dma_rsp_out_data_word_offset;
 
       llc_rsp_out_t llc_dma_rsp_out();
-      assign llc_dma_rsp_out.coh_msg     = llc_dma_rsp_out_data_coh_msg;
-      assign llc_dma_rsp_out.addr        = llc_dma_rsp_out_data_addr;
-      assign llc_dma_rsp_out.line        = llc_dma_rsp_out_data_line;
-      assign llc_dma_rsp_out.invack_cnt  = llc_dma_rsp_out_data_invack_cnt;
-      assign llc_dma_rsp_out.req_id      = llc_dma_rsp_out_data_req_id;
-      assign llc_dma_rsp_out.dest_id     = llc_dma_rsp_out_data_dest_id;
-      assign llc_dma_rsp_out.word_offset = llc_dma_rsp_out_data_word_offset;
+      assign llc_dma_rsp_out_data_coh_msg = llc_dma_rsp_out.coh_msg;
+      assign llc_dma_rsp_out_data_addr = llc_dma_rsp_out.addr;
+      assign llc_dma_rsp_out_data_line = llc_dma_rsp_out.line;
+      assign llc_dma_rsp_out_data_invack_cnt = llc_dma_rsp_out.invack_cnt;
+      assign llc_dma_rsp_out_data_req_id = llc_dma_rsp_out.req_id;
+      assign llc_dma_rsp_out_data_dest_id = llc_dma_rsp_out.dest_id;
+      assign llc_dma_rsp_out_data_word_offset = llc_dma_rsp_out.word_offset;
      
       //llc fwd out 
       input logic llc_fwd_out_ready;
@@ -133,10 +133,10 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output cache_id_t llc_fwd_out_data_dest_id;
       
       llc_fwd_out_t llc_fwd_out(); 
-      assign llc_fwd_out.coh_msg = llc_fwd_out_data_coh_msg;
-      assign llc_fwd_out.addr    = llc_fwd_out_data_addr;
-      assign llc_fwd_out.req_id  = llc_fwd_out_data_req_id;
-      assign llc_fwd_out.dest_id = llc_fwd_out_data_dest_id;
+      assign llc_fwd_out_data_coh_msg = llc_fwd_out.coh_msg;
+      assign llc_fwd_out_data_addr = llc_fwd_out.addr;
+      assign llc_fwd_out_data_req_id = llc_fwd_out.req_id;
+      assign llc_fwd_out_data_dest_id = llc_fwd_out.dest_id;
 
       //llc mem req
       input logic llc_mem_req_ready;
@@ -148,11 +148,11 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output line_t llc_mem_req_data_line;
 
       llc_mem_req_t llc_mem_req();
-      assign llc_mem_req.hwrite = llc_mem_req_data_hwrite;
-      assign llc_mem_req.hsize  = llc_mem_req_data_hsize;
-      assign llc_mem_req.hprot  = llc_mem_req_data_hprot;
-      assign llc_mem_req.addr   = llc_mem_req_data_addr;
-      assign llc_mem_req.line   =  llc_mem_req_data_line;
+      assign llc_mem_req_data_hwrite = llc_mem_req.hwrite;
+      assign llc_mem_req_data_hsize = llc_mem_req.hsize;
+      assign llc_mem_req_data_hprot = llc_mem_req.hprot;
+      assign llc_mem_req_data_addr = llc_mem_req.addr;
+      assign llc_mem_req_data_line = llc_mem_req.line;
       
       //llc rst tb done  
       input logic llc_rst_tb_done_ready;
@@ -160,7 +160,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output logic llc_rst_tb_done_data;
       
       logic llc_rst_tb_done;
-      assign llc_rst_tb_done =  llc_rst_tb_done_data; 
+      assign llc_rst_tb_done_data = llc_rst_tb_done; 
 
       //llc  stats
 `ifdef STATS_ENABLE
@@ -169,7 +169,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output logic llc_stats_data;
       
       logic llc_stats;
-      assign llc_stats =  llc_stats_data;
+      assign llc_stats_data = llc_stats;
 `endif
 
       llc llc_u(.*);

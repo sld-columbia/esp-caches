@@ -103,10 +103,11 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
 
-    logic decode_en, rd_set_en, update_en; 
+    logic decode_en, rd_set_en, update_en, process_en, lookup_en; 
     assign decode_en = (state == DECODE);
-    assign lookup_en = (state == LOOKUP);  
     assign rd_set_en = (state == READ); 
+    assign lookup_en = (state == LOOKUP);  
+    assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
 
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume; 
@@ -231,7 +232,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
  
     lookup_way lookup_way_u(.*); 
 
-    //process_request process_request_u(.*);
+    llc_addr_t addr_evict;
+    process_request process_request_u(.*);
 
     logic update_req_in_from_stalled;
     //@TODO update req_in_stalled
@@ -355,7 +357,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || clr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= 0; 
-        end else if (incr_rst_flush_stalled_set) begin 
+        end else if (incr_rst_flush_stalled_set && rd_set_en) begin 
             rst_flush_stalled_set <= rst_flush_stalled_set + 1; 
         end
     end
