@@ -496,7 +496,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin 
-                        rd_data_owner[i] = rd_data_owner_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
+                            rd_data_owner[i] = rd_data_owner_tmp[i][j]; 
+                        end
                     end 
                 end
             end
@@ -512,7 +514,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
-                        rd_data_sharers[i] = rd_data_sharers_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
+                            rd_data_sharers[i] = rd_data_sharers_tmp[i][j]; 
+                        end
                     end 
                 end
             end
@@ -528,7 +532,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin 
-                        rd_data_hprot[i] = rd_data_hprot_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
+                            rd_data_hprot[i] = rd_data_hprot_tmp[i][j];
+                        end
                     end 
                 end
             end
@@ -544,7 +550,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
-                        rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
+                            rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][j];
+                        end
                     end 
                 end
             end
@@ -560,7 +568,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
-                        rd_data_state[i] = rd_data_state_tmp[i][j][`LLC_STATE_BITS-1:0]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
+                            rd_data_state[i] = rd_data_state_tmp[i][j];
+                        end
                     end 
                 end
             end
@@ -576,7 +586,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin 
-                        rd_data_tag[i] = rd_data_tag_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
+                            rd_data_tag[i] = rd_data_tag_tmp[i][j];
+                        end
                     end 
                 end
             end
@@ -592,7 +604,9 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
-                        rd_data_line[i] = rd_data_line_tmp[i][j]; 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
+                            rd_data_line[i] = rd_data_line_tmp[i][j];
+                        end
                     end 
                 end
             end
@@ -600,17 +614,15 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         
         if (`EVICT_WAY_BRAMS == 1) begin 
             always_comb begin
-                for (int i = 0; i < `NUM_PORTS; i++) begin 
-                    rd_data_evict_way[i] = rd_data_evict_way_tmp[i][0]; 
-                end
+                rd_data_evict_way = rd_data_evict_way_tmp[0]; 
             end
         end else begin 
             always_comb begin
-                for (int i = 0; i < `NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
-                        rd_data_evict_way[i] = rd_data_evict_way_tmp[i][j]; 
-                    end 
-                end
+                for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
+                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
+                        rd_data_evict_way = rd_data_evict_way_tmp[j];
+                    end
+                end 
             end
         end 
     endgenerate

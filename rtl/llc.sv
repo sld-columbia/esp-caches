@@ -114,8 +114,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     line_breakdown_llc_t line_br();
     
-    logic look, rd_en;
-    assign rd_en = look;
+    logic rd_en, look;
+    assign rd_en = look; 
     input_decoder input_decoder_u(.*);
    
     assign llc_rsp_in_ready = decode_en & is_rsp_to_get_next; 
@@ -157,7 +157,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             evict_way_buf <= 0; 
-        end else if (rd_en) begin 
+        end else if (rd_set_en & look) begin 
             evict_way_buf <= rd_data_evict_way;
         end else if (incr_evict_way_buf) begin 
             evict_way_buf <= evict_way_buf + 1; 
@@ -167,9 +167,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         for (int i = 0; i < `LLC_WAYS; i++) begin 
             if (!rst) begin
                 lines_buf[i] <= 0; 
-            end else if (rd_en) begin 
+            end else if (rd_set_en & look) begin 
                 lines_buf[i] <= rd_data_line[i];
-            end else if (llc_mem_rsp_ready && llc_mem_rsp_valid) begin 
+            end else if (llc_mem_rsp_ready && llc_mem_rsp_valid && (way == i)) begin 
                 lines_buf[i] <= llc_mem_rsp_i.line;
             end else if (wr_en_lines_buf && (way == i)) begin 
                 lines_buf[i] <= lines_buf_wr_data;
@@ -177,7 +177,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
    
             if (!rst) begin 
                 tags_buf[i] <= 0;
-            end else if (rd_en) begin  
+            end else if (rd_set_en & look) begin  
                 tags_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_tags_buf && (way == i)) begin 
                 tags_buf[i] <= tags_buf_wr_data;
@@ -185,7 +185,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
      
            if (!rst) begin 
                 sharers_buf[i] <= 0;
-            end else if (rd_en) begin 
+            end else if (rd_set_en & look) begin 
                 sharers_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_sharers_buf && (way == i)) begin 
                 sharers_buf[i] <= sharers_buf_wr_data;
@@ -193,7 +193,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
            if (!rst) begin 
                 owners_buf[i] <= 0;
-            end else if (rd_en) begin 
+            end else if (rd_set_en & look) begin 
                 owners_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_owners_buf && (way == i)) begin 
                 owners_buf[i] <= owners_buf_wr_data;
@@ -201,7 +201,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
             if (!rst) begin 
                 hprots_buf[i] <= 0;
-            end else if (rd_en) begin
+            end else if (rd_set_en & look) begin
                 hprots_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_hprots_buf && (way == i)) begin 
                 hprots_buf[i] <= hprots_buf_wr_data;
@@ -209,7 +209,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             
             if (!rst) begin 
                 dirty_bits_buf[i] <= 0;
-            end else if (rd_en) begin
+            end else if (rd_set_en & look) begin
                 dirty_bits_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_dirty_bits_buf && (way == i)) begin 
                 dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
@@ -217,7 +217,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             
             if (!rst) begin 
                 states_buf[i] <= 0;
-            end else if (rd_en) begin
+            end else if (rd_set_en & look) begin
                 states_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_states_buf && (way == i)) begin 
                 states_buf[i] <= states_buf_wr_data;
@@ -226,7 +226,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
     
     llc_set_t set_in, rd_set, set;     
-    assign set_in = rd_en ? rd_set : set;
+    assign set_in = look ? rd_set : set;
    
     line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
     assign req_in_addr = llc_req_in.addr;
