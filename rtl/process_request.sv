@@ -74,17 +74,17 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     localparam PROCESS_FLUSH_RESUME = 4'b0001; 
     localparam PROCESS_RST = 4'b0010;
     localparam PROCESS_RSP = 4'b0011;
-    localparam PROCESS_REQ_GETS_IV_MEM_REQ = 4'b0100;
-    localparam PROCESS_REQ_GETS_IV_MEM_RSP = 4'b0101;
-    localparam PROCESS_REQ_GETS_IV_SEND_RSP = 4'b0110;
+    localparam EVICT = 4'b1110; 
+    localparam PROCESS_REQ_GET_S_M_IV_MEM_REQ = 4'b0100;
+    localparam PROCESS_REQ_GET_S_M_IV_MEM_RSP = 4'b0101;
+    localparam PROCESS_REQ_GET_S_M_IV_SEND_RSP = 4'b0110;
     localparam PROCESS_REQ_GETS_S = 4'b0111; 
-    localparam PROCESS_REQ_GETS_EM = 4'b1000; 
-    localparam PROCESS_REQ_GETS_SD = 4'b1001;
-    localparam PROCESS_REQ_GETM = 4'b1010;
+    localparam PROCESS_REQ_GET_S_M_EM = 4'b1000; 
+    localparam PROCESS_REQ_GET_S_M_SD = 4'b1001;
+    localparam PROCESS_REQ_GETM_S = 4'b1010;
     localparam PROCESS_REQ_PUTS = 4'b1011;
     localparam PROCESS_REQ_PUTM = 4'b1100;
     localparam FINISH_RST_FLUSH = 4'b1101;
-    localparam EVICT = 4'b1110; 
 
     logic [3:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -115,15 +115,24 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                             case(llc_req_in.coh_msg) 
                                 `REQ_GETS : begin 
                                     case(states_buf[way]) 
-                                        `INVALID : next_state = PROCESS_REQ_GETS_IV_MEM_REQ;
-                                        `VALID : next_state = PROCESS_REQ_GETS_IV_SEND_RSP;
+                                        `INVALID : next_state = PROCESS_REQ_GET_S_M_IV_MEM_REQ;
+                                        `VALID : next_state = PROCESS_REQ_GET_S_M_IV_SEND_RSP;
                                         `SHARED : next_state = PROCESS_REQ_GETS_S;
-                                        `EXCLUSIVE : next_state = PROCESS_REQ_GETS_EM; 
-                                        `MODIFIED : next_state = PROCESS_REQ_GETS_EM; 
-                                        `SD : next_state = PROCESS_REQ_GETS_SD;
+                                        `EXCLUSIVE : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                        `MODIFIED : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                        `SD : next_state = PROCESS_REQ_GET_S_M_SD;
                                     endcase
                                 end
-                                `REQ_GETM : next_state = PROCESS_REQ_GETM;
+                                `REQ_GETM : begin 
+                                    case(states_buf[way]) 
+                                        `INVALID : next_state = PROCESS_REQ_GET_S_M_IV_MEM_REQ;
+                                        `VALID : next_state = PROCESS_REQ_GET_S_M_IV_SEND_RSP;
+                                        `SHARED : next_state = PROCESS_REQ_GETM_S;
+                                        `EXCLUSIVE : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                        `MODIFIED : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                        `SD : next_state = PROCESS_REQ_GET_S_M_SD;
+                                    endcase
+                            end
                                 `REQ_PUTS : next_state = PROCESS_REQ_PUTS;
                                 `REQ_PUTM : next_state = PROCESS_REQ_PUTM;
                             endcase
@@ -161,31 +170,40 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         case(llc_req_in.coh_msg) 
                             `REQ_GETS : begin 
                                 case(states_buf[way]) 
-                                    `INVALID : next_state = PROCESS_REQ_GETS_IV_MEM_REQ;
-                                    `VALID : next_state = PROCESS_REQ_GETS_IV_SEND_RSP;
+                                    `INVALID : next_state = PROCESS_REQ_GET_S_M_IV_MEM_REQ;
+                                    `VALID : next_state = PROCESS_REQ_GET_S_M_IV_SEND_RSP;
                                     `SHARED : next_state = PROCESS_REQ_GETS_S;
-                                    `EXCLUSIVE : next_state = PROCESS_REQ_GETS_EM; 
-                                    `MODIFIED : next_state = PROCESS_REQ_GETS_EM; 
-                                    `SD : next_state = PROCESS_REQ_GETS_SD;
+                                    `EXCLUSIVE : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                    `MODIFIED : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                    `SD : next_state = PROCESS_REQ_GET_S_M_SD;
                                 endcase
                             end
-                           `REQ_GETM : next_state = PROCESS_REQ_GETM;
+                           `REQ_GETM : begin 
+                                case(states_buf[way]) 
+                                    `INVALID : next_state = PROCESS_REQ_GET_S_M_IV_MEM_REQ;
+                                    `VALID : next_state = PROCESS_REQ_GET_S_M_IV_SEND_RSP;
+                                    `SHARED : next_state = PROCESS_REQ_GETM_S;
+                                    `EXCLUSIVE : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                    `MODIFIED : next_state = PROCESS_REQ_GET_S_M_EM; 
+                                    `SD : next_state = PROCESS_REQ_GET_S_M_SD;
+                                endcase
+                            end
                            `REQ_PUTS : next_state = PROCESS_REQ_PUTS;
                            `REQ_PUTM : next_state = PROCESS_REQ_PUTM;
                         endcase
                     end
                 end
-                PROCESS_REQ_GETS_IV_MEM_REQ : begin 
+                PROCESS_REQ_GET_S_M_IV_MEM_REQ : begin 
                     if (llc_mem_req_ready) begin 
-                        next_state = PROCESS_REQ_GETS_IV_MEM_RSP; 
+                        next_state = PROCESS_REQ_GET_S_M_IV_MEM_RSP; 
                     end 
                 end
-                PROCESS_REQ_GETS_IV_MEM_RSP : begin 
+                PROCESS_REQ_GET_S_M_IV_MEM_RSP : begin 
                     if (llc_mem_rsp_valid) begin 
-                        next_state = PROCESS_REQ_GETS_IV_SEND_RSP;
+                        next_state = PROCESS_REQ_GET_S_M_IV_SEND_RSP;
                     end
                 end
-                PROCESS_REQ_GETS_IV_SEND_RSP : begin 
+                PROCESS_REQ_GET_S_M_IV_SEND_RSP : begin 
                     if (llc_rsp_out_ready) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
@@ -205,7 +223,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         end
                     end
                 end
-                PROCESS_REQ_GETS_EM: begin 
+                PROCESS_REQ_GET_S_M_EM: begin 
                     if (llc_fwd_out_ready) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
@@ -215,7 +233,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         end
                     end
                 end
-                PROCESS_REQ_GETS_SD : begin 
+                PROCESS_REQ_GET_S_M_SD : begin 
                     if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                         next_state = FINISH_RST_FLUSH;
                     end else begin 
@@ -223,6 +241,9 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         process_done = 1'b1;
                     end
     
+                end
+                PROCESS_REQ_GETM_S : begin 
+
                 end
                 PROCESS_REQ_PUTS : begin 
                     if (llc_fwd_out_ready) begin 
@@ -393,7 +414,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 wr_en_states_buf = 1'b1; 
                 states_buf_wr_data = `INVALID;
             end
-            PROCESS_REQ_GETS_IV_MEM_REQ : begin 
+            PROCESS_REQ_GET_S_M_IV_MEM_REQ : begin 
                 llc_mem_req_valid = 1'b1; 
                 llc_mem_req.hwrite = `READ;
                 llc_mem_req.addr = llc_req_in.addr; 
@@ -401,7 +422,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 llc_mem_req.hprot = llc_req_in.hprot; 
                 llc_mem_req.line = 0; 
             end
-            PROCESS_REQ_GETS_IV_MEM_RSP : begin 
+            PROCESS_REQ_GET_S_M_IV_MEM_RSP : begin 
                 wr_en_hprots_buf = 1'b1; 
                 hprots_buf_wr_data = llc_req_in.hprot; 
                 wr_en_tags_buf = 1'b1; 
@@ -410,14 +431,20 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 dirty_bits_buf_wr_data = 1'b0;
                 llc_mem_rsp_ready = 1'b1; 
             end
-            PROCESS_REQ_GETS_IV_SEND_RSP : begin 
-                if (llc_req_in.hprot == 1'b0)  begin 
+            PROCESS_REQ_GET_S_M_IV_SEND_RSP : begin 
+                if (llc_req_in.coh_msg == `REQ_GETS && llc_req_in.hprot == 1'b0)  begin 
                     llc_rsp_out.coh_msg = `RSP_DATA;
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = 1 << llc_req_in.req_id; 
                     states_buf_wr_data = `SHARED;
                 end else begin 
-                    llc_rsp_out.coh_msg = `RSP_EDATA; 
+                    if (llc_req_in.coh_msg == `REQ_GETS) begin 
+                        llc_rsp_out.coh_msg = `RSP_EDATA; 
+                        states_buf_wr_data = `EXCLUSIVE;
+                    end else if (llc_req_in.coh_msg == `REQ_GETM) begin 
+                        llc_rsp_out.coh_msg = `RSP_DATA;
+                        states_buf_wr_data = `MODIFIED;
+                    end
                     wr_en_owners_buf = 1'b1; 
                     owners_buf_wr_data = llc_req_in.req_id;
                     states_buf_wr_data = `EXCLUSIVE;
@@ -444,23 +471,35 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 llc_rsp_out.word_offset = 0;
                 llc_rsp_out_valid = 1'b1; 
             end
-            PROCESS_REQ_GETS_EM : begin 
-               llc_fwd_out.coh_msg = `FWD_GETS; 
-               llc_fwd_out.addr = llc_req_in.addr; 
-               llc_fwd_out.req_id = llc_req_in.req_id; 
-               llc_fwd_out.dest_id = owners_buf[way];
-               llc_fwd_out_valid = 1'b1;
-
-               wr_en_states_buf = 1'b1; 
-               states_buf_wr_data = `SD;
-               wr_en_sharers_buf = 1'b1; 
-               sharers_buf_wr_data = (1 << llc_req_in.req_id) | (1 << owners_buf[way]); 
+            PROCESS_REQ_GET_S_M_EM : begin 
+                if (llc_req_in.coh_msg == `REQ_GETS) begin 
+                    states_buf_wr_data = `SD;    
+                    llc_fwd_out.coh_msg = `FWD_GETS; 
+                    wr_en_sharers_buf = 1'b1; 
+                    sharers_buf_wr_data = (1 << llc_req_in.req_id) | (1 << owners_buf[way]); 
+                    wr_en_states_buf = 1'b1; 
+                end else if (llc_req_in.coh_msg == `REQ_GETM) begin 
+                    llc_fwd_out.coh_msg = `REQ_GETM;
+                    if (states_buf[way] == `EXCLUSIVE) begin 
+                        wr_en_states_buf = 1'b1; 
+                        states_buf_wr_data = `MODIFIED;
+                    end
+                    wr_en_owners_buf = 1'b1; 
+                    owners_buf_wr_data = llc_req_in.req_id; 
+                end
+                llc_fwd_out.addr = llc_req_in.addr; 
+                llc_fwd_out.req_id = llc_req_in.req_id; 
+                llc_fwd_out.dest_id = owners_buf[way];
+                llc_fwd_out_valid = 1'b1;
             end
-            PROCESS_REQ_GETS_SD : begin 
+            PROCESS_REQ_GET_S_M_SD : begin 
                 set_req_stall = 1'b1; 
                 set_req_in_stalled_valid = 1'b1; 
                 set_req_in_stalled = 1'b1; 
                 update_req_in_stalled = 1'b1;
+            end
+            PROCESS_REQ_GETM_S : begin 
+
             end
             PROCESS_REQ_PUTS : begin 
                llc_fwd_out.coh_msg = `FWD_PUTACK; 
