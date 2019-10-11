@@ -242,7 +242,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     process_request process_request_u(.*);
 
     logic update_req_in_from_stalled;
-    //@TODO update req_in_stalled
     llc_req_in_t req_in_stalled();
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -270,6 +269,27 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             llc_req_in.word_offset <= llc_req_in_i.word_offset; 
             llc_req_in.valid_words <= llc_req_in_i.valid_words; 
         end
+    end
+
+    logic set_req_in_stalled; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            req_in_stalled.coh_msg <= 0; 
+            req_in_stalled.hprot <= 0; 
+            req_in_stalled.addr <= 0; 
+            req_in_stalled.line <= 0; 
+            req_in_stalled.req_id <= 0; 
+            req_in_stalled.word_offset <= 0; 
+            req_in_stalled.valid_words <= 0; 
+       end else if (set_req_in_stalled) begin
+            req_in_stalled.coh_msg <= llc_req_in.coh_msg; 
+            req_in_stalled.hprot <= llc_req_in.hprot; 
+            req_in_stalled.addr <= llc_req_in.addr; 
+            req_in_stalled.line <= llc_req_in.line; 
+            req_in_stalled.req_id <= llc_req_in.req_id; 
+            req_in_stalled.word_offset <= llc_req_in.word_offset; 
+            req_in_stalled.valid_words <= llc_req_in.valid_words; 
+        end 
     end
 
     always_ff @(posedge clk or negedge rst) begin 

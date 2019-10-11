@@ -27,6 +27,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     input logic llc_mem_req_ready;
     input logic llc_rst_tb_done_ready;
     input logic llc_fwd_out_ready; 
+    input logic llc_rsp_out_ready; 
     input llc_addr_t addr_evict; 
 
     input line_t lines_buf[`LLC_WAYS];
@@ -40,11 +41,13 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     
     llc_mem_req_t llc_mem_req; 
     llc_fwd_out_t llc_fwd_out; 
+    llc_rsp_out_t llc_rsp_out; 
 
     output logic llc_mem_req_valid; 
     output logic llc_rst_tb_done_valid;
     output logic llc_rst_tb_done; 
-    output logic llc_fwd_out_valid; 
+    output logic llc_fwd_out_valid;
+    output logic llc_rsp_out_valid; 
 
     output logic rst_state; 
     output logic clr_flush_stall, clr_req_stall;
@@ -67,11 +70,16 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     localparam PROCESS_FLUSH_RESUME = 4'b0001; 
     localparam PROCESS_RST = 4'b0010;
     localparam PROCESS_RSP = 4'b0011;
-    localparam PROCESS_REQ_GETS = 4'b0100;
-    localparam PROCESS_REQ_GETM = 4'b0101;
-    localparam PROCESS_REQ_PUTS = 4'b0110;
-    localparam PROCESS_REQ_PUTM = 4'b0111;
-    localparam FINISH_RST_FLUSH = 4'b1000;
+    localparam PROCESS_REQ_GETS_IV_MEM_REQ = 4'b0100;
+    localparam PROCESS_REQ_GETS_IV_MEM_RSP = 4'b0101;
+    localparam PROCESS_REQ_GETS_IV_SEND_RSP = 4'b0110;
+    localparam PROCESS_REQ_GETS_S = 4'b0111; 
+    localparam PROCESS_REQ_GETS_EM = 4'b1000; 
+    localparam PROCESS_REQ_GETS_SD = 4'b1001;
+    localparam PROCESS_REQ_GETM = 4'b1010;
+    localparam PROCESS_REQ_PUTS = 4'b1011;
+    localparam PROCESS_REQ_PUTM = 4'b1100;
+    localparam FINISH_RST_FLUSH = 4'b1101;
 
     logic [3:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -97,7 +105,15 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         next_state = PROCESS_RSP; 
                     end else if (is_req_to_get) begin 
                         case(llc_req_in.coh_msg) 
-                            `REQ_GETS : next_state = PROCESS_REQ_GETS;
+                            `REQ_GETS : begin 
+                                case(states_buf[way]) 
+                                    `INVALID : next_state = PROCESS_REQ_GETS_IV_MEM_REQ;
+                                    `VALID : next_state = PROCESS_REQ_GETS_IV_SEND_RSP;
+                                    `SHARED : next_state = PROCESS_REQ_GETS_S;
+                                    `EXCLUSIVE : next_state = PROCESS_REQ_GETS_EM; 
+                                    `MODIFIED : next_state = PROCESS_REQ_GETS_EM; 
+                                    `SD : next_state = PROCESS_REQ_GETS_SD;
+                                endcase
                             `REQ_GETM : next_state = PROCESS_REQ_GETM;
                             `REQ_PUTS : next_state = PROCESS_REQ_PUTS;
                             `REQ_PUTM : next_state = PROCESS_REQ_PUTM;
@@ -129,6 +145,35 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 PROCESS_RSP : begin 
                     next_state = IDLE; 
                     process_done = 1'b1; 
+                end
+                PROCESS_REQ_GETS_S:  begin 
+                    if (llc_rsp_out_ready) begin 
+                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                            next_state = FINISH_RST_FLUSH;
+                        end else begin 
+                            next_state = IDLE;
+                            process_done = 1'b1;
+                        end
+                    end
+                end
+                PROCESS_REQ_GETS_EM: begin 
+                    if (llc_fwd_out_ready) begin 
+                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                            next_state = FINISH_RST_FLUSH;
+                        end else begin 
+                            next_state = IDLE;
+                            process_done = 1'b1;
+                        end
+                    end
+                end
+                PROCESS_REQ_GETS_SD : begin 
+                    if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                        next_state = FINISH_RST_FLUSH;
+                    end else begin 
+                        next_state = IDLE;
+                        process_done = 1'b1;
+                    end
+    
                 end
                 PROCESS_REQ_PUTS : begin 
                     if (llc_fwd_out_ready) begin 
@@ -206,6 +251,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         llc_rst_tb_done_valid = 1'b0; 
         llc_rst_tb_done = 1'b0;
         rst_state = 1'b0; 
+        
+        set_req_stall = 1'b1; 
+        set_req_in_stalled_valid = 1'b1; 
+        set_req_in_stalled = 1'b1; 
+        update_req_in_stalled = 1'b1;
 
         case (state)
             PROCESS_FLUSH_RESUME :  begin 
@@ -257,6 +307,37 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     wr_en_states_buf = 1'b1; 
                     states_buf_wr_data = `VALID;
                 end
+            end
+            PROCESS_REQ_GETS_S : begin 
+                wr_en_sharers_buf = 1'b1; 
+                sharers_buf_wr_data = sharers_buf[way] | (1 << llc_req_in.req_id); 
+
+                llc_rsp_out.coh_msg = `RSP_DATA;
+                llc_rsp_out.addr = llc_req_in.addr; 
+                llc_rsp_out.line = lines_buf[way]; 
+                llc_rsp_out.req_id = llc_req_in.req_id;
+                llc_rsp_out.dest_id = 0; 
+                llc_rsp_out.invack_cnt = 0; 
+                llc_rsp_out.word_offset = 0;
+                llc_rsp_out_valid = 1'b1; 
+            end
+            PROCESS_REQ_GETS_EM : begin 
+               llc_fwd_out.coh_msg = `FWD_GETS; 
+               llc_fwd_out.addr = llc_req_in.addr; 
+               llc_fwd_out.req_id = llc_req_in.req_id; 
+               llc_fwd_out.dest_id = owners_buf[way];
+               llc_fwd_out_valid = 1'b1;
+
+               wr_en_states_buf = 1'b1; 
+               states_buf_wr_data = `SD;
+               wr_en_sharers_buf = 1'b1; 
+               sharers_buf_wr_data = (1 << llc_req_in.req_id) | (1 << owners_buf[way]); 
+            end
+            PROCESS_REQ_GETS_SD : begin 
+                set_req_stall = 1'b1; 
+                set_req_in_stalled_valid = 1'b1; 
+                set_req_in_stalled = 1'b1; 
+                update_req_in_stalled = 1'b1;
             end
             PROCESS_REQ_PUTS : begin 
                llc_fwd_out.coh_msg = `FWD_PUTACK; 
