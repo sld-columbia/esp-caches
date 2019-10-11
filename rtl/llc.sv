@@ -153,11 +153,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic dirty_bits_buf_wr_data;
     llc_state_t states_buf_wr_data;
     //read into buffers
+    logic incr_evict_way_buf; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             evict_way_buf <= 0; 
         end else if (rd_en) begin 
             evict_way_buf <= rd_data_evict_way;
+        end else if (incr_evict_way_buf) begin 
+            evict_way_buf <= evict_way_buf + 1; 
         end else if (wr_en_evict_way_buf) begin 
             evict_way_buf <= evict_way_buf_wr_data; 
         end
@@ -166,6 +169,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 lines_buf[i] <= 0; 
             end else if (rd_en) begin 
                 lines_buf[i] <= rd_data_line[i];
+            end else if (llc_mem_rsp_ready && llc_mem_rsp_valid) begin 
+                lines_buf[i] <= llc_mem_rsp_i.line;
             end else if (wr_en_lines_buf && (way == i)) begin 
                 lines_buf[i] <= lines_buf_wr_data;
             end
@@ -451,7 +456,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
 
     //update cache
-    logic update_evict_way;
+    logic update_evict_way, clr_update_evict_way, set_update_evict_way;
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst || rst_state || clr_update_evict_way) begin 
+            update_evict_way <= 1'b0;
+        end else if (set_update_evict_way) begin 
+            update_evict_way <= 1'b1; 
+        end
+    end
 
     logic wr_en, wr_data_dirty_bit, wr_en_evict_way;
     hprot_t wr_data_hprot;
