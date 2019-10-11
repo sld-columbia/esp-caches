@@ -110,14 +110,19 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
 
-    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume; 
+    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume, is_rst_to_get_next, is_rsp_to_get_next; 
     
     line_breakdown_llc_t line_br();
     
     logic look, rd_en;
     assign rd_en = look;
     input_decoder input_decoder_u(.*);
-    
+   
+    assign llc_rsp_in_ready = decode_en & is_rsp_to_get_next; 
+    assign llc_rst_tb_ready = decode_en & is_rst_to_get_next; 
+    assign llc_req_in_ready = decode_en & do_get_req; 
+    assign llc_dma_req_in_ready = decode_en & do_get_dma_req;
+
     line_t rd_data_line[`LLC_WAYS];
     llc_tag_t rd_data_tag[`LLC_WAYS];
     sharers_t rd_data_sharers[`LLC_WAYS];
