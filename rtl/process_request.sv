@@ -6,10 +6,11 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, set, llc_rsp_in, recall_pending, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_flush_stall, clr_req_stall, clr_rst_flush_stalled_set, set_recall_valid, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, wr_en_evict_way_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, evict_way_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid, llc_req_in); 
+module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, set, llc_rsp_in, recall_pending, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_flush_stall, clr_req_stall, clr_rst_flush_stalled_set, set_recall_valid, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, wr_en_evict_way_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, evict_way_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid, llc_req_in, rst_in, rst_state); 
     
     input logic clk, rst; 
     input logic process_en; 
+    input logic rst_in;
 
     input llc_way_t way;
     input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get; 
@@ -45,6 +46,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     output logic llc_rst_tb_done; 
     output logic llc_fwd_out_valid; 
 
+    output logic rst_state; 
     output logic clr_flush_stall, clr_req_stall;
     output logic clr_rst_flush_stalled_set; 
     output logic set_recall_valid; 
@@ -138,6 +140,16 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         end
                     end
                 end
+                PROCESS_REQ_PUTM : begin 
+                    if (llc_fwd_out_ready) begin 
+                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                            next_state = FINISH_RST_FLUSH;
+                        end else begin 
+                            next_state = IDLE;
+                            process_done = 1'b1;
+                        end
+                    end
+                end
                 FINISH_RST_FLUSH : begin  
                     if (llc_rst_tb_done_ready) begin 
                         next_state = IDLE;
@@ -193,6 +205,8 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         clr_req_stall = 1'b0; 
         llc_rst_tb_done_valid = 1'b0; 
         llc_rst_tb_done = 1'b0;
+        rst_state = 1'b0; 
+
         case (state)
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
@@ -209,9 +223,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
             end  
             PROCESS_RST : begin 
                 //FLUSH
-                if (rst) begin 
+                if (rst_in) begin 
                     clr_flush_stall = 1'b1; 
                     clr_rst_flush_stalled_set = 1'b1;
+                end else begin
+                    rst_state = 1'b1; 
                 end
             end 
             PROCESS_RSP : begin 
@@ -254,12 +270,34 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     if (states_buf[way] == `SHARED && sharers_buf[way] == 0) begin 
                         states_buf_wr_data = `VALID;
                     end
-               end
-               if (states_buf[way] == `EXCLUSIVE && owners_buf[way] == llc_req_in.req_id) begin 
+               end else if (states_buf[way] == `EXCLUSIVE && owners_buf[way] == llc_req_in.req_id) begin 
                     wr_en_states_buf = 1'b1; 
                     states_buf_wr_data = `VALID; 
                end 
-            end 
+            end
+            PROCESS_REQ_PUTM : begin 
+               llc_fwd_out.coh_msg = `FWD_PUTACK; 
+               llc_fwd_out.addr = llc_req_in.addr; 
+               llc_fwd_out.req_id = llc_req_in.req_id; 
+               llc_fwd_out.dest_id = llc_req_in.req_id;
+               llc_fwd_out_valid = 1'b1; 
+               if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
+                    sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
+                    wr_en_sharers_buf = 1'b1;
+                    if (states_buf[way] == `SHARED && sharers_buf[way] == 0) begin 
+                        states_buf_wr_data = `VALID;
+                    end
+                end else if (states_buf[way] == `EXCLUSIVE || states_buf[way] == `MODIFIED) begin 
+                    if (owners_buf[way] == llc_req_in.req_id) begin 
+                        wr_en_states_buf = 1'b1; 
+                        states_buf_wr_data = `VALID;
+                        wr_en_lines_buf = 1'b1; 
+                        lines_buf_wr_data = llc_req_in.line;
+                        wr_en_dirty_bits_buf = 1'b1;
+                        dirty_bits_buf_wr_data = 1'b1;
+                    end
+                end
+            end
             FINISH_RST_FLUSH : begin 
                 llc_rst_tb_done_valid = 1'b1; 
                 llc_rst_tb_done = 1'b1;
