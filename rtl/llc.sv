@@ -395,14 +395,16 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
     
-    line_addr_t dma_addr;
-    logic update_dma_addr_from_req; 
+    addr_t dma_addr;
+    logic update_dma_addr_from_req, incr_dma_addr; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req) begin 
             dma_addr <= llc_dma_req_in.addr;
-        end
+        end else if (incr_dma_addr) begin 
+            dma_addr <= dma_addr + 1; 
+        end 
     end
 
     logic recall_pending, clr_recall_pending, set_recall_pending;    

@@ -10,7 +10,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
     input logic clk, rst;
     input logic rd_set_en;
     input line_addr_t rsp_in_addr, req_in_addr, dma_req_in_addr;
-    input line_addr_t dma_addr; 
+    input addr_t dma_addr; 
     input llc_set_t rst_flush_stalled_set, req_in_stalled_set;
     input llc_tag_t req_in_stalled_tag; 
     input logic is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall;    
