@@ -922,14 +922,14 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 if (dma_start & dma_done_next) begin 
                     valid_words = dma_read_length; 
                 end else if (dma_start) begin 
-                    valid_words = dma_length;
-                end else if (dma_length > dma_read_length) begin 
+                    valid_words = dma_length_next;
+                end else if (dma_length_next > dma_read_length) begin 
                     valid_words = `WORDS_PER_LINE - (dma_length_next - dma_read_length);
                 end else begin 
                     valid_words = `WORDS_PER_LINE;
                 end 
 
-                dma_info[0] = dma_done; 
+                dma_info[0] = dma_done_next; 
                 dma_info[`WORD_BITS:1] = valid_words - 1; 
                 
                 llc_rsp_out.coh_msg = `RSP_DATA_DMA;
