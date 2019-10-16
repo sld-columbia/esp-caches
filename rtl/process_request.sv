@@ -40,6 +40,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     input logic dirty_bits_buf[`LLC_WAYS];
     input llc_way_t evict_way_buf;
     input llc_state_t states_buf[`LLC_WAYS];
+    input logic recall_pending, recall_valid;
     
     llc_mem_req_t llc_mem_req; 
     llc_fwd_out_t llc_fwd_out; 
@@ -88,7 +89,8 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     localparam REQ_PUTM = 5'b01110;
     localparam FINISH_RST_FLUSH = 5'b01111;
     localparam DMA_REQ_TO_GET = 5'b10000;
-    localparam DMA_RECALL_FWD = 5'b10000;
+    localparam DMA_RECALL_EMSD = 5'b10001;
+    localparam DMA_RECALL_S = 5'b10010; 
 
     logic [4:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -104,7 +106,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     always @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if (state == REQ_GETM_S_FWD && llc_fwd_out_ready) begin 
+        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && llc_fwd_out_ready) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -160,6 +162,13 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     end else if (is_dma_req_to_get || is_dma_read_to_resume || is_dma_write_to_resume) begin 
                         if (is_dma_req_to_get) begin 
                             next_state = DMA_REQ_TO_GET; 
+                        end else if (!recall_valid && !recall_pendingi && state != `INVALID && state != `VALID) begin 
+                            case (states_buf[way])
+                                `EXCLUSIVE : DMA_RECALL_EMSD;
+                                `MODIFIED : DMA_RECALL_EMSD;
+                                `SD : DMA_RECALL_EMSD; 
+                                `SHARED : DMA_RECALL_S;
+                            endcase
                         end
                     end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                         next_state = FINISH_RST_FLUSH;
@@ -267,7 +276,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     
                 end
                 REQ_GETM_S_FWD : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready) begin 
                         next_state = REQ_GETM_S_RSP;
                     end
                 end
@@ -302,8 +311,25 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     end
                 end
                 DMA_REQ_TO_GET : begin 
-
-                end 
+                    if (!recall_valid && !recall_pendingi && state != `INVALID && state != `VALID) begin 
+                        case (states_buf[way])
+                            `EXCLUSIVE : DMA_RECALL_EMSD;
+                            `MODIFIED : DMA_RECALL_EMSD;
+                            `SD : DMA_RECALL_EMSD; 
+                            `SHARED : DMA_RECALL_S;
+                        endcase
+                    end
+                end
+                DMA_RECALL_EMSD : begin 
+                    if (llc_fwd_out_ready) begin
+                        next_state = //@TODO;
+                    end
+                end
+                DMA_RECALL_S : begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready) begin 
+                        next_state = //@TODO;
+                    end
+                end
                 FINISH_RST_FLUSH : begin  
                     if (llc_rst_tb_done_ready) begin 
                         next_state = IDLE;
@@ -408,6 +434,8 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         set_is_dma_read_to_resume = 1'b0;
         set_dma_write_pending = 1'b0; 
         set_is_dma_write_to_resume = 1'b0;
+        set_recall_pending = 1'b0; 
+
         case (state)
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
@@ -636,6 +664,25 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     set_dma_write_pending = 1'b1; 
                     set_is_dma_write_to_resume = 1'b1;
                 end
+            end
+            DMA_RECALL_EMSD : begin 
+                set_recall_pending = 1'b1;
+                if (states_buf[way] == `EXCLUSIVE || states_buf[way] == `MODIFIED) begin 
+                    llc_fwd_out.coh_msg = `FWD_GETM_LLC; 
+                    llc_fwd_out.addr = addr_evict; 
+                    llc_fwd_out.req_id = owners_buf[way]; 
+                    llc_fwd_out.dest_id = owners_buf[way];;
+                    llc_fwd_out_valid = 1'b1; 
+                end
+            end
+            DMA_RECALL_S : begin 
+                if (sharers_buf[way] & (1 << l2_cnt)) begin 
+                    llc_fwd_out.coh_msg = `FWD_INV_LLC; 
+                    llc_fwd_out.addr = addr_evict; 
+                    llc_fwd_out.req_id = l2_cnt; 
+                    llc_fwd_out.dest_id = l2_cnt;
+                    llc_fwd_out_valid = 1'b1; 
+                end    
             end
             FINISH_RST_FLUSH : begin 
                 llc_rst_tb_done_valid = 1'b1; 
