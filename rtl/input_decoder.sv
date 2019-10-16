@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
 
-module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, is_dma_read_to_resume, is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req); 
+module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume, set_is_dma_write_to_resume, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req); 
    
     input logic clk, rst; 
     input logic llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid; 
@@ -15,10 +15,11 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
     input logic flush_stall, rst_stall, req_stall; 
     input logic req_in_stalled_valid;
     input logic decode_en; 
-            
+    input logic is_dma_read_to_resume, is_dma_write_to_resume; 
+
     output logic update_req_in_from_stalled, clr_req_in_stalled_valid;  
     output logic look;
-    output logic is_rst_to_resume, is_flush_to_resume, is_dma_read_to_resume, is_dma_write_to_resume;
+    output logic is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume, set_is_dma_write_to_resume, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume;
     output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get; 
     output logic is_rst_to_get_next, is_rsp_to_get_next;
     output logic do_get_req, do_get_dma_req; 
@@ -52,8 +53,10 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
         is_rsp_to_get_next = 1'b0;  
         is_req_to_get_next = 1'b0;  
         is_dma_req_to_get_next =  1'b0;  
-        is_dma_read_to_resume_next = 1'b0; 
-        is_dma_write_to_resume_next = 1'b0; 
+        set_is_dma_read_to_resume = 1'b0; 
+        set_is_dma_write_to_resume = 1'b0; 
+        clr_is_dma_read_to_resume = 1'b1; 
+        clr_is_dma_write_to_resume = 1'b1; 
         do_get_req = 1'b0; 
         do_get_dma_req = 1'b0;  
         update_req_in_from_stalled = 1'b0;
@@ -89,10 +92,12 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
                 end
                 is_req_to_get_next = 1'b1;
             end else if (dma_read_pending) begin 
-                is_dma_read_to_resume_next = 1'b1; 
+                set_is_dma_read_to_resume = 1'b1;
+                clr_is_dma_read_to_resume = 1'b0;
             end else if (dma_write_pending) begin 
                 if (can_get_dma_req_in) begin 
-                    is_dma_write_to_resume_next = 1'b1; 
+                    set_is_dma_write_to_resume = 1'b1;
+                    clr_is_dma_write_to_resume = 1'b0; 
                     do_get_dma_req = 1'b1;
                 end
             end else if (can_get_dma_req_in && !req_stall) begin 
@@ -111,8 +116,6 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
             is_req_to_get <= 1'b0;
             is_rsp_to_get <= 1'b0; 
             is_dma_req_to_get <= 1'b0; 
-            is_dma_read_to_resume <= 1'b0;
-            is_dma_write_to_resume <= 1'b0;  
         end else if (decode_en) begin 
             is_rst_to_resume <= is_rst_to_resume_next; 
             is_flush_to_resume <= is_flush_to_resume_next; 
@@ -120,8 +123,6 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
             is_req_to_get <= is_req_to_get_next;
             is_rsp_to_get <= is_rsp_to_get_next;
             is_dma_req_to_get <= is_dma_req_to_get_next;
-            is_dma_read_to_resume <= is_dma_read_to_resume_next;
-            is_dma_write_to_resume <= is_dma_write_to_resume_next; 
         end
     end
     

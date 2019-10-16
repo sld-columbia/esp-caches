@@ -110,7 +110,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
 
-    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_dma_read_to_resume, is_dma_write_to_resume, is_rst_to_get_next, is_rsp_to_get_next; 
+    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next; 
     
     line_breakdown_llc_t line_br();
     
@@ -442,6 +442,24 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             recall_valid <= 1'b1;
         end
     end
+
+    logic is_dma_read_to_resume, set_is_dma_read_to_resume, clr_is_dma_read_to_resume; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst || rst_state || clr_is_dma_read_to_resume) begin 
+            is_dma_read_to_resume = 1'b0;
+        end else if (set_is_dma_read_to_resume) begin
+            is_dma_read_to_resume = 1'b1;
+        end
+    end 
+    
+    logic is_dma_write_to_resume, set_is_dma_write_to_resume, clr_is_dma_write_to_resume; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst || rst_state || clr_is_dma_write_to_resume) begin 
+            is_dma_write_to_resume = 1'b0;
+        end else if (set_is_dma_write_to_resume) begin
+            is_dma_write_to_resume = 1'b1;
+        end
+    end 
 
     llc_set_t req_in_stalled_set; 
     llc_tag_t req_in_stalled_tag;
