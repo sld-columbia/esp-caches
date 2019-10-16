@@ -6,7 +6,7 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_flush_stall, clr_req_stall, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, wr_en_evict_way_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, evict_way_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid,  llc_rsp_out, llc_rsp_out_ready, llc_rsp_out_valid, llc_mem_req, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready, llc_req_in, rst_in, rst_state, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume, set_dma_write_pending, set_is_dma_write_to_resume, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr); 
+module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_flush_stall, clr_req_stall, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, wr_en_evict_way_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, evict_way_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid,  llc_rsp_out, llc_rsp_out_ready, llc_rsp_out_valid, llc_mem_req, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready, llc_req_in, rst_in, rst_state, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr); 
     
     input logic clk, rst; 
     input logic process_en; 
@@ -70,7 +70,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     output logic process_done; 
     output logic set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled;
     output logic incr_evict_way_buf, set_update_evict_way;
-    output logic set_dma_read_pending, set_is_dma_read_to_resume, set_dma_write_pending, set_is_dma_write_to_resume;
+    output logic set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process;
     output logic clr_recall_pending, clr_recall_valid; 
     output logic clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr; 
 
@@ -97,8 +97,10 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     localparam DMA_READ_RESUME_MEM_REQ = 5'b10011; 
     localparam DMA_READ_RESUME_MEM_RSP = 5'b10100;
     localparam DMA_READ_RESUME_DMA_RSP = 5'b10101;
-    localparam DMA_WRITE_RESUME = 5'b10110; 
-    localparam FINISH_RST_FLUSH = 5'b11111;
+    localparam DMA_WRITE_RESUME_MEM_REQ = 5'b10110;
+    localparam DMA_WRITE_RESUME_MEM_RSP = 5'b10111; 
+    localparam DMA_WRITE_RESUME_WRITE = 5'b11000;
+    localparam FINISH_RST_FLUSH = 5'b11001;
     
     logic [4:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -124,6 +126,15 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
             invack_cnt <= invack_cnt + 1; 
         end
     end
+   
+    line_addr_t line_addr;
+    dma_length_t valid_words;
+    word_offset_t dma_read_woffset; 
+    word_offset_t dma_write_woffset; 
+    invack_cnt_t dma_info; 
+ 
+    logic misaligned; 
+    assign misaligned = (dma_write_woffset != 0 || valid_words != `WORDS_PER_LINE); 
 
     llc_way_t cur_way;
     always_comb begin 
@@ -187,7 +198,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                next_state = DMA_WRITE_RESUME; 
+                                if (states_buf[way] == `INVALID && misaligned) begin 
+                                    next_state = DMA_WRITE_RESUME_MEM_REQ;
+                                end else begin 
+                                    next_state = DMA_WRITE_RESUME_WRITE;
+                                end
                             end
                         end 
                     end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
@@ -348,10 +363,14 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                                 next_state = DMA_READ_RESUME_DMA_RSP;
                             end
                         end else begin 
-                            next_state = DMA_WRITE_RESUME; 
+                            if (states_buf[way] == `INVALID && misaligned) begin 
+                                next_state = DMA_WRITE_RESUME_MEM_REQ;
+                            end else begin 
+                                next_state = DMA_WRITE_RESUME_WRITE;
+                            end
                         end
                     end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
+                        next_state = FINISH_RST_FLUSH;
                     end else begin 
                         next_state = IDLE;
                         process_done = 1'b1;
@@ -369,7 +388,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                next_state = DMA_WRITE_RESUME; 
+                                if (states_buf[way] == `INVALID && misaligned) begin 
+                                    next_state = DMA_WRITE_RESUME_MEM_REQ;
+                                end else begin 
+                                    next_state = DMA_WRITE_RESUME_WRITE;
+                                end
                             end
                         end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
@@ -391,7 +414,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                next_state = DMA_WRITE_RESUME; 
+                                if (states_buf[way] == `INVALID && misaligned) begin 
+                                    next_state = DMA_WRITE_RESUME_MEM_REQ;
+                                end else begin 
+                                    next_state = DMA_WRITE_RESUME_WRITE;
+                                end
                             end
                         end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
@@ -410,7 +437,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                                 next_state = DMA_READ_RESUME_DMA_RSP;
                             end
                         end else begin 
-                            next_state = DMA_WRITE_RESUME; 
+                            if (states_buf[way] == `INVALID && misaligned) begin 
+                                next_state = DMA_WRITE_RESUME_MEM_REQ;
+                            end else begin 
+                                next_state = DMA_WRITE_RESUME_WRITE;
+                            end
                         end
                     end
                 end
@@ -434,7 +465,17 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                         end
                     end
                 end
-                DMA_WRITE_RESUME: begin 
+                DMA_WRITE_RESUME_MEM_REQ : begin 
+                    if (llc_mem_req_ready) begin 
+                        next_state = DMA_WRITE_RESUME_MEM_RSP; 
+                    end 
+                end
+                DMA_WRITE_RESUME_MEM_RSP : begin 
+                    if (llc_mem_rsp_valid) begin 
+                        next_state = DMA_WRITE_RESUME_WRITE; 
+                    end
+                end
+                DMA_WRITE_RESUME_WRITE : begin 
                     if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                         next_state = FINISH_RST_FLUSH;
                     end else begin 
@@ -478,18 +519,14 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
             dma_done <= 1'b0; 
             dma_length <= 0; 
             dma_read_length <= llc_dma_req_in.line[(`BITS_PER_LINE - 1) : (`BITS_PER_LINE - `ADDR_BITS)];
-        end else if (state == DMA_READ_RESUME_DMA_RSP) begin 
+        end else if (state == DMA_READ_RESUME_DMA_RSP || state == DMA_WRITE_RESUME_WRITE) begin 
             dma_start <= dma_start_next; 
             dma_done <= dma_done_next; 
             dma_length <= dma_length_next; 
         end 
     end
-    
-    line_addr_t line_addr;
-    dma_length_t valid_words;
-    word_offset_t dma_read_woffset; 
-    invack_cnt_t dma_info; 
-    logic hit;
+   
+        logic hit;
     always_comb begin 
         llc_mem_req.hwrite = 0; 
         llc_mem_req.hsize = 0; 
@@ -554,9 +591,9 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         incr_invack_cnt = 1'b0; 
         
         set_dma_read_pending = 1'b0; 
-        set_is_dma_read_to_resume = 1'b0;
+        set_is_dma_read_to_resume_process = 1'b0;
         set_dma_write_pending = 1'b0; 
-        set_is_dma_write_to_resume = 1'b0;
+        set_is_dma_write_to_resume_process = 1'b0;
         set_recall_pending = 1'b0; 
         clr_recall_pending = 1'b0;
         clr_recall_valid = 1'b0; 
@@ -566,6 +603,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         dma_info = 0; 
         dma_done_next = 1'b0;
         dma_length_next = 0; 
+        dma_start_next = 1'b0; 
 
         case (state)
             PROCESS_FLUSH_RESUME :  begin 
@@ -790,10 +828,10 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
             DMA_REQ_TO_GET : begin 
                 if (llc_dma_req_in.coh_msg == `REQ_DMA_READ_BURST) begin 
                     set_dma_read_pending = 1'b1; 
-                    set_is_dma_read_to_resume = 1'b1; 
+                    set_is_dma_read_to_resume_process = 1'b1; 
                 end else begin 
                     set_dma_write_pending = 1'b1; 
-                    set_is_dma_write_to_resume = 1'b1;
+                    set_is_dma_write_to_resume_process = 1'b1;
                 end
             end
             DMA_RECALL_EMSD : begin 
@@ -872,7 +910,11 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     dma_read_woffset = 0;
                 end
 
-                dma_length_next = dma_length + (`WORDS_PER_LINE - dma_read_woffset); 
+                //only increment once
+                if (llc_rsp_out_ready) begin 
+                    dma_length_next = dma_length + (`WORDS_PER_LINE - dma_read_woffset); 
+                end
+               
                 if (dma_length_next >= dma_read_length) begin 
                     dma_done_next = 1'b1; 
                 end
@@ -882,7 +924,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 end else if (dma_start) begin 
                     valid_words = dma_length;
                 end else if (dma_length > dma_read_length) begin 
-                    valid_words = `WORDS_PER_LINE - (dma_length - dma_read_length);
+                    valid_words = `WORDS_PER_LINE - (dma_length_next - dma_read_length);
                 end else begin 
                     valid_words = `WORDS_PER_LINE;
                 end 
@@ -900,6 +942,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                 llc_rsp_out_valid = 1'b1;
 
                 if (llc_rsp_out_ready) begin 
+                    incr_dma_addr = 1'b1; 
                     dma_start_next = 1'b0; 
                     if (dma_done_next) begin 
                         clr_dma_read_pending = 1'b1; 
@@ -907,6 +950,50 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                     end 
                 end
             end
+            DMA_WRITE_RESUME_MEM_REQ : begin 
+                llc_mem_req.hwrite = `READ;
+                llc_mem_req.addr = dma_addr; 
+                llc_mem_req.hsize = `WORD;
+                llc_mem_req.hprot = llc_dma_req_in.hprot; 
+                llc_mem_req.line = 0;
+                llc_mem_req_valid = 1'b1;
+            end
+            DMA_WRITE_RESUME_MEM_RSP : begin 
+                llc_mem_rsp_ready = 1'b1;  
+            end
+            DMA_WRITE_RESUME_WRITE : begin 
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
+                if (misaligned) begin 
+                    //@TODO
+                end else begin 
+                    wr_en_lines_buf = 1'b1; 
+                    lines_buf_wr_data = llc_dma_req_in.line; 
+                end
+    
+                wr_en_dirty_bits_buf = 1'b1; 
+                dirty_bits_buf_wr_data = 1'b1; 
+                
+                if (states_buf[way] == `INVALID) begin 
+                    wr_en_states_buf = 1'b1;
+                    states_buf_wr_data = `VALID;
+                    wr_en_hprots_buf = 1'b1; 
+                    hprots_buf_wr_data = `DATA; 
+                    wr_en_tags_buf = 1'b1;
+                    tags_buf_wr_data = line_br.tag; 
+                end
+
+                if (llc_dma_req_in.hprot) begin 
+                    dma_done_next = 1'b1; 
+                end
+                    
+                incr_dma_addr = 1'b1; 
+                dma_start_next = 1'b0;
+                if (dma_done_next) begin 
+                    clr_dma_read_pending = 1'b1; 
+                    clr_dma_write_pending = 1'b1;
+                end  
+            end 
             FINISH_RST_FLUSH : begin 
                 llc_rst_tb_done_valid = 1'b1; 
                 llc_rst_tb_done = 1'b1;
