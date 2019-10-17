@@ -69,10 +69,11 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     //STATE MACHINE
     localparam DECODE = 3'b000;
-    localparam READ = 3'b001;
-    localparam LOOKUP = 3'b011; 
-    localparam PROCESS = 3'b010; 
-    localparam UPDATE = 3'b110; 
+    localparam READ_SET = 3'b001;
+    localparam READ_MEM = 3'b011;
+    localparam LOOKUP = 3'b010; 
+    localparam PROCESS = 3'b110; 
+    localparam UPDATE = 3'b100; 
 
     logic[2:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -88,8 +89,10 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         next_state = state; 
         case(state) 
             DECODE :  
-                next_state = READ;
-            READ :   
+                next_state = READ_SET;
+            READ_SET :   
+                next_state = READ_MEM; 
+            READ_MEM : 
                 next_state = LOOKUP;
             LOOKUP : 
                 next_state = PROCESS;
@@ -103,9 +106,10 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
 
 
-    logic decode_en, rd_set_en, update_en, process_en, lookup_en; 
+    logic decode_en, rd_set_en, rd_mem_en, update_en, process_en, lookup_en; 
     assign decode_en = (state == DECODE);
-    assign rd_set_en = (state == READ); 
+    assign rd_set_en = (state == READ_SET);
+    assign rd_mem_en = (state == READ_MEM); 
     assign lookup_en = (state == LOOKUP);  
     assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
@@ -116,6 +120,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     logic rd_en, look;
     assign rd_en = look; 
+    llc_set_t set;     
+   
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    assign req_in_addr = llc_req_in.addr;
+    assign rsp_in_addr = llc_rsp_in.addr;
+    assign dma_req_in_addr = llc_dma_req_in.addr; 
+ 
+    
     input_decoder input_decoder_u(.*);
    
     assign llc_rsp_in_ready = decode_en & is_rsp_to_get_next; 
@@ -157,7 +169,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             evict_way_buf <= 0; 
-        end else if (rd_set_en & look) begin 
+        end else if (rd_mem_en & look) begin 
             evict_way_buf <= rd_data_evict_way;
         end else if (incr_evict_way_buf) begin 
             evict_way_buf <= evict_way_buf + 1; 
@@ -167,7 +179,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         for (int i = 0; i < `LLC_WAYS; i++) begin 
             if (!rst) begin
                 lines_buf[i] <= 0; 
-            end else if (rd_set_en & look) begin 
+            end else if (rd_mem_en & look) begin 
                 lines_buf[i] <= rd_data_line[i];
             end else if (llc_mem_rsp_ready && llc_mem_rsp_valid && (way == i)) begin 
                 lines_buf[i] <= llc_mem_rsp_i.line;
@@ -177,7 +189,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
    
             if (!rst) begin 
                 tags_buf[i] <= 0;
-            end else if (rd_set_en & look) begin  
+            end else if (rd_mem_en & look) begin  
                 tags_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_tags_buf && (way == i)) begin 
                 tags_buf[i] <= tags_buf_wr_data;
@@ -185,7 +197,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
      
            if (!rst) begin 
                 sharers_buf[i] <= 0;
-            end else if (rd_set_en & look) begin 
+            end else if (rd_mem_en & look) begin 
                 sharers_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_sharers_buf && (way == i)) begin 
                 sharers_buf[i] <= sharers_buf_wr_data;
@@ -193,7 +205,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
            if (!rst) begin 
                 owners_buf[i] <= 0;
-            end else if (rd_set_en & look) begin 
+            end else if (rd_mem_en & look) begin 
                 owners_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_owners_buf && (way == i)) begin 
                 owners_buf[i] <= owners_buf_wr_data;
@@ -201,7 +213,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
             if (!rst) begin 
                 hprots_buf[i] <= 0;
-            end else if (rd_set_en & look) begin
+            end else if (rd_mem_en & look) begin
                 hprots_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_hprots_buf && (way == i)) begin 
                 hprots_buf[i] <= hprots_buf_wr_data;
@@ -209,7 +221,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             
             if (!rst) begin 
                 dirty_bits_buf[i] <= 0;
-            end else if (rd_set_en & look) begin
+            end else if (rd_mem_en & look) begin
                 dirty_bits_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_dirty_bits_buf && (way == i)) begin 
                 dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
@@ -217,23 +229,15 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             
             if (!rst) begin 
                 states_buf[i] <= 0;
-            end else if (rd_set_en & look) begin
+            end else if (rd_mem_en & look) begin
                 states_buf[i] <= rd_data_tag[i]; 
             end else if (wr_en_states_buf && (way == i)) begin 
                 states_buf[i] <= states_buf_wr_data;
             end
        end
     end
-    
-    llc_set_t set_in, rd_set, set;     
-    assign set_in = look ? rd_set : set;
-   
-    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
-    assign req_in_addr = llc_req_in.addr;
-    assign rsp_in_addr = llc_rsp_in.addr;
-    assign dma_req_in_addr = llc_dma_req_in.addr; 
+
     read_set read_set_u(.*);
-     
     localmem localmem_u(.*);
 
     logic evict;

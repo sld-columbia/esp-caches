@@ -5,7 +5,7 @@
 // input_decoder.sv 
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
-module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rd_set, set,  incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall, update_dma_addr_from_req, line_br, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall); 
+module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, set,  incr_rst_flush_stalled_set, clr_rst_stall, clr_flush_stall, clr_req_stall, update_dma_addr_from_req, line_br, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall); 
 
     input logic clk, rst;
     input logic rd_set_en;
@@ -15,7 +15,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
     input llc_tag_t req_in_stalled_tag; 
     input logic is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_flush_to_resume, is_rst_to_resume, req_stall;    
 
-    output llc_set_t rd_set, set;
+    output llc_set_t set;
     output logic incr_rst_flush_stalled_set; 
     output logic clr_rst_stall, clr_flush_stall, clr_req_stall;
     output logic update_dma_addr_from_req; 
@@ -70,7 +70,6 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         end
     end
 
-    assign rd_set = line_br_next.set;  
     assign set = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br.set; 
 
 endmodule

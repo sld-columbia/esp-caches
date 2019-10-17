@@ -136,7 +136,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
     invack_cnt_t dma_info; 
  
     logic misaligned; 
-    assign misaligned = (dma_write_woffset != 0 || valid_words != `WORDS_PER_LINE); 
+    assign misaligned = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE)); 
 
     llc_way_t cur_way;
     always_comb begin 
@@ -550,6 +550,15 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         llc_fwd_out.req_id = 0; 
         llc_fwd_out.dest_id = 0;
         llc_fwd_out_valid = 1'b0;
+        
+        llc_dma_rsp_out.coh_msg = 0;
+        llc_dma_rsp_out.addr = 0; 
+        llc_dma_rsp_out.line = 0; 
+        llc_dma_rsp_out.req_id = 0;
+        llc_dma_rsp_out.dest_id = 0; 
+        llc_dma_rsp_out.invack_cnt = 0; 
+        llc_dma_rsp_out.word_offset = 0;
+        llc_dma_rsp_out_valid = 1'b0;
 
         llc_mem_rsp_ready = 1'b0; 
         
@@ -600,8 +609,9 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         clr_recall_pending = 1'b0;
         clr_recall_valid = 1'b0; 
         
-        valid_words = 0;
-        dma_read_woffset = 0; 
+        valid_words = `WORDS_PER_LINE;
+        dma_read_woffset = 0;
+        dma_write_woffset = 0; 
         dma_info = 0; 
         dma_done_next = 1'b0;
         dma_length_next = 0; 

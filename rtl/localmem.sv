@@ -6,11 +6,11 @@
 // llc memory 
 // author: Joseph Zuckerman
 
-module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_data_sharers, wr_data_owner, wr_data_hprot, wr_data_dirty_bit, wr_data_evict_way, wr_data_state, wr_en, wr_rst_flush, wr_en_evict_way, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);  
+module localmem (clk, rst, set, way, rd_en,  wr_data_line, wr_data_tag, wr_data_sharers, wr_data_owner, wr_data_hprot, wr_data_dirty_bit, wr_data_evict_way, wr_data_state, wr_en, wr_rst_flush, wr_en_evict_way, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);  
     input logic clk, rst; 
 
     input logic rd_en;
-    input llc_set_t set_in;
+    input llc_set_t set;
     input llc_way_t way;
     input line_t wr_data_line;
     input llc_tag_t wr_data_tag;
@@ -84,7 +84,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin 
                     wr_en_owner_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
                         wr_en_owner_bank[j] = wr_en;
                     end
                 end
@@ -99,7 +99,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
                     wr_en_sharers_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
                         wr_en_sharers_bank[j] = wr_en | wr_rst_flush_or;
                     end
                 end
@@ -114,7 +114,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin 
                     wr_en_hprot_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
                         wr_en_hprot_bank[j] = wr_en;
                     end
                 end
@@ -129,7 +129,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
                     wr_en_dirty_bit_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
                         wr_en_dirty_bit_bank[j] = wr_en | wr_rst_flush_or;
                     end
                 end
@@ -144,7 +144,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
                     wr_en_state_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
                         wr_en_state_bank[j] = wr_en | wr_rst_flush_or;
                     end
                 end
@@ -159,7 +159,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin 
                     wr_en_tag_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
                         wr_en_tag_bank[j] = wr_en;
                     end
                 end
@@ -174,7 +174,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
                     wr_en_evict_way_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
                         wr_en_evict_way_bank[j] = wr_en_evict_way;
                     end
                 end
@@ -189,7 +189,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin 
                 for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
                     wr_en_line_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
                         wr_en_line_bank[j] = wr_en;
                     end
                 end
@@ -206,12 +206,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_4096x4 owner_bram(
                         .CLK(clk), 
-                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_owner), 
                         .Q0(rd_data_owner_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_owner_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_owner), 
                         .Q1(rd_data_owner_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_owner_bank[j]), 
@@ -221,12 +221,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_4096x4 owner_bram(
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_owner), 
                         .Q0(rd_data_owner_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_owner_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_owner), 
                         .Q1(rd_data_owner_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_owner_bank[j]), 
@@ -241,12 +241,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 if (`BRAM_1024_ADDR_WIDTH > (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_1024x16 sharers_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_sharers), 
                         .Q0(rd_data_sharers_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_sharers_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_sharers), 
                         .Q1(rd_data_sharers_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_sharers_bank[j]),
@@ -256,12 +256,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_1024x16 sharers_bram( 
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_sharers), 
                         .Q0(rd_data_sharers_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_sharers_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_sharers), 
                         .Q1(rd_data_sharers_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_sharers_bank[j]),
@@ -276,12 +276,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 if (`BRAM_16384_ADDR_WIDTH > (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_hprot), 
                         .Q0(rd_data_hprot_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_hprot_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_hprot), 
                         .Q1(rd_data_hprot_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_hprot_bank[j]),
@@ -291,12 +291,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_hprot), 
                         .Q0(rd_data_hprot_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_hprot_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_hprot), 
                         .Q1(rd_data_hprot_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_hprot_bank[j]),
@@ -311,12 +311,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 if (`BRAM_16384_ADDR_WIDTH > (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_16384x1 dirty_bit_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_dirty_bit), 
                         .Q0(rd_data_dirty_bit_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_dirty_bit_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_dirty_bit), 
                         .Q1(rd_data_dirty_bit_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_dirty_bit_bank[j]),
@@ -326,12 +326,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_16384x1 dirty_bit_bram( 
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_dirty_bit), 
                         .Q0(rd_data_dirty_bit_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_dirty_bit_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_dirty_bit), 
                         .Q1(rd_data_dirty_bit_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_dirty_bit_bank[j]),
@@ -346,12 +346,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                  if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_4096x4 state_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_state_extended), 
                         .Q0(rd_data_state_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_state_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_state_extended), 
                         .Q1(rd_data_state_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_state_bank[j]),
@@ -361,12 +361,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_4096x4 state_bram( 
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_state_extended), 
                         .Q0(rd_data_state_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_state_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_state_extended), 
                         .Q1(rd_data_state_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_state_bank[j]),
@@ -381,12 +381,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 if (`BRAM_512_ADDR_WIDTH > (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) + 1) begin 
                     BRAM_512x32 tag_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_tag_extended), 
                         .Q0(rd_data_tag_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_tag_extended), 
                         .Q1(rd_data_tag_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
@@ -396,12 +396,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                 end else begin 
                     BRAM_512x32 tag_bram( 
                         .CLK(clk), 
-                        .A0({1'b0, set_in[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({1'b0, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_tag_extended), 
                         .Q0(rd_data_tag_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
                         .CE0(rd_en),
-                        .A1({1'b1, set_in[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({1'b1, set[(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_tag_extended), 
                         .Q1(rd_data_tag_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
@@ -417,12 +417,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                     if (`BRAM_512_ADDR_WIDTH > (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) + 1) begin 
                         BRAM_512x32 line_bram( 
                             .CLK(clk), 
-                            .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                            .A0({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(32*(k+1)-1):(32*k)]), 
                             .Q0(rd_data_line_tmp[2*i][j][(32*(k+1)-1):(32*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
-                            .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                            .A1({{(`BRAM_512_ADDR_WIDTH - (`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(32*(k+1)-1):(32*k)]), 
                             .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)-1):(32*k)]),
                             .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
@@ -432,12 +432,12 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                     end else begin 
                         BRAM_512x32 line_bram( 
                             .CLK(clk), 
-                            .A0({1'b0, set_in[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                            .A0({1'b0, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(32*(k+1)-1):(32*k)]), 
                             .Q0(rd_data_line_tmp[2*i][j][(32*(k+1)-1):(32*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
-                            .A1({1'b1, set_in[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
+                            .A1({1'b1, set[(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(32*(k+1)-1):(32*k)]), 
                             .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)-1):(32*k)]),
                             .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
@@ -454,7 +454,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)) begin 
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
-                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, set_in[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
                     .D0(wr_data_evict_way), 
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
@@ -469,7 +469,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             end else begin 
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
-                    .A0({1'b0, set_in[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                    .A0({1'b0, set[(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
                     .D0(wr_data_evict_way), 
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
@@ -496,7 +496,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `OWNER_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `OWNER_BRAM_INDEX_BITS)]) begin 
                             rd_data_owner[i] = rd_data_owner_tmp[i][j]; 
                         end
                     end 
@@ -514,7 +514,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
                             rd_data_sharers[i] = rd_data_sharers_tmp[i][j]; 
                         end
                     end 
@@ -532,7 +532,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `HPROT_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `HPROT_BRAM_INDEX_BITS)]) begin 
                             rd_data_hprot[i] = rd_data_hprot_tmp[i][j];
                         end
                     end 
@@ -550,7 +550,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
                             rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][j];
                         end
                     end 
@@ -568,7 +568,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
                             rd_data_state[i] = rd_data_state_tmp[i][j];
                         end
                     end 
@@ -586,7 +586,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `TAG_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `TAG_BRAM_INDEX_BITS)]) begin 
                             rd_data_tag[i] = rd_data_tag_tmp[i][j];
                         end
                     end 
@@ -604,7 +604,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
             always_comb begin
                 for (int i = 0; i < `NUM_PORTS; i++) begin 
                     for (int j = 0; j < `LINE_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
+                        if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LINE_BRAM_INDEX_BITS)]) begin 
                             rd_data_line[i] = rd_data_line_tmp[i][j];
                         end
                     end 
@@ -619,7 +619,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         end else begin 
             always_comb begin
                 for (int j = 0; j < `EVICT_WAY_BRAMS; j++) begin 
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
+                    if (j == set[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `EVICT_WAY_BRAM_INDEX_BITS)]) begin 
                         rd_data_evict_way = rd_data_evict_way_tmp[j];
                     end
                 end 
