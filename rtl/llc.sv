@@ -447,10 +447,12 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process; 
     assign set_is_dma_read_to_resume = set_is_dma_read_to_resume_decoder | set_is_dma_read_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_is_dma_read_to_resume) begin 
+        if (!rst || rst_state) begin 
             is_dma_read_to_resume = 1'b0;
         end else if (set_is_dma_read_to_resume) begin
             is_dma_read_to_resume = 1'b1;
+        end else if (clr_is_dma_read_to_resume) begin 
+            is_dma_read_to_resume = 1'b0; 
         end
     end 
 
@@ -462,6 +464,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             is_dma_write_to_resume = 1'b0;
         end else if (set_is_dma_write_to_resume) begin
             is_dma_write_to_resume = 1'b1;
+        end else if (clr_is_dma_write_to_resume) begin 
+            is_dma_write_to_resume = 1'b0; 
         end
     end 
 

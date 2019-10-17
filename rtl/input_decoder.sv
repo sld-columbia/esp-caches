@@ -42,7 +42,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
     end
    
     
-    logic is_rst_to_resume_next, is_flush_to_resume_next, is_dma_read_to_resume_decoder_next, is_dma_write_to_resume_decoder_next;
+    logic is_rst_to_resume_next, is_flush_to_resume_next;
     logic is_req_to_get_next, is_dma_req_to_get_next; 
     
     
@@ -71,9 +71,11 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
                     end 
                 end else begin 
                     if (dma_read_pending) begin 
-                        is_dma_read_to_resume_decoder_next = 1'b1; 
-                    end else if (dma_write_pending) begin 
-                        is_dma_write_to_resume_decoder_next = 1'b1; 
+                        clr_is_dma_read_to_resume = 1'b0;
+                        set_is_dma_read_to_resume_decoder = 1'b1; 
+                    end else if (dma_write_pending) begin
+                        clr_is_dma_read_to_resume = 1'b0; 
+                        set_is_dma_write_to_resume_decoder = 1'b1; 
                     end
                 end
             end else if (rst_stall) begin 

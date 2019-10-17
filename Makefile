@@ -1,5 +1,6 @@
 VIVADO = /opt/cad/vivado
 ESPROOT = ../esp
+ACCEL = ../accel
 
 FLAGS ?=
 FLAGS += -NOWarn SCK505
@@ -12,7 +13,7 @@ FLAGS += -access +R
 INCDIR ?=
 INCDIR += -I./rtl
 INCDIR += -I./sim
-INCDIR += -I$(ESPROOT)/accelerators/common/syn-templates/
+INCDIR += -I$(ACCEL)
 INCDIR += -I$(ESPROOT)/systemc/common/caches
 INCDIR += -I$(ESPROOT)/systemc/llc/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
