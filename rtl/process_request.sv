@@ -606,7 +606,10 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
         dma_done_next = 1'b0;
         dma_length_next = 0; 
         dma_start_next = 1'b0; 
-
+        incr_dma_addr = 1'b0; 
+        clr_dma_read_pending = 1'b0; 
+        clr_dma_write_pending = 1'b0; 
+            
         case (state)
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
