@@ -26,7 +26,10 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
 
     always_comb begin 
         //multiplex addr bits
-        addr_for_set = {`LLC_ADDR_BITS{1'b0}};
+        addr_for_set = {`LINE_ADDR_BITS{1'b0}};
+        //addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS] = line_br.tag;
+        //addr_for_set[(`LLC_SET_BITS - 1):0] = line_br.set; 
+
         update_dma_addr_from_req = 1'b0;
         if (is_rsp_to_get) begin 
             addr_for_set = rsp_in_addr; 
