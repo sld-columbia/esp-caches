@@ -399,7 +399,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= 0; 
-        end else if (incr_rst_flush_stalled_set && rd_set_en) begin 
+        end else if (incr_rst_flush_stalled_set && update_en) begin 
             rst_flush_stalled_set <= rst_flush_stalled_set + 1; 
         end
     end

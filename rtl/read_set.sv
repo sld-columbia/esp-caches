@@ -73,7 +73,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         end
     end
 
-    assign set_next = line_br_next.set;
+    assign set_next = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br_next.set;
     assign set = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br.set; 
 
 endmodule

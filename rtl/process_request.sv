@@ -625,7 +625,7 @@ module process_request(clk, rst, start_process, process_en, way, way_next, is_fl
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
                 if (states_buf[cur_way] == `VALID && dirty_bits_buf[cur_way]) begin 
-                    llc_mem_req.hwrite = `WRITE;
+                    llc_mem_req.hwrite = `LLC_WRITE;
                     llc_mem_req.addr = line_addr; 
                     llc_mem_req.hsize = `WORD;
                     llc_mem_req.hprot = hprots_buf[cur_way]; 
@@ -679,7 +679,7 @@ module process_request(clk, rst, start_process, process_en, way, way_next, is_fl
                 end 
                 if (states_buf[way] == `VALID && dirty_bits_buf[way]) begin 
                     llc_mem_req_valid = 1'b1; 
-                    llc_mem_req.hwrite = `WRITE;
+                    llc_mem_req.hwrite = `LLC_WRITE;
                     llc_mem_req.addr = addr_evict; 
                     llc_mem_req.hsize = `WORD; 
                     llc_mem_req.hprot = hprots_buf[way]; 
@@ -885,7 +885,7 @@ module process_request(clk, rst, start_process, process_en, way, way_next, is_fl
                         incr_evict_way_buf = 1'b1;
                     end
                     if (dirty_bits_buf[way]) begin 
-                        llc_mem_req.hwrite = `WRITE;
+                        llc_mem_req.hwrite = `LLC_WRITE;
                         llc_mem_req.addr = addr_evict; 
                         llc_mem_req.hsize = `WORD;
                         llc_mem_req.hprot = hprots_buf[way]; 
