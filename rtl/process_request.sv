@@ -807,7 +807,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
-                    if (states_buf[way] == `SHARED && sharers_buf[way] == 0) begin 
+                    if (states_buf[way] == `SHARED && sharers_buf_wr_data == 0) begin 
                         states_buf_wr_data = `VALID;
                         wr_en_states_buf = 1'b1; 
                     end
@@ -825,7 +825,7 @@ module process_request(clk, rst, process_en, way, is_flush_to_resume, is_rst_to_
                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
                     wr_en_sharers_buf = 1'b1;
-                    if (states_buf[way] == `SHARED && sharers_buf[way] == 0) begin 
+                    if (states_buf[way] == `SHARED && sharers_buf_wr_data == 0) begin 
                         states_buf_wr_data = `VALID;
                         wr_en_states_buf = 1'b1; 
                     end
