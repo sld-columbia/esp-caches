@@ -110,7 +110,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     assign decode_en = (state == DECODE);
     assign rd_set_en = (state == READ_SET);
     assign rd_mem_en = (state == READ_MEM);
-    assign lookup_en = (state == LOOKUP);  
+    assign lookup_en = (state == LOOKUP); 
     assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
 
@@ -154,10 +154,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     llc_state_t states_buf[`LLC_WAYS];
 
     
-    llc_way_t way;
-    logic wr_en_evict_way_buf, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf;
+    llc_way_t way, way_next;
+    logic wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf;
     line_t lines_buf_wr_data;
-    llc_way_t evict_way_buf_wr_data;
     llc_tag_t tags_buf_wr_data;
     sharers_t sharers_buf_wr_data;
     owner_t owners_buf_wr_data;
@@ -173,8 +172,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             evict_way_buf <= rd_data_evict_way;
         end else if (incr_evict_way_buf) begin 
             evict_way_buf <= evict_way_buf + 1; 
-        end else if (wr_en_evict_way_buf) begin 
-            evict_way_buf <= evict_way_buf_wr_data; 
         end
         for (int i = 0; i < `LLC_WAYS; i++) begin 
             if (!rst) begin
@@ -247,6 +244,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     lookup_way lookup_way_u(.*); 
 
     llc_addr_t addr_evict;
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            addr_evict = 0;
+        end else if (lookup_en) begin 
+            addr_evict <= (tags_buf[way_next] << `LLC_SET_BITS) + set; 
+        end
+    end 
+    
     logic rst_state;
     process_request process_request_u(.*);
 
@@ -353,9 +358,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     end
     assign rst_in = llc_rst_tb;
     
-    logic rst_stall, clr_rst_stall, set_rst_stall;
+    logic rst_stall, clr_rst_stall;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || set_rst_stall) begin 
+        if (!rst || rst_state) begin 
             rst_stall <= 1'b1;
         end else if (clr_rst_stall) begin 
             rst_stall <= 1'b0;
@@ -488,9 +493,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
 
     //update cache
-    logic update_evict_way, clr_update_evict_way, set_update_evict_way;
+    logic update_evict_way, set_update_evict_way;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_update_evict_way) begin 
+        if (!rst || rst_state || decode_en) begin 
             update_evict_way <= 1'b0;
         end else if (set_update_evict_way) begin 
             update_evict_way <= 1'b1; 

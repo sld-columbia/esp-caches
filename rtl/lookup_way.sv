@@ -6,7 +6,7 @@
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, evict); 
+module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict); 
     
     input logic clk, rst; 
     input llc_tag_t tag; 
@@ -15,7 +15,7 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en
     input llc_way_t evict_way_buf;
     input logic lookup_en; 
 
-    output llc_way_t way;
+    output llc_way_t way, way_next;
     output logic evict;  
 
     
@@ -66,7 +66,6 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en
     assign evict_valid = |evict_valid_tmp; 
     assign evict_not_sd = |evict_not_sd_tmp;
 
-    llc_way_t way_next;
     logic evict_next; 
     always_comb begin 
         if (tag_hit) begin 

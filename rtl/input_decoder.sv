@@ -27,19 +27,19 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
     //STATE LOGI
 
     logic can_get_rst_tb, can_get_rsp_in, can_get_req_in, can_get_dma_req_in; 
-    always_ff @(posedge clk or negedge rst) begin 
+/*    always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
            can_get_rst_tb <= 1'b0;
            can_get_rsp_in <= 1'b0; 
            can_get_req_in <= 1'b0; 
            can_get_dma_req_in <= 1'b0; 
-        end else begin 
-           can_get_rst_tb <= llc_rst_tb_valid; 
-           can_get_rsp_in <= llc_rsp_in_valid; 
-           can_get_req_in <= llc_req_in_valid; 
-           can_get_dma_req_in <= llc_dma_req_in_valid;
-        end
-    end
+        end else begin */
+          assign can_get_rst_tb = llc_rst_tb_valid; 
+          assign can_get_rsp_in = llc_rsp_in_valid; 
+          assign can_get_req_in = llc_req_in_valid; 
+          assign can_get_dma_req_in = llc_dma_req_in_valid;
+       /* end
+    end */
    
     
     logic is_rst_to_resume_next, is_flush_to_resume_next;
