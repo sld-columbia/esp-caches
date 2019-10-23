@@ -6,7 +6,7 @@
 // llc memory 
 // author: Joseph Zuckerman
 
-module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_data_sharers, wr_data_owner, wr_data_hprot, wr_data_dirty_bit, wr_data_evict_way, wr_data_state, wr_en, wr_rst_flush, wr_en_evict_way, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);  
+module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_data_sharers, wr_data_owner, wr_data_hprot, wr_data_dirty_bit, wr_data_evict_way, wr_data_state, wr_en, wr_rst_flush, wr_en_evict_way,rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);  
     input logic clk, rst; 
 
     input logic rd_en;
@@ -49,10 +49,10 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
     always_comb begin 
         for (int i = 0; i < `NUM_PORTS; i++) begin 
             wr_en_port[i] = 1'b0; 
-            if (way == i) begin 
-                wr_en_port[i] = wr_en; 
-            end else if (wr_rst_flush[i]) begin 
+            if (wr_rst_flush[i]) begin 
                 wr_en_port[i] = 1'b1;
+            end else if (way == i) begin 
+                wr_en_port[i] = wr_en; 
             end
         end
     end
@@ -93,14 +93,14 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         
         if (`SHARERS_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_sharers_bank[0] = wr_en | wr_rst_flush_or;
+                wr_en_sharers_bank[0] = wr_en  | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `SHARERS_BRAMS_PER_WAY; j++) begin 
                     wr_en_sharers_bank[j] = 1'b0;
                     if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `SHARERS_BRAM_INDEX_BITS)]) begin 
-                        wr_en_sharers_bank[j] = wr_en | wr_rst_flush_or;
+                        wr_en_sharers_bank[j] = wr_en  | wr_rst_flush_or;
                     end
                 end
             end
@@ -123,14 +123,14 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         
         if (`DIRTY_BIT_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_dirty_bit_bank[0] = wr_en | wr_rst_flush_or;
+                wr_en_dirty_bit_bank[0] = wr_en  | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
                     wr_en_dirty_bit_bank[j] = 1'b0;
                     if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
-                        wr_en_dirty_bit_bank[j] = wr_en | wr_rst_flush_or;
+                        wr_en_dirty_bit_bank[j] = wr_en  | wr_rst_flush_or;
                     end
                 end
             end
@@ -138,14 +138,14 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
 
         if (`STATE_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_state_bank[0] = wr_en | wr_rst_flush_or;
+                wr_en_state_bank[0] = wr_en  | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `STATE_BRAMS_PER_WAY; j++) begin 
                     wr_en_state_bank[j] = 1'b0;
                     if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `STATE_BRAM_INDEX_BITS)]) begin 
-                        wr_en_state_bank[j] = wr_en | wr_rst_flush_or;
+                        wr_en_state_bank[j] = wr_en  | wr_rst_flush_or;
                     end
                 end
             end

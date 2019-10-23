@@ -119,7 +119,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     line_breakdown_llc_t line_br();
     
     logic rd_en, look;
-    assign rd_en = look; 
+    assign rd_en = 1'b1; 
     llc_set_t set, set_next, set_in;     
    
     line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
@@ -152,6 +152,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic dirty_bits_buf[`LLC_WAYS];
     llc_way_t evict_way_buf; 
     llc_state_t states_buf[`LLC_WAYS];
+    logic rst_state;
 
     
     llc_way_t way, way_next;
@@ -166,7 +167,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     //read into buffers
     logic incr_evict_way_buf; 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
+        if (!rst || rst_state) begin 
             evict_way_buf <= 0; 
         end else if (rd_mem_en & look) begin 
             evict_way_buf <= rd_data_evict_way;
@@ -174,7 +175,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             evict_way_buf <= evict_way_buf + 1; 
         end
         for (int i = 0; i < `LLC_WAYS; i++) begin 
-            if (!rst) begin
+            if (!rst || rst_state) begin
                 lines_buf[i] <= 0; 
             end else if (rd_mem_en & look) begin 
                 lines_buf[i] <= rd_data_line[i];
@@ -184,7 +185,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 lines_buf[i] <= lines_buf_wr_data;
             end
    
-            if (!rst) begin 
+            if (!rst || rst_state) begin 
                 tags_buf[i] <= 0;
             end else if (rd_mem_en & look) begin  
                 tags_buf[i] <= rd_data_tag[i]; 
@@ -192,7 +193,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 tags_buf[i] <= tags_buf_wr_data;
             end
      
-           if (!rst) begin 
+           if (!rst || rst_state) begin 
                 sharers_buf[i] <= 0;
             end else if (rd_mem_en & look) begin 
                 sharers_buf[i] <= rd_data_sharers[i]; 
@@ -200,7 +201,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 sharers_buf[i] <= sharers_buf_wr_data;
             end
 
-           if (!rst) begin 
+           if (!rst || rst_state) begin 
                 owners_buf[i] <= 0;
             end else if (rd_mem_en & look) begin 
                 owners_buf[i] <= rd_data_owner[i]; 
@@ -208,7 +209,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 owners_buf[i] <= owners_buf_wr_data;
             end
 
-            if (!rst) begin 
+            if (!rst || rst_state) begin 
                 hprots_buf[i] <= 0;
             end else if (rd_mem_en & look) begin
                 hprots_buf[i] <= rd_data_hprot[i]; 
@@ -216,7 +217,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 hprots_buf[i] <= hprots_buf_wr_data;
             end
             
-            if (!rst) begin 
+            if (!rst || rst_state) begin 
                 dirty_bits_buf[i] <= 0;
             end else if (rd_mem_en & look) begin
                 dirty_bits_buf[i] <= rd_data_dirty_bit[i];
@@ -224,7 +225,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
                 dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
             end
             
-            if (!rst) begin 
+            if (!rst || rst_state) begin 
                 states_buf[i] <= 0;
             end else if (rd_mem_en & look) begin
                 states_buf[i] <= rd_data_state[i]; 
@@ -252,7 +253,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end 
     
-    logic rst_state;
     process_request process_request_u(.*);
 
     logic update_req_in_from_stalled;
