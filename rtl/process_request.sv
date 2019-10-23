@@ -28,7 +28,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input logic llc_rst_tb_done_ready;
     input logic llc_fwd_out_ready; 
     input logic llc_rsp_out_ready; 
-    input llc_addr_t addr_evict;
+    input line_addr_t addr_evict;
     input logic evict; 
     input logic llc_mem_rsp_valid; 
     input addr_t dma_addr;
@@ -239,7 +239,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     if (llc_mem_req_ready) begin
                         case(llc_req_in.coh_msg) 
                             `REQ_GETS : begin 
-                                case(states_buf[way]) 
+                                case(states_buf_wr_data) 
                                     `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
                                     `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
                                     `SHARED : next_state = REQ_GETS_S;
@@ -249,7 +249,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                 endcase
                             end
                            `REQ_GETM : begin 
-                                case(states_buf[way]) 
+                                case(states_buf_wr_data) 
                                     `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
                                     `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
                                     `SHARED : next_state = REQ_GETM_S_FWD;

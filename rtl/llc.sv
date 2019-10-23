@@ -244,12 +244,12 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
  
     lookup_way lookup_way_u(.*); 
 
-    llc_addr_t addr_evict;
+    line_addr_t addr_evict;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
-            addr_evict = 0;
+            addr_evict <= 0;
         end else if (lookup_en) begin 
-            addr_evict <= (tags_buf[way_next] << `LLC_SET_BITS) + set; 
+            addr_evict <= {tags_buf[way_next], set}; 
         end
     end 
     
