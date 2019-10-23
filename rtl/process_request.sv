@@ -431,15 +431,15 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_EVICT : begin 
-                    if ((evict && dirty_bits_buf[way] && llc_mem_req_ready) || (!evict && recall_valid)) begin  
+                    if ((evict && ((dirty_bits_buf[way] && llc_mem_req_ready) || !dirty_bits_buf[way])) || (!evict)) begin  
                         if (is_dma_read_to_resume) begin 
-                            if (states_buf[way] == `INVALID) begin 
+                            if (states_buf_wr_data == `INVALID) begin 
                                 next_state = DMA_READ_RESUME_MEM_REQ;
                             end else begin 
                                 next_state = DMA_READ_RESUME_DMA_RSP;
                             end
                         end else begin 
-                            if (states_buf[way] == `INVALID && misaligned) begin 
+                            if (states_buf_wr_data == `INVALID && misaligned) begin 
                                 next_state = DMA_WRITE_RESUME_MEM_REQ;
                             end else begin 
                                 next_state = DMA_WRITE_RESUME_WRITE;
@@ -878,7 +878,6 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 wr_en_sharers_buf = 1'b1;
                 sharers_buf_wr_data = 0; 
                 
-                wr_en_states_buf = 1'b1;
                 if (evict) begin 
                     if (way == evict_way_buf) begin 
                         set_update_evict_way = 1'b1; 
@@ -893,8 +892,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                         llc_mem_req_valid = 1'b1;
                     end 
                     states_buf_wr_data = `INVALID;
-                end else begin 
+                    wr_en_states_buf = 1'b1;
+                end else if (recall_valid) begin 
                     states_buf_wr_data = `VALID;
+                    wr_en_states_buf = 1'b1;
                 end
             end
             DMA_READ_RESUME_MEM_REQ : begin 
