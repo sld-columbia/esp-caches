@@ -93,7 +93,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         
         if (`SHARERS_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_sharers_bank[0] = wr_en;
+                wr_en_sharers_bank[0] = wr_en | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
@@ -123,7 +123,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
         
         if (`DIRTY_BIT_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_dirty_bit_bank[0] = wr_en;
+                wr_en_dirty_bit_bank[0] = wr_en | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
@@ -138,7 +138,7 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
 
         if (`STATE_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_state_bank[0] = wr_en;
+                wr_en_state_bank[0] = wr_en | wr_rst_flush_or;
             end
         end else begin 
             always_comb begin 
