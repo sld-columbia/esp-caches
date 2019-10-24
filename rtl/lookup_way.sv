@@ -27,9 +27,9 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en
             tag_hits_tmp[i] = (tags_buf[i] == tag && states_buf[i] != `INVALID);
             empty_ways_tmp[i] = (states_buf[i] == `INVALID); 
             
-            way_tmp = i + evict_way_buf;
-            evict_valid_tmp[way_tmp] = (states_buf[way_tmp] == `VALID);
-            evict_not_sd_tmp = (states_buf[way_tmp] != `SD); 
+            way_tmp = (i + evict_way_buf) & {`LLC_WAY_BITS{1'b1}};
+            evict_valid_tmp[i] = (states_buf[way_tmp] == `VALID);
+            evict_not_sd_tmp[i] = (states_buf[way_tmp] != `SD); 
         end
     end 
 
@@ -50,11 +50,11 @@ module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en
             end 
         
             if (evict_valid_tmp[j]) begin 
-                evict_way_valid = j; 
+                evict_way_valid = j + evict_way_buf; 
             end 
         
             if (evict_not_sd_tmp[j]) begin 
-                evict_way_not_sd = j; 
+                evict_way_not_sd = j +  evict_way_buf; 
             end 
         end
     end
