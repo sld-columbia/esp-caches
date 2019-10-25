@@ -380,7 +380,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
                 DMA_RECALL_EMSD : begin 
                     if (llc_fwd_out_ready) begin
-                        if (!recall_pending || recall_valid) begin 
+                        if (recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
                             end else if (is_dma_read_to_resume) begin 
@@ -721,7 +721,6 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                     wr_en_owners_buf = 1'b1; 
                     owners_buf_wr_data = llc_req_in.req_id;
-                    states_buf_wr_data = `EXCLUSIVE;
                 end
                 wr_en_states_buf = 1'b1; 
                 llc_rsp_out.addr = llc_req_in.addr; 
