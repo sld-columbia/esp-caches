@@ -74,7 +74,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
                         clr_is_dma_read_to_resume = 1'b0;
                         set_is_dma_read_to_resume_decoder = 1'b1; 
                     end else if (dma_write_pending) begin
-                        clr_is_dma_read_to_resume = 1'b0; 
+                        clr_is_dma_write_to_resume = 1'b0; 
                         set_is_dma_write_to_resume_decoder = 1'b1; 
                     end
                 end
