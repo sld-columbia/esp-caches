@@ -348,7 +348,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_REQ_TO_GET : begin 
-                    if (!recall_valid && !recall_pending && states_buf[way] != `INVALID && states_buf[way] != `VALID) begin 
+                        if (!recall_valid && !recall_pending && states_buf[way] != `INVALID && states_buf[way] != `VALID) begin 
                         case (states_buf[way])
                             `EXCLUSIVE : next_state = DMA_RECALL_EMSD;
                             `MODIFIED : next_state = DMA_RECALL_EMSD;
@@ -624,6 +624,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
             
         words_to_write = 0;
         case (state)
+            IDLE : begin  
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
+            end
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
                 if (states_buf[cur_way] == `VALID && dirty_bits_buf[cur_way]) begin 
@@ -854,6 +858,8 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
             end
             DMA_RECALL_EMSD : begin 
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
                 set_recall_pending = 1'b1;
                 if (states_buf[way] == `EXCLUSIVE || states_buf[way] == `MODIFIED) begin 
                     llc_fwd_out.coh_msg = `FWD_GETM_LLC; 
@@ -864,6 +870,8 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
             end
             DMA_RECALL_S : begin 
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
                 if (sharers_buf[way] & (1 << l2_cnt)) begin 
                     llc_fwd_out.coh_msg = `FWD_INV_LLC; 
                     llc_fwd_out.addr = addr_evict; 
@@ -880,7 +888,9 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 owners_buf_wr_data = 0;
                 wr_en_sharers_buf = 1'b1;
                 sharers_buf_wr_data = 0; 
-                
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
+ 
                 if (evict) begin 
                     if (way == evict_way_buf) begin 
                         set_update_evict_way = 1'b1; 
@@ -933,7 +943,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 //only increment once
                 if (llc_dma_rsp_out_ready) begin 
                     dma_length_next = dma_length + (`WORDS_PER_LINE - dma_read_woffset); 
+                end else begin 
+                    dma_length_next = dma_length;
                 end
+
                
                 if (dma_length_next >= dma_read_length) begin 
                     dma_done_next = 1'b1; 
