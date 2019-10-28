@@ -68,6 +68,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic llc_rst_tb; 
 
     //STATE MACHINE
+    
     localparam DECODE = 3'b000;
     localparam READ_SET = 3'b001;
     localparam READ_MEM = 3'b011;
@@ -114,27 +115,150 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
 
-    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next; 
-    
-    line_breakdown_llc_t line_br();
-    
-    logic rd_en, look;
-    assign rd_en = 1'b1; 
-    llc_set_t set, set_next, set_in;     
+    //DECODE
+
+    //wires
+    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
    
-    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
-    assign req_in_addr = llc_req_in.addr;
-    assign rsp_in_addr = llc_rsp_in.addr;
-    assign dma_req_in_addr = llc_dma_req_in.addr; 
- 
-    
+    //instance
     input_decoder input_decoder_u(.*);
    
+    //assign outputs
     assign llc_rsp_in_ready = decode_en & is_rsp_to_get_next; 
     assign llc_rst_tb_ready = decode_en & is_rst_to_get_next; 
     assign llc_req_in_ready = decode_en & do_get_req; 
     assign llc_dma_req_in_ready = decode_en & do_get_dma_req;
+    
+    //READ INPUTS FROM INTERFACES
 
+    //llc req in 
+    logic update_req_in_from_stalled;
+    llc_req_in_t req_in_stalled();
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_req_in.coh_msg <= 0; 
+            llc_req_in.hprot <= 0; 
+            llc_req_in.addr <= 0; 
+            llc_req_in.line <= 0; 
+            llc_req_in.req_id <= 0; 
+            llc_req_in.word_offset <= 0; 
+            llc_req_in.valid_words <= 0; 
+       end else if (update_req_in_from_stalled) begin
+            llc_req_in.coh_msg <= req_in_stalled.coh_msg; 
+            llc_req_in.hprot <= req_in_stalled.hprot; 
+            llc_req_in.addr <= req_in_stalled.addr; 
+            llc_req_in.line <= req_in_stalled.line; 
+            llc_req_in.req_id <= req_in_stalled.req_id; 
+            llc_req_in.word_offset <= req_in_stalled.word_offset; 
+            llc_req_in.valid_words <= req_in_stalled.valid_words; 
+        end else if (llc_req_in_valid && llc_req_in_ready) begin
+            llc_req_in.coh_msg <= llc_req_in_i.coh_msg; 
+            llc_req_in.hprot <= llc_req_in_i.hprot; 
+            llc_req_in.addr <= llc_req_in_i.addr; 
+            llc_req_in.line <= llc_req_in_i.line; 
+            llc_req_in.req_id <= llc_req_in_i.req_id; 
+            llc_req_in.word_offset <= llc_req_in_i.word_offset; 
+            llc_req_in.valid_words <= llc_req_in_i.valid_words; 
+        end
+    end
+
+    //req in stalled
+    logic set_req_in_stalled; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            req_in_stalled.coh_msg <= 0; 
+            req_in_stalled.hprot <= 0; 
+            req_in_stalled.addr <= 0; 
+            req_in_stalled.line <= 0; 
+            req_in_stalled.req_id <= 0; 
+            req_in_stalled.word_offset <= 0; 
+            req_in_stalled.valid_words <= 0; 
+       end else if (set_req_in_stalled) begin
+            req_in_stalled.coh_msg <= llc_req_in.coh_msg; 
+            req_in_stalled.hprot <= llc_req_in.hprot; 
+            req_in_stalled.addr <= llc_req_in.addr; 
+            req_in_stalled.line <= llc_req_in.line; 
+            req_in_stalled.req_id <= llc_req_in.req_id; 
+            req_in_stalled.word_offset <= llc_req_in.word_offset; 
+            req_in_stalled.valid_words <= llc_req_in.valid_words; 
+        end 
+    end
+
+    //dma req in 
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_dma_req_in.coh_msg <= 0; 
+            llc_dma_req_in.hprot <= 0; 
+            llc_dma_req_in.addr <= 0; 
+            llc_dma_req_in.line <= 0; 
+            llc_dma_req_in.req_id <= 0; 
+            llc_dma_req_in.word_offset <= 0; 
+            llc_dma_req_in.valid_words <= 0; 
+        end else if (llc_dma_req_in_valid && llc_dma_req_in_ready) begin
+            llc_dma_req_in.coh_msg <= llc_dma_req_in_i.coh_msg; 
+            llc_dma_req_in.hprot <= llc_dma_req_in_i.hprot; 
+            llc_dma_req_in.addr <= llc_dma_req_in_i.addr; 
+            llc_dma_req_in.line <= llc_dma_req_in_i.line; 
+            llc_dma_req_in.req_id <= llc_dma_req_in_i.req_id; 
+            llc_dma_req_in.word_offset <= llc_dma_req_in_i.word_offset; 
+            llc_dma_req_in.valid_words <= llc_dma_req_in_i.valid_words; 
+        end
+    end
+    
+    //llc rsp in 
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_rsp_in.coh_msg <= 0; 
+            llc_rsp_in.addr <= 0; 
+            llc_rsp_in.line <= 0; 
+            llc_rsp_in.req_id <= 0; 
+        end else if (llc_rsp_in_valid && llc_rsp_in_ready) begin
+            llc_rsp_in.coh_msg <= llc_rsp_in_i.coh_msg; 
+            llc_rsp_in.addr <= llc_rsp_in_i.addr; 
+            llc_rsp_in.line <= llc_rsp_in_i.line; 
+            llc_rsp_in.req_id <= llc_rsp_in_i.req_id; 
+         end
+    end
+    
+    //mem rsp
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_mem_rsp.line <= 0; 
+        end else if (llc_mem_rsp_valid && llc_mem_rsp_ready) begin
+            llc_mem_rsp.line <= llc_mem_rsp_i.line; 
+        end
+    end
+
+    //rst tb 
+    logic rst_in;
+    always_ff @(posedge clk or negedge rst) begin 
+        if(!rst) begin 
+            llc_rst_tb <= 0; 
+        end else if (llc_rst_tb_valid && llc_rst_tb_ready) begin
+            llc_rst_tb <= llc_rst_tb_i; 
+        end
+    end
+    assign rst_in = llc_rst_tb;
+ 
+    //READ_SET
+    
+    //wires
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    assign req_in_addr = llc_req_in.addr;
+    assign rsp_in_addr = llc_rsp_in.addr;
+    assign dma_req_in_addr = llc_dma_req_in.addr; 
+    llc_set_t set, set_next, set_in;     
+    line_breakdown_llc_t line_br();
+   
+    //instance
+    read_set read_set_u(.*);
+   
+    //assign output
+    assign set_in = rd_set_en ? set_next : set; 
+ 
+    //MEMORY
+    
+    //read data wires
     line_t rd_data_line[`LLC_WAYS];
     llc_tag_t rd_data_tag[`LLC_WAYS];
     sharers_t rd_data_sharers[`LLC_WAYS];
@@ -143,20 +267,12 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     logic rd_data_dirty_bit[`LLC_WAYS];
     llc_way_t rd_data_evict_way; 
     llc_state_t rd_data_state[`LLC_WAYS];
-
-    line_t lines_buf[`LLC_WAYS];
-    llc_tag_t tags_buf[`LLC_WAYS];
-    sharers_t sharers_buf[`LLC_WAYS];
-    owner_t owners_buf[`LLC_WAYS];
-    hprot_t hprots_buf[`LLC_WAYS];
-    logic dirty_bits_buf[`LLC_WAYS];
-    llc_way_t evict_way_buf; 
-    llc_state_t states_buf[`LLC_WAYS];
-    logic rst_state;
-
     
-    llc_way_t way, way_next;
+    //write enables
     logic wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf;
+
+    //write data
+    llc_way_t way, way_next;
     line_t lines_buf_wr_data;
     llc_tag_t tags_buf_wr_data;
     sharers_t sharers_buf_wr_data;
@@ -164,8 +280,27 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     hprot_t hprots_buf_wr_data;
     logic dirty_bits_buf_wr_data;
     llc_state_t states_buf_wr_data;
+    
+    logic rd_en;
+    assign rd_en = 1'b1; 
+   
+    //instance
+    localmem localmem_u(.*);
+
+    //BUFFERS
+    llc_way_t evict_way_buf; 
+    line_t lines_buf[`LLC_WAYS];
+    llc_tag_t tags_buf[`LLC_WAYS];
+    sharers_t sharers_buf[`LLC_WAYS];
+    owner_t owners_buf[`LLC_WAYS];
+    hprot_t hprots_buf[`LLC_WAYS];
+    logic dirty_bits_buf[`LLC_WAYS];
+    llc_state_t states_buf[`LLC_WAYS];
+     
     //read into buffers
     logic incr_evict_way_buf; 
+    logic rst_state;
+    
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             evict_way_buf <= 0; 
@@ -234,14 +369,15 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             end
        end
     end
-    assign set_in = rd_set_en ? set_next : set; 
-    read_set read_set_u(.*);
-    localmem localmem_u(.*);
+    
+    //LOOKUP 
 
+    //wires
     logic evict;
     llc_tag_t tag; 
     assign tag = line_br.tag;
  
+    //instance
     lookup_way lookup_way_u(.*); 
 
     line_addr_t addr_evict;
@@ -252,112 +388,13 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             addr_evict <= {tags_buf[way_next], set}; 
         end
     end 
-    
+   
+    //PROCESS 
+
+    //instance
     process_request process_request_u(.*);
 
-    logic update_req_in_from_stalled;
-    llc_req_in_t req_in_stalled();
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            llc_req_in.coh_msg <= 0; 
-            llc_req_in.hprot <= 0; 
-            llc_req_in.addr <= 0; 
-            llc_req_in.line <= 0; 
-            llc_req_in.req_id <= 0; 
-            llc_req_in.word_offset <= 0; 
-            llc_req_in.valid_words <= 0; 
-       end else if (update_req_in_from_stalled) begin
-            llc_req_in.coh_msg <= req_in_stalled.coh_msg; 
-            llc_req_in.hprot <= req_in_stalled.hprot; 
-            llc_req_in.addr <= req_in_stalled.addr; 
-            llc_req_in.line <= req_in_stalled.line; 
-            llc_req_in.req_id <= req_in_stalled.req_id; 
-            llc_req_in.word_offset <= req_in_stalled.word_offset; 
-            llc_req_in.valid_words <= req_in_stalled.valid_words; 
-        end else if (llc_req_in_valid && llc_req_in_ready) begin
-            llc_req_in.coh_msg <= llc_req_in_i.coh_msg; 
-            llc_req_in.hprot <= llc_req_in_i.hprot; 
-            llc_req_in.addr <= llc_req_in_i.addr; 
-            llc_req_in.line <= llc_req_in_i.line; 
-            llc_req_in.req_id <= llc_req_in_i.req_id; 
-            llc_req_in.word_offset <= llc_req_in_i.word_offset; 
-            llc_req_in.valid_words <= llc_req_in_i.valid_words; 
-        end
-    end
-
-    logic set_req_in_stalled; 
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            req_in_stalled.coh_msg <= 0; 
-            req_in_stalled.hprot <= 0; 
-            req_in_stalled.addr <= 0; 
-            req_in_stalled.line <= 0; 
-            req_in_stalled.req_id <= 0; 
-            req_in_stalled.word_offset <= 0; 
-            req_in_stalled.valid_words <= 0; 
-       end else if (set_req_in_stalled) begin
-            req_in_stalled.coh_msg <= llc_req_in.coh_msg; 
-            req_in_stalled.hprot <= llc_req_in.hprot; 
-            req_in_stalled.addr <= llc_req_in.addr; 
-            req_in_stalled.line <= llc_req_in.line; 
-            req_in_stalled.req_id <= llc_req_in.req_id; 
-            req_in_stalled.word_offset <= llc_req_in.word_offset; 
-            req_in_stalled.valid_words <= llc_req_in.valid_words; 
-        end 
-    end
-
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            llc_dma_req_in.coh_msg <= 0; 
-            llc_dma_req_in.hprot <= 0; 
-            llc_dma_req_in.addr <= 0; 
-            llc_dma_req_in.line <= 0; 
-            llc_dma_req_in.req_id <= 0; 
-            llc_dma_req_in.word_offset <= 0; 
-            llc_dma_req_in.valid_words <= 0; 
-        end else if (llc_dma_req_in_valid && llc_dma_req_in_ready) begin
-            llc_dma_req_in.coh_msg <= llc_dma_req_in_i.coh_msg; 
-            llc_dma_req_in.hprot <= llc_dma_req_in_i.hprot; 
-            llc_dma_req_in.addr <= llc_dma_req_in_i.addr; 
-            llc_dma_req_in.line <= llc_dma_req_in_i.line; 
-            llc_dma_req_in.req_id <= llc_dma_req_in_i.req_id; 
-            llc_dma_req_in.word_offset <= llc_dma_req_in_i.word_offset; 
-            llc_dma_req_in.valid_words <= llc_dma_req_in_i.valid_words; 
-        end
-    end
-    
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            llc_rsp_in.coh_msg <= 0; 
-            llc_rsp_in.addr <= 0; 
-            llc_rsp_in.line <= 0; 
-            llc_rsp_in.req_id <= 0; 
-        end else if (llc_rsp_in_valid && llc_rsp_in_ready) begin
-            llc_rsp_in.coh_msg <= llc_rsp_in_i.coh_msg; 
-            llc_rsp_in.addr <= llc_rsp_in_i.addr; 
-            llc_rsp_in.line <= llc_rsp_in_i.line; 
-            llc_rsp_in.req_id <= llc_rsp_in_i.req_id; 
-         end
-    end
-    
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            llc_mem_rsp.line <= 0; 
-        end else if (llc_mem_rsp_valid && llc_mem_rsp_ready) begin
-            llc_mem_rsp.line <= llc_mem_rsp_i.line; 
-        end
-    end
-
-    logic rst_in;
-    always_ff @(posedge clk or negedge rst) begin 
-        if(!rst) begin 
-            llc_rst_tb <= 0; 
-        end else if (llc_rst_tb_valid && llc_rst_tb_ready) begin
-            llc_rst_tb <= llc_rst_tb_i; 
-        end
-    end
-    assign rst_in = llc_rst_tb;
-    
+        
     logic rst_stall, clr_rst_stall;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
@@ -502,6 +539,9 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
+    //UPDATE 
+
+    //wires
     logic wr_en, wr_data_dirty_bit, wr_en_evict_way;
     hprot_t wr_data_hprot;
     llc_state_t wr_data_state;
@@ -511,53 +551,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     llc_way_t wr_data_evict_way;
     line_t wr_data_line; 
     logic [(`NUM_PORTS-1):0] wr_rst_flush;
+    
+    //instance
     update update_u (.*);
     
-    /*always_comb begin 
-        wr_rst_flush = {`NUM_PORTS{1'b0}};
-        wr_data_state = 0;
-        wr_data_dirty_bit = 1'b0; 
-        wr_data_sharers = 0;
-        wr_data_evict_way = 0;
-        wr_data_tag = 0; 
-        wr_data_line = 0;
-        wr_data_hprot = 0; 
-        wr_data_owner = 0; 
-        wr_data_evict_way = 0; 
-        wr_en = 1'b0; 
-        wr_en_evict_way = 1'b0;
-        if (update_en) begin 
-            if (is_rst_to_resume) begin 
-                wr_rst_flush  = {`NUM_PORTS{1'b1}};
-                wr_data_state = `INVALID;
-                wr_data_dirty_bit = 1'b0; 
-                wr_data_sharers = 0; 
-                wr_data_evict_way = 0; 
-                wr_en_evict_way = 1'b1;
-            end else if (is_flush_to_resume) begin 
-                wr_data_state = `INVALID;
-                wr_data_dirty_bit = 1'b0; 
-                wr_data_sharers = 0; 
-                wr_data_evict_way = 0; 
-                for (int cur_way = 0; cur_way < `LLC_WAYS; cur_way++) begin 
-                    if (states_buf[cur_way] == `VALID && hprots_buf[cur_way] == `DATA) begin 
-                        wr_rst_flush[cur_way] = 1'b1; 
-                    end
-                end
-            end else if (is_rsp_to_get || is_req_to_get || is_dma_req_to_get ||
-                         is_dma_read_to_resume || is_dma_write_to_resume) begin 
-                wr_en = 1'b1; 
-                wr_data_tag = tags_buf[way]; 
-                wr_data_state = states_buf[way];
-                wr_data_line = lines_buf[way];  
-                wr_data_hprot = hprots_buf[way]; 
-                wr_data_owner = owners_buf[way]; 
-                wr_data_sharers = sharers_buf[way]; 
-                wr_data_dirty_bit = dirty_bits_buf[way];
-                wr_data_evict_way = evict_way_buf;
-                wr_en_evict_way = update_evict_way;
-            end
-        end
-    end */
-
 endmodule
