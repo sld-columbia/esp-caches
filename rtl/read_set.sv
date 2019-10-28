@@ -31,24 +31,26 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         //addr_for_set[(`LLC_SET_BITS - 1):0] = line_br.set; 
 
         update_dma_addr_from_req = 1'b0;
+        //set stall signals
+        incr_rst_flush_stalled_set = 1'b0;
+        clr_rst_stall = 1'b0;
+        clr_flush_stall = 1'b0; 
+        clr_req_stall = 1'b0;
         if (is_rsp_to_get) begin 
             addr_for_set = rsp_in_addr; 
         end else if (is_req_to_get) begin 
             addr_for_set = req_in_addr;
         end else if (is_dma_req_to_get  || is_dma_read_to_resume || is_dma_write_to_resume) begin 
             addr_for_set = is_dma_req_to_get ? dma_req_in_addr : dma_addr; 
-            update_dma_addr_from_req = 1'b1;
+            if (is_dma_req_to_get) begin 
+                update_dma_addr_from_req = 1'b1;
+            end
         end
-        
+    
         line_br_next.tag = addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS];
         line_br_next.set = addr_for_set[(`LLC_SET_BITS - 1):0]; 
-
-        //set stall signals
-        incr_rst_flush_stalled_set = 1'b0;
-        clr_rst_stall = 1'b0;
-        clr_flush_stall = 1'b0; 
-        clr_req_stall = 1'b0;
-        if (is_flush_to_resume || is_rst_to_resume) begin 
+    
+                if (is_flush_to_resume || is_rst_to_resume) begin 
             incr_rst_flush_stalled_set = 1'b1;
             if (rst_flush_stalled_set == {`LLC_SET_BITS{1'b1}}) begin 
                 clr_rst_stall  =  1'b1; 

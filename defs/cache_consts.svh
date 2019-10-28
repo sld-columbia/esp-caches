@@ -31,6 +31,7 @@
 `endif
 `ifndef WORD_BITS
 `define WORD_BITS	2 // defined in l2,llc/stratus/project.tcl
+`define WORDS_PER_LINE_4
 `endif
 
 `define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)

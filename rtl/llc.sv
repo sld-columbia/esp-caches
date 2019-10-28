@@ -409,7 +409,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             dma_addr <= 0; 
-        end else if (update_dma_addr_from_req) begin 
+        end else if (update_dma_addr_from_req && rd_set_en) begin 
             dma_addr <= llc_dma_req_in.addr;
         end else if (incr_dma_addr) begin 
             dma_addr <= dma_addr + 1; 
