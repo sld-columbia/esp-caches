@@ -36,6 +36,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         clr_rst_stall = 1'b0;
         clr_flush_stall = 1'b0; 
         clr_req_stall = 1'b0;
+        
         if (is_rsp_to_get) begin 
             addr_for_set = rsp_in_addr; 
         end else if (is_req_to_get) begin 
@@ -50,7 +51,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         line_br_next.tag = addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS];
         line_br_next.set = addr_for_set[(`LLC_SET_BITS - 1):0]; 
     
-                if (is_flush_to_resume || is_rst_to_resume) begin 
+        if (is_flush_to_resume || is_rst_to_resume) begin 
             incr_rst_flush_stalled_set = 1'b1;
             if (rst_flush_stalled_set == {`LLC_SET_BITS{1'b1}}) begin 
                 clr_rst_stall  =  1'b1; 
