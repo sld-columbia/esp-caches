@@ -6,10 +6,10 @@
 // Author: Joseph Zuckerman
 // llc registers 
 
-module regs(clk, rst, rst_state, decode_en, update_en, rd_set_en, clr_rst_stall, rst_stall, clr_flush_stall, set_flush_stall, flush_stall, clr_req_stall, set_req_stall, req_stall, clr_req_in_stalled_valid, set_req_in_stalled_valid, req_in_stalled_valid, clr_rst_flush_stalled_set, incr_rst_flush_stalled_set, rst_flush_stalled_set, update_dma_addr_from_req, incr_dma_addr, dma_addr, clr_recall_pending, set_recall_pending, recall_pending, clr_dma_read_pending, set_dma_read_pending, dma_read_pending, clr_dma_write_pending, set_dma_write_pending, dma_write_pending, clr_recall_valid, set_recall_valid, recall_valid, clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process, is_dma_read_to_resume, clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process, is_dma_write_to_resume, update_req_in_stalled, req_in_stalled_set, req_in_stalled_tag, set_update_evict_way, update_evict_way, line_br );    
+module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr_rst_stall, rst_stall, clr_flush_stall, set_flush_stall, flush_stall, clr_req_stall, set_req_stall, req_stall, clr_req_in_stalled_valid, set_req_in_stalled_valid, req_in_stalled_valid, clr_rst_flush_stalled_set, incr_rst_flush_stalled_set, rst_flush_stalled_set, update_dma_addr_from_req, incr_dma_addr, dma_addr, clr_recall_pending, set_recall_pending, recall_pending, clr_dma_read_pending, set_dma_read_pending, dma_read_pending, clr_dma_write_pending, set_dma_write_pending, dma_write_pending, clr_recall_valid, set_recall_valid, recall_valid, clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process, is_dma_read_to_resume, clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process, is_dma_write_to_resume, update_req_in_stalled, req_in_stalled_set, req_in_stalled_tag, set_update_evict_way, update_evict_way, line_br, set, tags_buf, way_next, addr_evict);    
     
     input logic clk, rst, rst_state; 
-    input logic decode_en, update_en, rd_set_en; 
+    input logic decode_en, rd_set_en, lookup_en, update_en; 
 
     input logic clr_rst_stall;
     output logic rst_stall;
@@ -53,6 +53,11 @@ module regs(clk, rst, rst_state, decode_en, update_en, rd_set_en, clr_rst_stall,
 
     input logic set_update_evict_way;
     output logic update_evict_way;
+
+    input llc_way_t way_next;
+    input llc_set_t set; 
+    input llc_tag_t tags_buf[`LLC_WAYS]; 
+    output line_addr_t addr_evict;
 
     line_breakdown_llc_t line_br; 
 
@@ -179,4 +184,12 @@ module regs(clk, rst, rst_state, decode_en, update_en, rd_set_en, clr_rst_stall,
             update_evict_way <= 1'b1; 
         end
     end
+    
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            addr_evict <= 0;
+        end else if (lookup_en) begin 
+            addr_evict <= {tags_buf[way_next], set}; 
+        end
+    end 
 endmodule
