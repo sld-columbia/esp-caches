@@ -6,3 +6,5 @@ INCA_libs
 .simvision
 *.key
 *.shm
+*.err
+*.diag

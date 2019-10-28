@@ -396,6 +396,27 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
         
     logic rst_stall, clr_rst_stall;
+    logic flush_stall, clr_flush_stall, set_flush_stall; 
+    logic req_stall, clr_req_stall, set_req_stall; 
+    logic req_in_stalled_valid, clr_req_in_stalled_valid, set_req_in_stalled_valid;  
+    llc_set_t rst_flush_stalled_set;
+    logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
+    addr_t dma_addr;
+    logic update_dma_addr_from_req, incr_dma_addr; 
+    logic recall_pending, clr_recall_pending, set_recall_pending;    
+    logic dma_read_pending, clr_dma_read_pending, set_dma_read_pending;    
+    logic dma_write_pending, clr_dma_write_pending, set_dma_write_pending;    
+    logic recall_valid, clr_recall_valid, set_recall_valid;    
+    logic is_dma_read_to_resume, clr_is_dma_read_to_resume; 
+    logic set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process; 
+    logic is_dma_write_to_resume, clr_is_dma_write_to_resume; 
+    logic set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process; 
+    llc_set_t req_in_stalled_set; 
+    llc_tag_t req_in_stalled_tag;
+    logic update_req_in_stalled; 
+    logic update_evict_way, set_update_evict_way;
+    regs regs_u(.*); 
+    /*
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             rst_stall <= 1'b1;
@@ -404,7 +425,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic flush_stall, clr_flush_stall, set_flush_stall; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_flush_stall) begin 
             flush_stall <= 1'b0; 
@@ -413,7 +433,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic req_stall, clr_req_stall, set_req_stall; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state ||clr_req_stall) begin 
             req_stall <= 1'b0; 
@@ -422,7 +441,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic req_in_stalled_valid, clr_req_in_stalled_valid, set_req_in_stalled_valid;  
      always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_req_in_stalled_valid) begin 
             req_in_stalled_valid <= 1'b0; 
@@ -431,9 +449,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    llc_set_t rst_flush_stalled_set;
-    logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
-    always_ff @(posedge clk or negedge rst) begin 
+        always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= 0; 
         end else if (incr_rst_flush_stalled_set && update_en) begin 
@@ -441,9 +457,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
     
-    addr_t dma_addr;
-    logic update_dma_addr_from_req, incr_dma_addr; 
-    always_ff @(posedge clk or negedge rst) begin 
+        always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req && rd_set_en) begin 
@@ -453,7 +467,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end 
     end
 
-    logic recall_pending, clr_recall_pending, set_recall_pending;    
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_recall_pending) begin 
             recall_pending <= 1'b0;
@@ -462,7 +475,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic dma_read_pending, clr_dma_read_pending, set_dma_read_pending;    
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_dma_read_pending) begin 
             dma_read_pending <= 1'b0;
@@ -471,7 +483,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic dma_write_pending, clr_dma_write_pending, set_dma_write_pending;    
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state ||clr_dma_write_pending) begin 
             dma_write_pending <= 1'b0;
@@ -480,7 +491,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
 
-    logic recall_valid, clr_recall_valid, set_recall_valid;    
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_recall_valid) begin 
             recall_valid <= 1'b0;
@@ -489,9 +499,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
    
-    logic is_dma_read_to_resume, set_is_dma_read_to_resume, clr_is_dma_read_to_resume; 
-    logic set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process; 
-    assign set_is_dma_read_to_resume = set_is_dma_read_to_resume_decoder | set_is_dma_read_to_resume_process;
+        assign set_is_dma_read_to_resume = set_is_dma_read_to_resume_decoder | set_is_dma_read_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             is_dma_read_to_resume = 1'b0;
@@ -502,9 +510,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end 
 
-    logic is_dma_write_to_resume, set_is_dma_write_to_resume, clr_is_dma_write_to_resume; 
-    logic set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process; 
-    assign set_is_dma_write_to_resume = set_is_dma_write_to_resume_decoder | set_is_dma_write_to_resume_process;
+        assign set_is_dma_write_to_resume = set_is_dma_write_to_resume_decoder | set_is_dma_write_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_is_dma_write_to_resume) begin 
             is_dma_write_to_resume = 1'b0;
@@ -515,10 +521,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end 
 
-    llc_set_t req_in_stalled_set; 
-    llc_tag_t req_in_stalled_tag;
-    logic update_req_in_stalled; 
-    always_ff @(posedge clk or negedge rst) begin 
+        always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state) begin 
             req_in_stalled_set <= 0; 
             req_in_stalled_tag <= 0; 
@@ -530,7 +533,6 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
 
     //update cache
-    logic update_evict_way, set_update_evict_way;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || decode_en) begin 
             update_evict_way <= 1'b0;
@@ -538,7 +540,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             update_evict_way <= 1'b1; 
         end
     end
-
+*/
     //UPDATE 
 
     //wires
