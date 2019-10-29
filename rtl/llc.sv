@@ -84,15 +84,16 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             state <= next_state; 
         end
     end 
-
-    logic process_done; 
+    
+    
+    logic process_done, idle; 
     always_comb begin 
         next_state = state; 
         case(state) 
-            DECODE :  
-                next_state = READ_MEM;
-            READ_SET :   
-                next_state = READ_MEM; 
+            DECODE : 
+                if (!idle) begin 
+                    next_state = READ_MEM;
+                end 
             READ_MEM : 
                 next_state = LOOKUP; 
             LOOKUP : 
