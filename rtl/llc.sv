@@ -150,7 +150,12 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     //wires
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
-   
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    assign req_in_addr = llc_req_in_i.addr;
+    assign rsp_in_addr = llc_rsp_in_i.addr;
+    assign dma_req_in_addr = llc_dma_req_in_i.addr; 
+    llc_set_t set, set_next, set_in;     
+ 
     //instance
     input_decoder input_decoder_u(.*);
    
@@ -159,7 +164,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     assign llc_rst_tb_ready = decode_en & is_rst_to_get_next; 
     assign llc_req_in_ready = decode_en & do_get_req; 
     assign llc_dma_req_in_ready = decode_en & do_get_dma_req;
-    
+    assign set_in = rd_set_en ? set_next : set; 
+ 
     //READ INPUTS FROM INTERFACES
 
     //llc req in 
@@ -270,22 +276,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         end
     end
     assign rst_in = llc_rst_tb;
- 
-    //READ_SET
-    
-    //wires
-    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
-    assign req_in_addr = llc_req_in_i.addr;
-    assign rsp_in_addr = llc_rsp_in_i.addr;
-    assign dma_req_in_addr = llc_dma_req_in_i.addr; 
-    llc_set_t set, set_next, set_in;     
-   
-    //instance
-    //read_set read_set_u(.*);
-   
-    //assign output
-    assign set_in = rd_set_en ? set_next : set; 
- 
+     
     //MEMORY
     
     //read data wires
@@ -312,7 +303,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     llc_state_t states_buf_wr_data;
     
     logic rd_en;
-    assign rd_en = 1'b1; 
+    assign rd_en = !idle; 
    
     //instance
     localmem localmem_u(.*);
