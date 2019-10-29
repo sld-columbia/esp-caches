@@ -93,20 +93,11 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
         end
     end
    
-    llc_set_t rst_flush_stalled_set_tmp;
-    always @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
-            rst_flush_stalled_set_tmp <= 0; 
-        end else if (incr_rst_flush_stalled_set) begin 
-            rst_flush_stalled_set_tmp <= rst_flush_stalled_set + 1;
-        end 
-    end
-
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= 0;
-        end else if (update_en) begin 
-            rst_flush_stalled_set <= rst_flush_stalled_set_tmp; 
+        end else if (incr_rst_flush_stalled_set) begin 
+            rst_flush_stalled_set <= rst_flush_stalled_set + 1; 
         end
     end
    

@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // write back to memory 
 
-module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, update_evict_way, states_buf, hprots_buf, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, way, wr_data_hprot, wr_data_state, wr_data_sharers, wr_data_tag, wr_data_owner, wr_data_evict_way, wr_data_line, wr_rst_flush); 
+module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, update_evict_way, states_buf, hprots_buf, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, way, wr_data_hprot, wr_data_state, wr_data_sharers, wr_data_tag, wr_data_owner, wr_data_evict_way, wr_data_line, wr_rst_flush, incr_rst_flush_stalled_set); 
 
     input logic clk, rst, update_en; 
     input logic is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume;
@@ -30,7 +30,8 @@ module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is
     output line_t wr_data_line;
     output logic wr_en, wr_en_evict_way, wr_data_dirty_bit;
     output logic [(`NUM_PORTS-1):0] wr_rst_flush;
-    
+    output logic incr_rst_flush_stalled_set; 
+
     always_comb begin 
         wr_rst_flush = {`NUM_PORTS{1'b0}};
         wr_data_state = 0;
@@ -44,6 +45,7 @@ module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is
         wr_data_evict_way = 0; 
         wr_en = 1'b0; 
         wr_en_evict_way = 1'b0;
+        incr_rst_flush_stalled_set = 1'b0;
         if (update_en) begin 
             if (is_rst_to_resume) begin 
                 wr_rst_flush  = {`NUM_PORTS{1'b1}};
@@ -52,11 +54,13 @@ module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is
                 wr_data_sharers = 0; 
                 wr_data_evict_way = 0; 
                 wr_en_evict_way = 1'b1;
+                incr_rst_flush_stalled_set = 1'b1;
             end else if (is_flush_to_resume) begin 
                 wr_data_state = `INVALID;
                 wr_data_dirty_bit = 1'b0; 
                 wr_data_sharers = 0; 
                 wr_data_evict_way = 0; 
+                incr_rst_flush_stalled_set = 1'b1; 
                 for (int cur_way = 0; cur_way < `LLC_WAYS; cur_way++) begin 
                     if (states_buf[cur_way] == `VALID && hprots_buf[cur_way] == `DATA) begin 
                         wr_rst_flush[cur_way] = 1'b1; 
