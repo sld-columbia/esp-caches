@@ -25,13 +25,8 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
     line_breakdown_llc_t line_br_next(); 
 
     always_comb begin 
-        //multiplex addr bits
         addr_for_set = {`LINE_ADDR_BITS{1'b0}};
-        //addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS] = line_br.tag;
-        //addr_for_set[(`LLC_SET_BITS - 1):0] = line_br.set; 
-
         update_dma_addr_from_req = 1'b0;
-        //set stall signals
         incr_rst_flush_stalled_set = 1'b0;
         clr_rst_stall = 1'b0;
         clr_flush_stall = 1'b0; 
@@ -76,7 +71,7 @@ module read_set (clk, rst, rd_set_en,  rst_flush_stalled_set, req_in_stalled_set
         end
     end
 
-    assign set_next = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br_next.set;
-    assign set = (is_flush_to_resume | is_rst_to_resume) ? rst_flush_stalled_set : line_br.set; 
+    assign set_next = (is_flush_to_resume | is_rst_to_resume) ? (incr_rst_flush_stalled_set ? rst_flush_stalled_set + 1 : rst_flush_stalled_set) : line_br_next.set;
+    assign set = (is_flush_to_resume | is_rst_to_resume) ? (incr_rst_flush_stalled_set ? rst_flush_stalled_set + 1 : rst_flush_stalled_set) : line_br.set; 
 
 endmodule

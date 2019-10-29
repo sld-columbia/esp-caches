@@ -90,7 +90,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
         next_state = state; 
         case(state) 
             DECODE :  
-                next_state = READ_SET;
+                next_state = READ_MEM;
             READ_SET :   
                 next_state = READ_MEM; 
             READ_MEM : 
@@ -109,7 +109,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
 
     logic decode_en, rd_set_en, rd_mem_en, update_en, process_en, lookup_en; 
     assign decode_en = (state == DECODE);
-    assign rd_set_en = (state == READ_SET);
+    assign rd_set_en = decode_en;
     assign rd_mem_en = (state == READ_MEM);
     assign lookup_en = (state == LOOKUP); 
     assign process_en = (state == PROCESS); 
@@ -274,13 +274,13 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     
     //wires
     line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
-    assign req_in_addr = llc_req_in.addr;
-    assign rsp_in_addr = llc_rsp_in.addr;
-    assign dma_req_in_addr = llc_dma_req_in.addr; 
+    assign req_in_addr = llc_req_in_i.addr;
+    assign rsp_in_addr = llc_rsp_in_i.addr;
+    assign dma_req_in_addr = llc_dma_req_in_i.addr; 
     llc_set_t set, set_next, set_in;     
    
     //instance
-    read_set read_set_u(.*);
+    //read_set read_set_u(.*);
    
     //assign output
     assign set_in = rd_set_en ? set_next : set; 

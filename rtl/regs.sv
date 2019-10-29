@@ -92,12 +92,21 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
             req_in_stalled_valid <= 1'b1; 
         end
     end
-    
+   
+    llc_set_t rst_flush_stalled_set_tmp;
+    always @(posedge clk or negedge rst) begin 
+        if (!rst || rst_state) begin 
+            rst_flush_stalled_set_tmp <= 0; 
+        end else if (incr_rst_flush_stalled_set) begin 
+            rst_flush_stalled_set_tmp <= rst_flush_stalled_set + 1;
+        end 
+    end
+
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || rst_state || clr_rst_flush_stalled_set) begin 
-            rst_flush_stalled_set <= 0; 
-        end else if (incr_rst_flush_stalled_set && update_en) begin 
-            rst_flush_stalled_set <= rst_flush_stalled_set + 1; 
+            rst_flush_stalled_set <= 0;
+        end else if (update_en) begin 
+            rst_flush_stalled_set <= rst_flush_stalled_set_tmp; 
         end
     end
    
@@ -105,7 +114,7 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
         if (!rst || rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req && rd_set_en) begin 
-            dma_addr <= llc_dma_req_in.addr;
+            dma_addr <= llc_dma_req_in_i.addr;
         end else if (incr_dma_addr) begin 
             dma_addr <= dma_addr + 1; 
         end 
