@@ -16,7 +16,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       
       //llc req in 
       input mix_msg_t llc_req_in_data_coh_msg;
-      input hprot_t llc_req_in_data_hprot;
+      input logic[1:0] llc_req_in_data_hprot;
       input line_addr_t llc_req_in_data_addr;
       input line_t llc_req_in_data_line;
       input cache_id_t llc_req_in_data_req_id;
@@ -27,7 +27,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
             
       llc_req_in_t llc_req_in_i();
       assign llc_req_in_i.coh_msg     = llc_req_in_data_coh_msg;
-      assign llc_req_in_i.hprot       = llc_req_in_data_hprot;
+      assign llc_req_in_i.hprot       = llc_req_in_data_hprot[0];
       assign llc_req_in_i.addr        = llc_req_in_data_addr;
       assign llc_req_in_i.line        = llc_req_in_data_line;
       assign llc_req_in_i.req_id      = llc_req_in_data_req_id;
@@ -36,7 +36,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
 
       //llc dma req in 
       input mix_msg_t llc_dma_req_in_data_coh_msg;
-      input hprot_t llc_dma_req_in_data_hprot;
+      input logic[1:0] llc_dma_req_in_data_hprot;
       input line_addr_t llc_dma_req_in_data_addr;
       input line_t llc_dma_req_in_data_line;
       input cache_id_t llc_dma_req_in_data_req_id;
@@ -47,7 +47,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       
       llc_req_in_t llc_dma_req_in_i();
       assign llc_dma_req_in_i.coh_msg     = llc_dma_req_in_data_coh_msg;
-      assign llc_dma_req_in_i.hprot       = llc_dma_req_in_data_hprot;
+      assign llc_dma_req_in_i.hprot       = llc_dma_req_in_data_hprot[0];
       assign llc_dma_req_in_i.addr        = llc_dma_req_in_data_addr;
       assign llc_dma_req_in_i.line        = llc_dma_req_in_data_line;
       assign llc_dma_req_in_i.req_id      = llc_dma_req_in_data_req_id;
@@ -143,14 +143,14 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       output logic llc_mem_req_valid;
       output logic llc_mem_req_data_hwrite;
       output hsize_t llc_mem_req_data_hsize;
-      output hprot_t llc_mem_req_data_hprot;
+      output logic[1:0] llc_mem_req_data_hprot;
       output line_addr_t llc_mem_req_data_addr;
       output line_t llc_mem_req_data_line;
 
       llc_mem_req_t llc_mem_req();
       assign llc_mem_req_data_hwrite = llc_mem_req.hwrite;
       assign llc_mem_req_data_hsize = llc_mem_req.hsize;
-      assign llc_mem_req_data_hprot = llc_mem_req.hprot;
+      assign llc_mem_req_data_hprot = {1'b0, llc_mem_req.hprot};
       assign llc_mem_req_data_addr = llc_mem_req.addr;
       assign llc_mem_req_data_line = llc_mem_req.line;
       

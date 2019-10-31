@@ -123,7 +123,7 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     //wires
     logic rst_stall, clr_rst_stall;
     logic flush_stall, clr_flush_stall, set_flush_stall; 
-    logic req_stall, clr_req_stall, set_req_stall; 
+    logic req_stall, clr_req_stall_decoder, clr_req_stall_process, set_req_stall; 
     logic req_in_stalled_valid, clr_req_in_stalled_valid, set_req_in_stalled_valid;  
     llc_set_t rst_flush_stalled_set;
     logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
