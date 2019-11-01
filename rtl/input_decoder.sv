@@ -6,10 +6,10 @@
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
 
-module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle); 
+module input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle); 
    
     input logic clk, rst; 
-    input logic llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_valid, llc_dma_req_in_valid; 
+    input logic llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int; 
     input logic recall_pending, recall_valid;
     input logic dma_read_pending, dma_write_pending; 
     input logic flush_stall, rst_stall, req_stall; 
@@ -46,10 +46,10 @@ module input_decoder (clk, rst, llc_rst_tb_valid, llc_rsp_in_valid, llc_req_in_v
            can_get_req_in <= 1'b0; 
            can_get_dma_req_in <= 1'b0; 
         end else begin */
-          assign can_get_rst_tb = llc_rst_tb_valid; 
-          assign can_get_rsp_in = llc_rsp_in_valid; 
-          assign can_get_req_in = llc_req_in_valid; 
-          assign can_get_dma_req_in = llc_dma_req_in_valid;
+          assign can_get_rst_tb = llc_rst_tb_valid_int; 
+          assign can_get_rsp_in = llc_rsp_in_valid_int; 
+          assign can_get_req_in = llc_req_in_valid_int; 
+          assign can_get_dma_req_in = llc_dma_req_in_valid_int;
        /* end
     end */
    

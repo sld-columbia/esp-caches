@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // Top level LLC module 
 
-module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_req_in_i, llc_dma_req_in_valid, llc_dma_req_in_ready, llc_rsp_in_i, llc_rsp_in_valid, llc_rsp_in_ready, llc_mem_rsp_i, llc_mem_rsp_valid, llc_mem_rsp_ready, llc_rst_tb_i, llc_rst_tb_valid, llc_rst_tb_ready, llc_rsp_out_ready, llc_rsp_out_valid, llc_rsp_out, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid, llc_dma_rsp_out, llc_fwd_out_ready, llc_fwd_out_valid, llc_fwd_out, llc_mem_req_ready,  llc_mem_req_valid, llc_mem_req, llc_rst_tb_done_ready, llc_rst_tb_done_valid, llc_rst_tb_done
+module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_req_in_i, llc_dma_req_in_valid, llc_dma_req_in_ready, llc_rsp_in_i, llc_rsp_in_valid, llc_rsp_in_ready, llc_mem_rsp_i, llc_mem_rsp_valid, llc_mem_rsp_ready, llc_rst_tb_i, llc_rst_tb_valid, llc_rst_tb_ready, llc_rsp_out_ready, llc_rsp_out_valid, llc_rsp_out, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid, llc_dma_rsp_out, llc_fwd_out_ready, llc_fwd_out_valid, llc_fwd_out, llc_mem_req_ready,  llc_mem_req_valid, llc_mem_req, llc_rst_tb_done_ready, llc_rst_tb_done_valid, llc_rst_tb_done
 `ifdef STATS_ENABLE
 	, llc_stats_ready, llc_stats_valid, llc_stats
 `endif
@@ -158,17 +158,25 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
  
     //instance
     input_decoder input_decoder_u(.*);
-   
+    
+    logic llc_req_in_ready_int, llc_dma_req_in_ready_int, llc_rsp_in_ready_int, llc_rst_tb_ready_int, llc_mem_rsp_ready_int;
+    logic llc_req_in_valid_int, llc_dma_req_in_valid_int, llc_rsp_in_valid_int, llc_rst_tb_valid_int, llc_mem_rsp_valid_int;  
     //assign outputs
-    assign llc_rsp_in_ready = decode_en & is_rsp_to_get_next; 
-    assign llc_rst_tb_ready = decode_en & is_rst_to_get_next; 
-    assign llc_req_in_ready = decode_en & do_get_req; 
-    assign llc_dma_req_in_ready = decode_en & do_get_dma_req;
+    assign llc_rsp_in_ready_int = decode_en & is_rsp_to_get_next; 
+    assign llc_rst_tb_ready_int = decode_en & is_rst_to_get_next; 
+    assign llc_req_in_ready_int = decode_en & do_get_req; 
+    assign llc_dma_req_in_ready_int = decode_en & do_get_dma_req;
     assign set_in = rd_set_en ? set_next : set; 
- 
+    
+    llc_req_in_t llc_req_in_next(); 
+    llc_req_in_t llc_dma_req_in_next(); 
+    llc_rsp_in_t llc_rsp_in_next(); 
+    llc_mem_rsp_t llc_mem_rsp_next(); 
+    logic llc_rst_tb_next; 
     //READ INPUTS FROM INTERFACES
+    interfaces interfaces_u (.*); 
 
-    //llc req in 
+    //llc req in
     logic update_req_in_from_stalled;
     llc_req_in_t req_in_stalled();
     always_ff @(posedge clk or negedge rst) begin 
@@ -188,14 +196,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             llc_req_in.req_id <= req_in_stalled.req_id; 
             llc_req_in.word_offset <= req_in_stalled.word_offset; 
             llc_req_in.valid_words <= req_in_stalled.valid_words; 
-        end else if (llc_req_in_valid && llc_req_in_ready) begin
-            llc_req_in.coh_msg <= llc_req_in_i.coh_msg; 
-            llc_req_in.hprot <= llc_req_in_i.hprot; 
-            llc_req_in.addr <= llc_req_in_i.addr; 
-            llc_req_in.line <= llc_req_in_i.line; 
-            llc_req_in.req_id <= llc_req_in_i.req_id; 
-            llc_req_in.word_offset <= llc_req_in_i.word_offset; 
-            llc_req_in.valid_words <= llc_req_in_i.valid_words; 
+        end else if (llc_req_in_valid_int && llc_req_in_ready_int) begin
+            llc_req_in.coh_msg <= llc_req_in_next.coh_msg; 
+            llc_req_in.hprot <= llc_req_in_next.hprot; 
+            llc_req_in.addr <= llc_req_in_next.addr; 
+            llc_req_in.line <= llc_req_in_next.line; 
+            llc_req_in.req_id <= llc_req_in_next.req_id; 
+            llc_req_in.word_offset <= llc_req_in_next.word_offset; 
+            llc_req_in.valid_words <= llc_req_in_next.valid_words; 
         end
     end
 
@@ -231,14 +239,14 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             llc_dma_req_in.req_id <= 0; 
             llc_dma_req_in.word_offset <= 0; 
             llc_dma_req_in.valid_words <= 0; 
-        end else if (llc_dma_req_in_valid && llc_dma_req_in_ready) begin
-            llc_dma_req_in.coh_msg <= llc_dma_req_in_i.coh_msg; 
-            llc_dma_req_in.hprot <= llc_dma_req_in_i.hprot; 
-            llc_dma_req_in.addr <= llc_dma_req_in_i.addr; 
-            llc_dma_req_in.line <= llc_dma_req_in_i.line; 
-            llc_dma_req_in.req_id <= llc_dma_req_in_i.req_id; 
-            llc_dma_req_in.word_offset <= llc_dma_req_in_i.word_offset; 
-            llc_dma_req_in.valid_words <= llc_dma_req_in_i.valid_words; 
+        end else if (llc_dma_req_in_valid_int && llc_dma_req_in_ready_int) begin
+            llc_dma_req_in.coh_msg <= llc_dma_req_in_next.coh_msg; 
+            llc_dma_req_in.hprot <= llc_dma_req_in_next.hprot; 
+            llc_dma_req_in.addr <= llc_dma_req_in_next.addr; 
+            llc_dma_req_in.line <= llc_dma_req_in_next.line; 
+            llc_dma_req_in.req_id <= llc_dma_req_in_next.req_id; 
+            llc_dma_req_in.word_offset <= llc_dma_req_in_next.word_offset; 
+            llc_dma_req_in.valid_words <= llc_dma_req_in_next.valid_words; 
         end
     end
     
@@ -249,11 +257,11 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
             llc_rsp_in.addr <= 0; 
             llc_rsp_in.line <= 0; 
             llc_rsp_in.req_id <= 0; 
-        end else if (llc_rsp_in_valid && llc_rsp_in_ready) begin
-            llc_rsp_in.coh_msg <= llc_rsp_in_i.coh_msg; 
-            llc_rsp_in.addr <= llc_rsp_in_i.addr; 
-            llc_rsp_in.line <= llc_rsp_in_i.line; 
-            llc_rsp_in.req_id <= llc_rsp_in_i.req_id; 
+        end else if (llc_rsp_in_valid_int && llc_rsp_in_ready_int) begin
+            llc_rsp_in.coh_msg <= llc_rsp_in_next.coh_msg; 
+            llc_rsp_in.addr <= llc_rsp_in_next.addr; 
+            llc_rsp_in.line <= llc_rsp_in_next.line; 
+            llc_rsp_in.req_id <= llc_rsp_in_next.req_id; 
          end
     end
     
@@ -261,8 +269,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_mem_rsp.line <= 0; 
-        end else if (llc_mem_rsp_valid && llc_mem_rsp_ready) begin
-            llc_mem_rsp.line <= llc_mem_rsp_i.line; 
+        end else if (llc_mem_rsp_valid_int && llc_mem_rsp_ready_int) begin
+            llc_mem_rsp.line <= llc_mem_rsp_next.line; 
         end
     end
 
@@ -271,8 +279,8 @@ module llc(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_dma_r
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_rst_tb <= 0; 
-        end else if (llc_rst_tb_valid && llc_rst_tb_ready) begin
-            llc_rst_tb <= llc_rst_tb_i; 
+        end else if (llc_rst_tb_valid_int && llc_rst_tb_ready_int) begin
+            llc_rst_tb <= llc_rst_tb_next; 
         end
     end
     assign rst_in = llc_rst_tb;

@@ -172,7 +172,7 @@ module llc_wrapper(clk, rst, llc_req_in_valid, llc_req_in_data_coh_msg, llc_req_
       assign llc_stats_data = llc_stats;
 `endif
 
-      llc llc_u(.*);
+      llc_core llc_core_u(.*);
 
 endmodule
 
