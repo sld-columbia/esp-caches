@@ -151,9 +151,14 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     //wires
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
     line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
-    assign req_in_addr = llc_req_in_i.addr;
-    assign rsp_in_addr = llc_rsp_in_i.addr;
-    assign dma_req_in_addr = llc_dma_req_in_i.addr; 
+    logic llc_req_in_valid_tmp, llc_dma_req_in_valid_tmp, llc_rsp_in_valid_tmp; 
+    llc_req_in_t llc_req_in_tmp(); 
+    llc_req_in_t llc_dma_req_in_tmp(); 
+    llc_rsp_in_t llc_rsp_in_tmp(); 
+
+    assign req_in_addr = llc_req_in_valid_tmp ? llc_req_in_tmp.addr : llc_req_in_i.addr;
+    assign rsp_in_addr = llc_rsp_in_valid_tmp ? llc_rsp_in_tmp.addr : llc_rsp_in_i.addr;
+    assign dma_req_in_addr = llc_dma_req_in_valid_tmp ? llc_dma_req_in_tmp.addr : llc_dma_req_in_i.addr; 
     llc_set_t set, set_next, set_in;     
  
     //instance
@@ -168,7 +173,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     assign llc_dma_req_in_ready_int = decode_en & do_get_dma_req;
     assign set_in = rd_set_en ? set_next : set; 
     
-    llc_req_in_t llc_req_in_next(); 
+    llc_req_in_t llc_req_in_next();
     llc_req_in_t llc_dma_req_in_next(); 
     llc_rsp_in_t llc_rsp_in_next(); 
     llc_mem_rsp_t llc_mem_rsp_next(); 
