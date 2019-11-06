@@ -6,7 +6,7 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid,  llc_rsp_out, llc_rsp_out_ready, llc_rsp_out_valid, llc_mem_req, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid
+module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid,  llc_rsp_out, llc_rsp_out_ready, llc_rsp_out_valid, llc_mem_req, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid, llc_dma_rsp_out
 `ifdef STATS_ENABLE 
     , llc_stats_ready, llc_stats_valid, llc_stats
 `endif
@@ -20,6 +20,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume; 
     input llc_set_t set;  
     llc_req_in_t llc_req_in;     
+    llc_req_in_t llc_dma_req_in;
     llc_rsp_in_t llc_rsp_in;
     llc_mem_rsp_t llc_mem_rsp; 
     input logic recall_pending, recall_valid; 
@@ -50,6 +51,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     llc_mem_req_t llc_mem_req; 
     llc_fwd_out_t llc_fwd_out; 
     llc_rsp_out_t llc_rsp_out; 
+    llc_rsp_out_t llc_dma_rsp_out; 
 
     output logic llc_mem_req_valid; 
     output logic llc_rst_tb_done_valid;
@@ -175,6 +177,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                         `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
                                         `MODIFIED : next_state = REQ_GET_S_M_EM; 
                                         `SD : next_state = REQ_GET_S_M_SD;
+                                        default : next_state = IDLE;
                                     endcase
                                 end
                                 `REQ_GETM : begin 
@@ -185,10 +188,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                         `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
                                         `MODIFIED : next_state = REQ_GET_S_M_EM; 
                                         `SD : next_state = REQ_GET_S_M_SD;
+                                        default : next_state = IDLE;
                                     endcase
                             end
                                 `REQ_PUTS : next_state = REQ_PUTS;
                                 `REQ_PUTM : next_state = REQ_PUTM;
+                                default : next_state = IDLE; 
                             endcase
                         end
                     end else if (is_dma_req_to_get || is_dma_read_to_resume || is_dma_write_to_resume) begin 
@@ -200,6 +205,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                 `MODIFIED : next_state = DMA_RECALL_EMSD;
                                 `SD : next_state = DMA_RECALL_EMSD; 
                                 `SHARED : next_state = DMA_RECALL_S;
+                                default : next_state = IDLE; 
                             endcase
                         end else if (!recall_pending || recall_valid) begin 
                             if (evict || recall_valid) begin 
@@ -257,6 +263,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                     `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
                                     `MODIFIED : next_state = REQ_GET_S_M_EM; 
                                     `SD : next_state = REQ_GET_S_M_SD;
+                                    default : next_state = IDLE; 
                                 endcase
                             end
                            `REQ_GETM : begin 
@@ -267,10 +274,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                                     `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
                                     `MODIFIED : next_state = REQ_GET_S_M_EM; 
                                     `SD : next_state = REQ_GET_S_M_SD;
+                                    default : next_state = IDLE; 
                                 endcase
                             end
                            `REQ_PUTS : next_state = REQ_PUTS;
                            `REQ_PUTM : next_state = REQ_PUTM;
+                           default : next_state = IDLE; 
                         endcase
                     end
                 end
@@ -365,6 +374,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                             `MODIFIED : next_state = DMA_RECALL_EMSD;
                             `SD : next_state = DMA_RECALL_EMSD; 
                             `SHARED : next_state = DMA_RECALL_S;
+                            default : next_state = IDLE; 
                         endcase
                     end else if (!recall_pending || recall_valid) begin 
                         if (evict || recall_valid) begin 
@@ -502,6 +512,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                         process_done = 1'b1;
                     end
                 end
+                default : next_state = IDLE; 
             endcase
         end
     end
@@ -518,23 +529,20 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     logic dma_start, dma_done; 
     dma_length_t dma_length, dma_read_length; 
     
-    logic dma_start_next, dma_done_next; 
+    logic dma_start_next; 
     dma_length_t dma_length_next; 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             dma_start <= 1'b0; 
-            dma_done <= 1'b0; 
             dma_length <= 0; 
             dma_read_length <= 0; 
         end else if (state == DMA_REQ_TO_GET) begin 
             dma_start <= 1'b1; 
-            dma_done <= 1'b0; 
             dma_length <= 0; 
             dma_read_length <= llc_dma_req_in.line[(`BITS_PER_LINE - 1) : (`BITS_PER_LINE - `ADDR_BITS)];
         end else if (state == DMA_READ_RESUME_DMA_RSP || state == DMA_WRITE_RESUME_WRITE) begin 
             dma_start <= dma_start_next; 
-            dma_done <= dma_done_next; 
             dma_length <= dma_length_next; 
         end 
     end
@@ -626,7 +634,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
         dma_read_woffset = 0;
         dma_write_woffset = 0; 
         dma_info = 0; 
-        dma_done_next = 1'b0;
+        dma_done = 1'b0;
         dma_length_next = 0; 
         dma_start_next = 1'b0; 
         incr_dma_addr = 1'b0; 
@@ -960,10 +968,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
 
                
                 if (dma_length_next >= dma_read_length) begin 
-                    dma_done_next = 1'b1; 
+                    dma_done = 1'b1; 
                 end
 
-                if (dma_start & dma_done_next) begin 
+                if (dma_start & dma_done) begin 
                     valid_words = dma_read_length; 
                 end else if (dma_start) begin 
                     valid_words = dma_length_next;
@@ -973,7 +981,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     valid_words = `WORDS_PER_LINE;
                 end 
 
-                dma_info[0] = dma_done_next; 
+                dma_info[0] = dma_done; 
                 dma_info[`WORD_BITS:1] = valid_words - 1; 
                 
                 llc_dma_rsp_out.coh_msg = `RSP_DATA_DMA;
@@ -988,7 +996,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 if (llc_dma_rsp_out_ready) begin 
                     incr_dma_addr = 1'b1; 
                     dma_start_next = 1'b0; 
-                    if (dma_done_next) begin 
+                    if (dma_done) begin 
                         clr_dma_read_pending = 1'b1; 
                         clr_dma_write_pending = 1'b1;
                     end 
@@ -1054,12 +1062,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
 
                 if (llc_dma_req_in.hprot) begin 
-                    dma_done_next = 1'b1; 
+                    dma_done = 1'b1; 
                 end
                     
                 incr_dma_addr = 1'b1; 
                 dma_start_next = 1'b0;
-                if (dma_done_next) begin 
+                if (dma_done) begin 
                     clr_dma_read_pending = 1'b1; 
                     clr_dma_write_pending = 1'b1;
                 end  
@@ -1068,6 +1076,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 llc_rst_tb_done_valid = 1'b1; 
                 llc_rst_tb_done = 1'b1;
             end
+            default : skip = 1'b0;  
         endcase
     end
 
@@ -1101,6 +1110,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 llc_stats_valid = 1'b1; 
                 llc_stats = ~((states_buf[way] == `INVALID) || evict);
             end
+            default : next_state_stats = STATS_IDLE; 
         endcase
     end 
 

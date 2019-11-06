@@ -104,7 +104,9 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
                 end
             UPDATE :   
                 next_state = DECODE; 
-        endcase
+            default : 
+                next_state = DECODE;
+       endcase
     end
 
 

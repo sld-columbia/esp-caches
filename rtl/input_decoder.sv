@@ -79,6 +79,8 @@ module input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_
         clr_flush_stall = 1'b0; 
         clr_req_stall_decoder = 1'b0;
         idle = 1'b0; 
+        line_br_next.set = 0; 
+        line_br_next.tag = 0; 
 
         if (decode_en) begin 
             clr_is_dma_read_to_resume = 1'b1; 

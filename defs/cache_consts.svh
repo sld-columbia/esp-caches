@@ -31,8 +31,10 @@
 `endif
 `ifndef WORD_BITS
 `define WORD_BITS	2 // defined in l2,llc/stratus/project.tcl
-`define WORDS_PER_LINE_4
 `endif
+
+//@TODO fix implementation so don't need this macro
+`define WORDS_PER_LINE_4
 
 `define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)
 
