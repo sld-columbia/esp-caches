@@ -6,9 +6,9 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready, llc_rst_tb_done_ready, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid, llc_rst_tb_done_valid, llc_rst_tb_done, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out, llc_fwd_out_ready, llc_fwd_out_valid,  llc_rsp_out, llc_rsp_out_ready, llc_rsp_out_valid, llc_mem_req, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid, llc_dma_rsp_out
+module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o
 `ifdef STATS_ENABLE 
-    , llc_stats_ready, llc_stats_valid, llc_stats
+    , llc_stats_ready_int, llc_stats_valid_int, llc_stats_o
 `endif
 ); 
     
@@ -29,15 +29,15 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input llc_tag_t req_in_stalled_tag; 
     input llc_set_t req_in_stalled_set; 
     input flush_stall, rst_stall, req_stall; 
-    input logic llc_mem_req_ready;
-    input logic llc_rst_tb_done_ready;
-    input logic llc_fwd_out_ready; 
-    input logic llc_rsp_out_ready; 
+    input logic llc_mem_req_ready_int;
+    input logic llc_rst_tb_done_ready_int;
+    input logic llc_fwd_out_ready_int; 
+    input logic llc_rsp_out_ready_int; 
     input line_addr_t addr_evict;
     input logic evict; 
     input logic llc_mem_rsp_valid; 
     input addr_t dma_addr;
-    input logic llc_dma_rsp_out_ready; 
+    input logic llc_dma_rsp_out_ready_int; 
 
     input line_t lines_buf[`LLC_WAYS];
     input llc_tag_t tags_buf[`LLC_WAYS];
@@ -48,18 +48,18 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input llc_way_t evict_way_buf;
     input llc_state_t states_buf[`LLC_WAYS];
     
-    llc_mem_req_t llc_mem_req; 
-    llc_fwd_out_t llc_fwd_out; 
-    llc_rsp_out_t llc_rsp_out; 
-    llc_rsp_out_t llc_dma_rsp_out; 
+    llc_mem_req_t llc_mem_req_o; 
+    llc_fwd_out_t llc_fwd_out_o; 
+    llc_rsp_out_t llc_rsp_out_o; 
+    llc_rsp_out_t llc_dma_rsp_out_o; 
 
-    output logic llc_mem_req_valid; 
-    output logic llc_rst_tb_done_valid;
-    output logic llc_rst_tb_done; 
-    output logic llc_fwd_out_valid;
-    output logic llc_rsp_out_valid;
+    output logic llc_mem_req_valid_int; 
+    output logic llc_rst_tb_done_valid_int;
+    output logic llc_rst_tb_done_o; 
+    output logic llc_fwd_out_valid_int;
+    output logic llc_rsp_out_valid_int;
     output logic llc_mem_rsp_ready_int; 
-    output logic llc_dma_rsp_out_valid; 
+    output logic llc_dma_rsp_out_valid_int; 
 
     output logic rst_state; 
     output logic clr_req_stall_process;
@@ -83,9 +83,9 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     output logic clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr; 
 
 `ifdef STATS_ENABLE
-    input logic llc_stats_ready;
-    output logic llc_stats_valid;
-    output logic llc_stats;
+    input logic llc_stats_ready_int;
+    output logic llc_stats_valid_int;
+    output logic llc_stats_o;
 `endif 
 
 
@@ -131,7 +131,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     always @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && llc_fwd_out_ready) begin 
+        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && llc_fwd_out_ready_int) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -253,7 +253,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     process_done = 1'b1; 
                 end
                 EVICT : begin
-                    if (llc_mem_req_ready) begin
+                    if (llc_mem_req_ready_int) begin
                         case(llc_req_in.coh_msg) 
                             `REQ_GETS : begin 
                                 case(states_buf_wr_data) 
@@ -284,7 +284,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_GET_S_M_IV_MEM_REQ : begin 
-                    if (llc_mem_req_ready) begin 
+                    if (llc_mem_req_ready_int) begin 
                         next_state = REQ_GET_S_M_IV_MEM_RSP; 
                     end 
                 end
@@ -294,7 +294,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_GET_S_M_IV_SEND_RSP : begin 
-                    if (llc_rsp_out_ready) begin 
+                    if (llc_rsp_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -304,7 +304,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_GETS_S:  begin 
-                    if (llc_rsp_out_ready) begin 
+                    if (llc_rsp_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -314,7 +314,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_GET_S_M_EM: begin 
-                    if (llc_fwd_out_ready) begin 
+                    if (llc_fwd_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -333,12 +333,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     
                 end
                 REQ_GETM_S_FWD : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready_int) begin 
                         next_state = REQ_GETM_S_RSP;
                     end
                 end
                 REQ_GETM_S_RSP : begin 
-                    if (llc_rsp_out_ready) begin 
+                    if (llc_rsp_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -348,7 +348,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_PUTS : begin 
-                    if (llc_fwd_out_ready) begin 
+                    if (llc_fwd_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -358,7 +358,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 REQ_PUTM : begin 
-                    if (llc_fwd_out_ready) begin 
+                    if (llc_fwd_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -400,7 +400,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_RECALL_EMSD : begin 
-                    if (llc_fwd_out_ready) begin
+                    if (llc_fwd_out_ready_int) begin
                         if (recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
@@ -426,7 +426,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end 
                 end
                 DMA_RECALL_S : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready_int) begin 
                         if (!recall_pending || recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
@@ -452,7 +452,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_EVICT : begin 
-                    if ((evict && ((dirty_bits_buf[way] && llc_mem_req_ready) || !dirty_bits_buf[way])) || (!evict)) begin  
+                    if ((evict && ((dirty_bits_buf[way] && llc_mem_req_ready_int) || !dirty_bits_buf[way])) || (!evict)) begin  
                         if (is_dma_read_to_resume) begin 
                             if (states_buf_wr_data == `INVALID) begin 
                                 next_state = DMA_READ_RESUME_MEM_REQ;
@@ -469,7 +469,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_READ_RESUME_MEM_REQ : begin 
-                    if (llc_mem_req_ready) begin 
+                    if (llc_mem_req_ready_int) begin 
                         next_state = DMA_READ_RESUME_MEM_RSP; 
                     end 
                 end
@@ -479,7 +479,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_READ_RESUME_DMA_RSP: begin 
-                    if (llc_dma_rsp_out_ready) begin 
+                    if (llc_dma_rsp_out_ready_int) begin 
                         if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                         end else begin 
@@ -489,7 +489,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 DMA_WRITE_RESUME_MEM_REQ : begin 
-                    if (llc_mem_req_ready) begin 
+                    if (llc_mem_req_ready_int) begin 
                         next_state = DMA_WRITE_RESUME_MEM_RSP; 
                     end 
                 end
@@ -507,7 +507,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     end
                 end
                 FINISH_RST_FLUSH : begin  
-                    if (llc_rst_tb_done_ready) begin 
+                    if (llc_rst_tb_done_ready_int) begin 
                         next_state = IDLE;
                         process_done = 1'b1;
                     end
@@ -521,7 +521,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     always @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             cur_way <= 0; 
-        end else if ((state == PROCESS_FLUSH_RESUME) && (llc_mem_req_ready || skip)) begin 
+        end else if ((state == PROCESS_FLUSH_RESUME) && (llc_mem_req_ready_int || skip)) begin 
             cur_way = cur_way + 1; 
         end
     end
@@ -549,36 +549,36 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
   
     logic [`WORDS_PER_LINE-1:0] words_to_write; 
     always_comb begin 
-        llc_mem_req.hwrite = 0; 
-        llc_mem_req.hsize = 0; 
-        llc_mem_req.hprot = 0;
-        llc_mem_req.addr = 0;
-        llc_mem_req.line = 0;
-        llc_mem_req_valid = 1'b0; 
+        llc_mem_req_o.hwrite = 0; 
+        llc_mem_req_o.hsize = 0; 
+        llc_mem_req_o.hprot = 0;
+        llc_mem_req_o.addr = 0;
+        llc_mem_req_o.line = 0;
+        llc_mem_req_valid_int = 1'b0; 
         
-        llc_rsp_out.coh_msg = 0;
-        llc_rsp_out.addr = 0; 
-        llc_rsp_out.line = 0; 
-        llc_rsp_out.req_id = 0;
-        llc_rsp_out.dest_id = 0; 
-        llc_rsp_out.invack_cnt = 0; 
-        llc_rsp_out.word_offset = 0;
-        llc_rsp_out_valid = 1'b0; 
+        llc_rsp_out_o.coh_msg = 0;
+        llc_rsp_out_o.addr = 0; 
+        llc_rsp_out_o.line = 0; 
+        llc_rsp_out_o.req_id = 0;
+        llc_rsp_out_o.dest_id = 0; 
+        llc_rsp_out_o.invack_cnt = 0; 
+        llc_rsp_out_o.word_offset = 0;
+        llc_rsp_out_valid_int = 1'b0; 
         
-        llc_fwd_out.coh_msg = 0; 
-        llc_fwd_out.addr = 0; 
-        llc_fwd_out.req_id = 0; 
-        llc_fwd_out.dest_id = 0;
-        llc_fwd_out_valid = 1'b0;
+        llc_fwd_out_o.coh_msg = 0; 
+        llc_fwd_out_o.addr = 0; 
+        llc_fwd_out_o.req_id = 0; 
+        llc_fwd_out_o.dest_id = 0;
+        llc_fwd_out_valid_int = 1'b0;
         
-        llc_dma_rsp_out.coh_msg = 0;
-        llc_dma_rsp_out.addr = 0; 
-        llc_dma_rsp_out.line = 0; 
-        llc_dma_rsp_out.req_id = 0;
-        llc_dma_rsp_out.dest_id = 0; 
-        llc_dma_rsp_out.invack_cnt = 0; 
-        llc_dma_rsp_out.word_offset = 0;
-        llc_dma_rsp_out_valid = 1'b0;
+        llc_dma_rsp_out_o.coh_msg = 0;
+        llc_dma_rsp_out_o.addr = 0; 
+        llc_dma_rsp_out_o.line = 0; 
+        llc_dma_rsp_out_o.req_id = 0;
+        llc_dma_rsp_out_o.dest_id = 0; 
+        llc_dma_rsp_out_o.invack_cnt = 0; 
+        llc_dma_rsp_out_o.word_offset = 0;
+        llc_dma_rsp_out_valid_int = 1'b0;
 
         llc_mem_rsp_ready_int = 1'b0; 
         
@@ -610,8 +610,8 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
         clr_rst_flush_stalled_set = 1'b0;  
         set_recall_valid = 1'b0; 
         clr_req_stall_process = 1'b0; 
-        llc_rst_tb_done_valid = 1'b0; 
-        llc_rst_tb_done = 1'b0;
+        llc_rst_tb_done_valid_int = 1'b0; 
+        llc_rst_tb_done_o = 1'b0;
         rst_state = 1'b0; 
         
         set_req_stall = 1'b0; 
@@ -650,12 +650,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
                 if (states_buf[cur_way] == `VALID && dirty_bits_buf[cur_way]) begin 
-                    llc_mem_req.hwrite = `LLC_WRITE;
-                    llc_mem_req.addr = line_addr; 
-                    llc_mem_req.hsize = `WORD;
-                    llc_mem_req.hprot = hprots_buf[cur_way]; 
-                    llc_mem_req.line = lines_buf[cur_way];
-                    llc_mem_req_valid = 1'b1; 
+                    llc_mem_req_o.hwrite = `LLC_WRITE;
+                    llc_mem_req_o.addr = line_addr; 
+                    llc_mem_req_o.hsize = `WORD;
+                    llc_mem_req_o.hprot = hprots_buf[cur_way]; 
+                    llc_mem_req_o.line = lines_buf[cur_way];
+                    llc_mem_req_valid_int = 1'b1; 
                 end else begin  
                     skip = 1'b1; 
                 end
@@ -703,23 +703,23 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     incr_evict_way_buf = 1'b1;
                 end 
                 if (states_buf[way] == `VALID && dirty_bits_buf[way]) begin 
-                    llc_mem_req_valid = 1'b1; 
-                    llc_mem_req.hwrite = `LLC_WRITE;
-                    llc_mem_req.addr = addr_evict; 
-                    llc_mem_req.hsize = `WORD; 
-                    llc_mem_req.hprot = hprots_buf[way]; 
-                    llc_mem_req.line = lines_buf[way];  
+                    llc_mem_req_valid_int = 1'b1; 
+                    llc_mem_req_o.hwrite = `LLC_WRITE;
+                    llc_mem_req_o.addr = addr_evict; 
+                    llc_mem_req_o.hsize = `WORD; 
+                    llc_mem_req_o.hprot = hprots_buf[way]; 
+                    llc_mem_req_o.line = lines_buf[way];  
                 end
                 wr_en_states_buf = 1'b1; 
                 states_buf_wr_data = `INVALID;
             end
             REQ_GET_S_M_IV_MEM_REQ : begin 
-                llc_mem_req_valid = 1'b1; 
-                llc_mem_req.hwrite = `READ;
-                llc_mem_req.addr = llc_req_in.addr; 
-                llc_mem_req.hsize = `WORD; 
-                llc_mem_req.hprot = llc_req_in.hprot; 
-                llc_mem_req.line = 0; 
+                llc_mem_req_valid_int = 1'b1; 
+                llc_mem_req_o.hwrite = `READ;
+                llc_mem_req_o.addr = llc_req_in.addr; 
+                llc_mem_req_o.hsize = `WORD; 
+                llc_mem_req_o.hprot = llc_req_in.hprot; 
+                llc_mem_req_o.line = 0; 
             end
             REQ_GET_S_M_IV_MEM_RSP : begin 
                 wr_en_hprots_buf = 1'b1; 
@@ -732,52 +732,52 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
             end
             REQ_GET_S_M_IV_SEND_RSP : begin 
                 if (llc_req_in.coh_msg == `REQ_GETS && llc_req_in.hprot == 1'b0)  begin 
-                    llc_rsp_out.coh_msg = `RSP_DATA;
+                    llc_rsp_out_o.coh_msg = `RSP_DATA;
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = 1 << llc_req_in.req_id; 
                     states_buf_wr_data = `SHARED;
                 end else begin 
                     if (llc_req_in.coh_msg == `REQ_GETS) begin 
-                        llc_rsp_out.coh_msg = `RSP_EDATA; 
+                        llc_rsp_out_o.coh_msg = `RSP_EDATA; 
                         states_buf_wr_data = `EXCLUSIVE;
                     end else if (llc_req_in.coh_msg == `REQ_GETM) begin 
-                        llc_rsp_out.coh_msg = `RSP_DATA;
+                        llc_rsp_out_o.coh_msg = `RSP_DATA;
                         states_buf_wr_data = `MODIFIED;
                     end
                     wr_en_owners_buf = 1'b1; 
                     owners_buf_wr_data = llc_req_in.req_id;
                 end
                 wr_en_states_buf = 1'b1; 
-                llc_rsp_out.addr = llc_req_in.addr; 
-                llc_rsp_out.line = lines_buf[way]; 
-                llc_rsp_out.req_id = llc_req_in.req_id;
-                llc_rsp_out.dest_id = 0; 
-                llc_rsp_out.invack_cnt = 0; 
-                llc_rsp_out.word_offset = 0;
-                llc_rsp_out_valid = 1'b1; 
+                llc_rsp_out_o.addr = llc_req_in.addr; 
+                llc_rsp_out_o.line = lines_buf[way]; 
+                llc_rsp_out_o.req_id = llc_req_in.req_id;
+                llc_rsp_out_o.dest_id = 0; 
+                llc_rsp_out_o.invack_cnt = 0; 
+                llc_rsp_out_o.word_offset = 0;
+                llc_rsp_out_valid_int = 1'b1; 
             end
             REQ_GETS_S : begin 
                 wr_en_sharers_buf = 1'b1; 
                 sharers_buf_wr_data = sharers_buf[way] | (1 << llc_req_in.req_id); 
 
-                llc_rsp_out.coh_msg = `RSP_DATA;
-                llc_rsp_out.addr = llc_req_in.addr; 
-                llc_rsp_out.line = lines_buf[way]; 
-                llc_rsp_out.req_id = llc_req_in.req_id;
-                llc_rsp_out.dest_id = 0; 
-                llc_rsp_out.invack_cnt = 0; 
-                llc_rsp_out.word_offset = 0;
-                llc_rsp_out_valid = 1'b1; 
+                llc_rsp_out_o.coh_msg = `RSP_DATA;
+                llc_rsp_out_o.addr = llc_req_in.addr; 
+                llc_rsp_out_o.line = lines_buf[way]; 
+                llc_rsp_out_o.req_id = llc_req_in.req_id;
+                llc_rsp_out_o.dest_id = 0; 
+                llc_rsp_out_o.invack_cnt = 0; 
+                llc_rsp_out_o.word_offset = 0;
+                llc_rsp_out_valid_int = 1'b1; 
             end
             REQ_GET_S_M_EM : begin 
                 if (llc_req_in.coh_msg == `REQ_GETS) begin 
                     states_buf_wr_data = `SD;    
-                    llc_fwd_out.coh_msg = `FWD_GETS; 
+                    llc_fwd_out_o.coh_msg = `FWD_GETS; 
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = (1 << llc_req_in.req_id) | (1 << owners_buf[way]); 
                     wr_en_states_buf = 1'b1; 
                 end else if (llc_req_in.coh_msg == `REQ_GETM) begin 
-                    llc_fwd_out.coh_msg = `REQ_GETM;
+                    llc_fwd_out_o.coh_msg = `REQ_GETM;
                     if (states_buf[way] == `EXCLUSIVE) begin 
                         wr_en_states_buf = 1'b1; 
                         states_buf_wr_data = `MODIFIED;
@@ -785,10 +785,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                     wr_en_owners_buf = 1'b1; 
                     owners_buf_wr_data = llc_req_in.req_id; 
                 end
-                llc_fwd_out.addr = llc_req_in.addr; 
-                llc_fwd_out.req_id = llc_req_in.req_id; 
-                llc_fwd_out.dest_id = owners_buf[way];
-                llc_fwd_out_valid = 1'b1;
+                llc_fwd_out_o.addr = llc_req_in.addr; 
+                llc_fwd_out_o.req_id = llc_req_in.req_id; 
+                llc_fwd_out_o.dest_id = owners_buf[way];
+                llc_fwd_out_valid_int = 1'b1;
             end
             REQ_GET_S_M_SD : begin 
                 set_req_stall = 1'b1; 
@@ -799,22 +799,22 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
             REQ_GETM_S_FWD : begin 
                 if (((sharers_buf[way] & (1 << l2_cnt)) != 0) && (l2_cnt != llc_req_in.req_id)) begin 
                     incr_invack_cnt = 1'b1; 
-                    llc_fwd_out.coh_msg = `FWD_INV; 
-                    llc_fwd_out.addr = llc_req_in.addr; 
-                    llc_fwd_out.req_id = llc_req_in.req_id; 
-                    llc_fwd_out.dest_id = l2_cnt; 
-                    llc_fwd_out_valid = 1'b1;
+                    llc_fwd_out_o.coh_msg = `FWD_INV; 
+                    llc_fwd_out_o.addr = llc_req_in.addr; 
+                    llc_fwd_out_o.req_id = llc_req_in.req_id; 
+                    llc_fwd_out_o.dest_id = l2_cnt; 
+                    llc_fwd_out_valid_int = 1'b1;
                 end
             end
             REQ_GETM_S_RSP : begin 
-                llc_rsp_out.coh_msg = `RSP_DATA;
-                llc_rsp_out.addr = llc_req_in.addr; 
-                llc_rsp_out.line = lines_buf[way]; 
-                llc_rsp_out.req_id = llc_req_in.req_id;
-                llc_rsp_out.dest_id = 0; 
-                llc_rsp_out.invack_cnt = invack_cnt; 
-                llc_rsp_out.word_offset = 0;
-                llc_rsp_out_valid = 1'b1;
+                llc_rsp_out_o.coh_msg = `RSP_DATA;
+                llc_rsp_out_o.addr = llc_req_in.addr; 
+                llc_rsp_out_o.line = lines_buf[way]; 
+                llc_rsp_out_o.req_id = llc_req_in.req_id;
+                llc_rsp_out_o.dest_id = 0; 
+                llc_rsp_out_o.invack_cnt = invack_cnt; 
+                llc_rsp_out_o.word_offset = 0;
+                llc_rsp_out_valid_int = 1'b1;
 
                 wr_en_states_buf = 1'b1; 
                 states_buf_wr_data = `MODIFIED; 
@@ -824,11 +824,11 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 sharers_buf_wr_data = 0; 
             end
             REQ_PUTS : begin 
-               llc_fwd_out.coh_msg = `FWD_PUTACK; 
-               llc_fwd_out.addr = llc_req_in.addr; 
-               llc_fwd_out.req_id = llc_req_in.req_id; 
-               llc_fwd_out.dest_id = llc_req_in.req_id;
-               llc_fwd_out_valid = 1'b1; 
+               llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
+               llc_fwd_out_o.addr = llc_req_in.addr; 
+               llc_fwd_out_o.req_id = llc_req_in.req_id; 
+               llc_fwd_out_o.dest_id = llc_req_in.req_id;
+               llc_fwd_out_valid_int = 1'b1; 
                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
@@ -842,11 +842,11 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                end 
             end
             REQ_PUTM : begin 
-               llc_fwd_out.coh_msg = `FWD_PUTACK; 
-               llc_fwd_out.addr = llc_req_in.addr; 
-               llc_fwd_out.req_id = llc_req_in.req_id; 
-               llc_fwd_out.dest_id = llc_req_in.req_id;
-               llc_fwd_out_valid = 1'b1; 
+               llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
+               llc_fwd_out_o.addr = llc_req_in.addr; 
+               llc_fwd_out_o.req_id = llc_req_in.req_id; 
+               llc_fwd_out_o.dest_id = llc_req_in.req_id;
+               llc_fwd_out_valid_int = 1'b1; 
                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
                     wr_en_sharers_buf = 1'b1;
@@ -881,22 +881,22 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 valid_words = llc_dma_req_in.valid_words + 1; 
                 set_recall_pending = 1'b1;
                 if (states_buf[way] == `EXCLUSIVE || states_buf[way] == `MODIFIED) begin 
-                    llc_fwd_out.coh_msg = `FWD_GETM_LLC; 
-                    llc_fwd_out.addr = addr_evict; 
-                    llc_fwd_out.req_id = owners_buf[way]; 
-                    llc_fwd_out.dest_id = owners_buf[way];;
-                    llc_fwd_out_valid = 1'b1; 
+                    llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
+                    llc_fwd_out_o.addr = addr_evict; 
+                    llc_fwd_out_o.req_id = owners_buf[way]; 
+                    llc_fwd_out_o.dest_id = owners_buf[way];;
+                    llc_fwd_out_valid_int = 1'b1; 
                 end
             end
             DMA_RECALL_S : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
                 if (sharers_buf[way] & (1 << l2_cnt)) begin 
-                    llc_fwd_out.coh_msg = `FWD_INV_LLC; 
-                    llc_fwd_out.addr = addr_evict; 
-                    llc_fwd_out.req_id = l2_cnt; 
-                    llc_fwd_out.dest_id = l2_cnt;
-                    llc_fwd_out_valid = 1'b1; 
+                    llc_fwd_out_o.coh_msg = `FWD_INV_LLC; 
+                    llc_fwd_out_o.addr = addr_evict; 
+                    llc_fwd_out_o.req_id = l2_cnt; 
+                    llc_fwd_out_o.dest_id = l2_cnt;
+                    llc_fwd_out_valid_int = 1'b1; 
                 end    
             end
             DMA_EVICT : begin 
@@ -916,12 +916,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                         incr_evict_way_buf = 1'b1;
                     end
                     if (dirty_bits_buf[way]) begin 
-                        llc_mem_req.hwrite = `LLC_WRITE;
-                        llc_mem_req.addr = addr_evict; 
-                        llc_mem_req.hsize = `WORD;
-                        llc_mem_req.hprot = hprots_buf[way]; 
-                        llc_mem_req.line = lines_buf[way];
-                        llc_mem_req_valid = 1'b1;
+                        llc_mem_req_o.hwrite = `LLC_WRITE;
+                        llc_mem_req_o.addr = addr_evict; 
+                        llc_mem_req_o.hsize = `WORD;
+                        llc_mem_req_o.hprot = hprots_buf[way]; 
+                        llc_mem_req_o.line = lines_buf[way];
+                        llc_mem_req_valid_int = 1'b1;
                     end 
                     states_buf_wr_data = `INVALID;
                     wr_en_states_buf = 1'b1;
@@ -931,12 +931,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
             end
             DMA_READ_RESUME_MEM_REQ : begin 
-                llc_mem_req.hwrite = `READ;
-                llc_mem_req.addr = dma_addr; 
-                llc_mem_req.hsize = `WORD;
-                llc_mem_req.hprot = llc_dma_req_in.hprot; 
-                llc_mem_req.line = 0;
-                llc_mem_req_valid = 1'b1;
+                llc_mem_req_o.hwrite = `READ;
+                llc_mem_req_o.addr = dma_addr; 
+                llc_mem_req_o.hsize = `WORD;
+                llc_mem_req_o.hprot = llc_dma_req_in.hprot; 
+                llc_mem_req_o.line = 0;
+                llc_mem_req_valid_int = 1'b1;
             end
             DMA_READ_RESUME_MEM_RSP : begin 
                 llc_mem_rsp_ready_int = 1'b1; 
@@ -960,7 +960,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
 
                 //only increment once
-                if (llc_dma_rsp_out_ready) begin 
+                if (llc_dma_rsp_out_ready_int) begin 
                     dma_length_next = dma_length + (`WORDS_PER_LINE - dma_read_woffset); 
                 end else begin 
                     dma_length_next = dma_length;
@@ -984,16 +984,16 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 dma_info[0] = dma_done; 
                 dma_info[`WORD_BITS:1] = valid_words - 1; 
                 
-                llc_dma_rsp_out.coh_msg = `RSP_DATA_DMA;
-                llc_dma_rsp_out.addr = dma_addr; 
-                llc_dma_rsp_out.line = lines_buf[way]; 
-                llc_dma_rsp_out.req_id = llc_dma_req_in.req_id;
-                llc_dma_rsp_out.dest_id = 0; 
-                llc_dma_rsp_out.invack_cnt = dma_info; 
-                llc_dma_rsp_out.word_offset = dma_read_woffset;
-                llc_dma_rsp_out_valid = 1'b1;
+                llc_dma_rsp_out_o.coh_msg = `RSP_DATA_DMA;
+                llc_dma_rsp_out_o.addr = dma_addr; 
+                llc_dma_rsp_out_o.line = lines_buf[way]; 
+                llc_dma_rsp_out_o.req_id = llc_dma_req_in.req_id;
+                llc_dma_rsp_out_o.dest_id = 0; 
+                llc_dma_rsp_out_o.invack_cnt = dma_info; 
+                llc_dma_rsp_out_o.word_offset = dma_read_woffset;
+                llc_dma_rsp_out_valid_int = 1'b1;
 
-                if (llc_dma_rsp_out_ready) begin 
+                if (llc_dma_rsp_out_ready_int) begin 
                     incr_dma_addr = 1'b1; 
                     dma_start_next = 1'b0; 
                     if (dma_done) begin 
@@ -1003,12 +1003,12 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
             end
             DMA_WRITE_RESUME_MEM_REQ : begin 
-                llc_mem_req.hwrite = `READ;
-                llc_mem_req.addr = dma_addr; 
-                llc_mem_req.hsize = `WORD;
-                llc_mem_req.hprot = llc_dma_req_in.hprot; 
-                llc_mem_req.line = 0;
-                llc_mem_req_valid = 1'b1;
+                llc_mem_req_o.hwrite = `READ;
+                llc_mem_req_o.addr = dma_addr; 
+                llc_mem_req_o.hsize = `WORD;
+                llc_mem_req_o.hprot = llc_dma_req_in.hprot; 
+                llc_mem_req_o.line = 0;
+                llc_mem_req_valid_int = 1'b1;
             end
             DMA_WRITE_RESUME_MEM_RSP : begin 
                 llc_mem_rsp_ready_int = 1'b1;  
@@ -1073,8 +1073,8 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end  
             end 
             FINISH_RST_FLUSH : begin 
-                llc_rst_tb_done_valid = 1'b1; 
-                llc_rst_tb_done = 1'b1;
+                llc_rst_tb_done_valid_int = 1'b1; 
+                llc_rst_tb_done_o = 1'b1;
             end
             default : skip = 1'b0;  
         endcase
@@ -1095,8 +1095,8 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
 
     always_comb begin 
         next_state_stats = state_stats; 
-        llc_stats = 1'b0; 
-        llc_stats_valid = 1'b0; 
+        llc_stats_o = 1'b0; 
+        llc_stats_valid_int = 1'b0; 
         case (state_stats) 
             STATS_IDLE : begin 
                 if (next_state == DMA_RECALL_S || next_state == DMA_RECALL_EMSD || (next_state >= EVICT && next_state <= REQ_PUTM)) begin
@@ -1104,11 +1104,11 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
                 end
             end 
             STATS_SEND : begin 
-                if (llc_stats_ready) begin 
+                if (llc_stats_ready_int) begin 
                     next_state_stats = IDLE;
                 end
-                llc_stats_valid = 1'b1; 
-                llc_stats = ~((states_buf[way] == `INVALID) || evict);
+                llc_stats_valid_int = 1'b1; 
+                llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
             end
             default : next_state_stats = STATS_IDLE; 
         endcase

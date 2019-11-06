@@ -178,7 +178,19 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     llc_req_in_t llc_req_in_next();
     llc_req_in_t llc_dma_req_in_next(); 
     llc_rsp_in_t llc_rsp_in_next(); 
-    llc_mem_rsp_t llc_mem_rsp_next(); 
+    llc_mem_rsp_t llc_mem_rsp_next();
+    llc_rsp_out_t llc_rsp_out_o();
+    llc_rsp_out_t llc_dma_rsp_out_o(); 
+    llc_fwd_out_t llc_fwd_out_o(); 
+    llc_mem_req_t llc_mem_req_o();
+    logic llc_rst_tb_done_o;
+
+    logic llc_rsp_out_valid_int, llc_dma_rsp_out_valid_int, llc_fwd_out_valid_int, llc_mem_req_valid_int, llc_rst_tb_done_valid_int; 
+    logic llc_rsp_out_ready_int, llc_dma_rsp_out_ready_int, llc_fwd_out_ready_int, llc_mem_req_ready_int, llc_rst_tb_done_ready_int; 
+   
+`ifdef STATS_ENABLE
+    logic llc_stats_ready_int, llc_stats_valid_int, llc_stats_o;
+`endif
     logic llc_rst_tb_next; 
     //READ INPUTS FROM INTERFACES
     interfaces interfaces_u (.*); 
