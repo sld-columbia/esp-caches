@@ -128,7 +128,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
 
     logic [(`MAX_N_L2_BITS - 1):0] l2_cnt, invack_cnt;
     logic incr_invack_cnt;
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
         end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && llc_fwd_out_ready_int) begin 
@@ -518,7 +518,7 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     end
 
     logic skip; 
-    always @(posedge clk or negedge rst) begin 
+    always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             cur_way <= 0; 
         end else if ((state == PROCESS_FLUSH_RESUME) && (llc_mem_req_ready_int || skip)) begin 
