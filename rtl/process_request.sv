@@ -19,13 +19,13 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input llc_way_t way, way_next;
     input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume; 
     input llc_set_t set;  
-    llc_req_in_t llc_req_in;     
-    llc_req_in_t llc_dma_req_in;
-    llc_rsp_in_t llc_rsp_in;
-    llc_mem_rsp_t llc_mem_rsp; 
+    llc_req_in_t.in llc_req_in;     
+    llc_req_in_t.in llc_dma_req_in;
+    llc_rsp_in_t.in llc_rsp_in;
+    llc_mem_rsp_t.in llc_mem_rsp; 
     input logic recall_pending, recall_valid; 
     
-    line_breakdown_llc_t line_br; 
+    line_breakdown_llc_t.in line_br; 
     input llc_tag_t req_in_stalled_tag; 
     input llc_set_t req_in_stalled_set; 
     input flush_stall, rst_stall, req_stall; 
@@ -48,10 +48,10 @@ module process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, 
     input llc_way_t evict_way_buf;
     input llc_state_t states_buf[`LLC_WAYS];
     
-    llc_mem_req_t llc_mem_req_o; 
-    llc_fwd_out_t llc_fwd_out_o; 
-    llc_rsp_out_t llc_rsp_out_o; 
-    llc_rsp_out_t llc_dma_rsp_out_o; 
+    llc_mem_req_t.out llc_mem_req_o; 
+    llc_fwd_out_t.out llc_fwd_out_o; 
+    llc_rsp_out_t.out llc_rsp_out_o; 
+    llc_rsp_out_t.out llc_dma_rsp_out_o; 
 
     output logic llc_mem_req_valid_int; 
     output logic llc_rst_tb_done_valid_int;

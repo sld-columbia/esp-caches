@@ -15,19 +15,19 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
 	input logic clk;
 	input logic rst; 
 
-	llc_req_in_t llc_req_in_i;
+	llc_req_in_t.in llc_req_in_i;
 	input logic llc_req_in_valid;
 	output logic llc_req_in_ready;
 
-	llc_req_in_t llc_dma_req_in_i;
+	llc_req_in_t.in llc_dma_req_in_i;
 	input logic llc_dma_req_in_valid;
 	output logic llc_dma_req_in_ready; 
 	
-	llc_rsp_in_t llc_rsp_in_i; 
+	llc_rsp_in_t.in llc_rsp_in_i; 
 	input logic llc_rsp_in_valid;
 	output logic llc_rsp_in_ready;
 
-	llc_mem_rsp_t llc_mem_rsp_i;
+	llc_mem_rsp_t.in llc_mem_rsp_i;
 	input logic  llc_mem_rsp_valid;
 	output logic llc_mem_rsp_ready;
 
@@ -37,19 +37,19 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
 
 	input logic llc_rsp_out_ready;
 	output logic llc_rsp_out_valid;
-	llc_rsp_out_t  llc_rsp_out;
+	llc_rsp_out_t.out  llc_rsp_out;
 
 	input logic llc_dma_rsp_out_ready;
 	output logic llc_dma_rsp_out_valid;
-	llc_rsp_out_t llc_dma_rsp_out;
+	llc_rsp_out_t.out llc_dma_rsp_out;
 
 	input logic llc_fwd_out_ready; 
 	output logic llc_fwd_out_valid;
-	llc_fwd_out_t llc_fwd_out;   
+	llc_fwd_out_t.out llc_fwd_out;   
 
 	input logic llc_mem_req_ready;
 	output logic llc_mem_req_valid;
-	llc_mem_req_t llc_mem_req;
+	llc_mem_req_t.out llc_mem_req;
 
 	input logic llc_rst_tb_done_ready;
 	output logic llc_rst_tb_done_valid;

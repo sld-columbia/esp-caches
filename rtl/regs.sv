@@ -59,7 +59,7 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     input llc_tag_t tags_buf[`LLC_WAYS]; 
     output line_addr_t addr_evict;
 
-    line_breakdown_llc_t line_br; 
+    line_breakdown_llc_t.in line_br; 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 

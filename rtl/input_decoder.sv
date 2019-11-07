@@ -31,7 +31,7 @@ module input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_
     output logic clr_rst_stall, clr_flush_stall, clr_req_stall_decoder; 
     output logic update_dma_addr_from_req;
     output logic idle; 
-    line_breakdown_llc_t line_br; 
+    line_breakdown_llc_t.out line_br; 
 
     line_addr_t addr_for_set;
     line_breakdown_llc_t line_br_next(); 
