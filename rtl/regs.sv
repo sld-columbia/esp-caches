@@ -62,7 +62,9 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     line_breakdown_llc_t line_br; 
 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
+        if (!rst) begin 
+            rst_stall <= 1'b1;
+        end else if (rst_state) begin 
             rst_stall <= 1'b1;
         end else if (clr_rst_stall) begin 
             rst_stall <= 1'b0;
@@ -70,8 +72,10 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     end
 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_flush_stall) begin 
+        if (!rst) begin 
             flush_stall <= 1'b0; 
+        end else if (rst_state || clr_flush_stall) begin 
+            flush_stall <= 1'b0;
         end else if (set_flush_stall) begin 
             flush_stall <= 1'b1; 
         end
@@ -80,24 +84,30 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     logic clr_req_stall; 
     assign clr_req_stall = clr_req_stall_decoder | clr_req_stall_process; 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state ||clr_req_stall) begin 
+        if (!rst) begin 
             req_stall <= 1'b0; 
+        end else if (rst_state || clr_req_stall) begin 
+            req_stall <= 1'b0;
         end else if (set_req_stall) begin 
             req_stall <= 1'b1; 
         end
     end
 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_req_in_stalled_valid) begin 
+        if (!rst) begin 
             req_in_stalled_valid <= 1'b0; 
+        end else if (rst_state || clr_req_in_stalled_valid) begin 
+            req_in_stalled_valid <= 1'b0;
         end else if (set_req_in_stalled_valid) begin 
             req_in_stalled_valid <= 1'b1; 
         end
     end
    
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_rst_flush_stalled_set) begin 
+        if (!rst) begin 
             rst_flush_stalled_set <= 0;
+        end else if (rst_state || clr_rst_flush_stalled_set) begin 
+            rst_flush_stalled_set <= 0; 
         end else if (incr_rst_flush_stalled_set) begin 
             rst_flush_stalled_set <= rst_flush_stalled_set + 1; 
         end
@@ -105,7 +115,9 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
    
     llc_req_in_t llc_dma_req_in_i;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
+        if (!rst) begin 
+            dma_addr <= 0;
+        end else if (rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req && rd_set_en) begin 
             dma_addr <= llc_dma_req_in_i.addr;
@@ -115,23 +127,29 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     end
     
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_recall_pending) begin 
+        if (!rst) begin 
             recall_pending <= 1'b0;
+        end else if (rst_state || clr_recall_pending) begin 
+            recall_pending <= 1'b0; 
         end else if (set_recall_pending) begin 
             recall_pending <= 1'b1;
         end
     end
     
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_dma_read_pending) begin 
+        if (!rst) begin 
             dma_read_pending <= 1'b0;
+        end else if (rst_state || clr_dma_read_pending) begin 
+            dma_read_pending <= 1'b0; 
         end else if (set_dma_read_pending) begin 
             dma_read_pending <= 1'b1;
         end
     end
     
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state ||clr_dma_write_pending) begin 
+        if (!rst) begin 
+            dma_write_pending <= 1'b0;
+        end else if (rst_state || clr_dma_write_pending) begin 
             dma_write_pending <= 1'b0;
         end else if (set_dma_write_pending) begin 
             dma_write_pending <= 1'b1;
@@ -139,7 +157,9 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     end
     
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_recall_valid) begin 
+        if (!rst) begin 
+            recall_valid <= 1'b0;
+        end else if (rst_state || clr_recall_valid) begin 
             recall_valid <= 1'b0;
         end else if (set_recall_valid) begin 
             recall_valid <= 1'b1;
@@ -149,30 +169,33 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     logic set_is_dma_read_to_resume;
     assign set_is_dma_read_to_resume = set_is_dma_read_to_resume_decoder | set_is_dma_read_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
-            is_dma_read_to_resume = 1'b0;
+        if (!rst) begin 
+            is_dma_read_to_resume <= 1'b0;
+        end else if (rst_state || clr_is_dma_read_to_resume) begin 
+            is_dma_read_to_resume <=  1'b0;
         end else if (set_is_dma_read_to_resume) begin
-            is_dma_read_to_resume = 1'b1;
-        end else if (clr_is_dma_read_to_resume) begin 
-            is_dma_read_to_resume = 1'b0; 
+            is_dma_read_to_resume <= 1'b1;
         end
     end 
 
     logic set_is_dma_write_to_resume;
     assign set_is_dma_write_to_resume = set_is_dma_write_to_resume_decoder | set_is_dma_write_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || clr_is_dma_write_to_resume) begin 
+        if (!rst) begin 
             is_dma_write_to_resume = 1'b0;
+        end else  if (rst_state || clr_is_dma_write_to_resume) begin 
+            is_dma_write_to_resume <= 1'b0; 
         end else if (set_is_dma_write_to_resume) begin
             is_dma_write_to_resume = 1'b1;
-        end else if (clr_is_dma_write_to_resume) begin 
-            is_dma_write_to_resume = 1'b0; 
         end
     end 
 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
+        if (!rst) begin 
             req_in_stalled_set <= 0; 
+            req_in_stalled_tag <= 0; 
+        end else if (rst_state) begin 
+            req_in_stalled_set <=  0;  
             req_in_stalled_tag <= 0; 
         end else if (update_req_in_stalled) begin 
             req_in_stalled_set <= line_br.set; 
@@ -181,8 +204,10 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     end
     
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state || decode_en) begin 
+        if (!rst) begin 
             update_evict_way <= 1'b0;
+        end else if (rst_state || decode_en) begin
+            update_evict_way <=  1'b0; 
         end else if (set_update_evict_way) begin 
             update_evict_way <= 1'b1; 
         end

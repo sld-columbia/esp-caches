@@ -459,11 +459,11 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
                     .CE0(rd_en),
-                    .A1(),
-                    .D1(), 
+                    .A1(12'b0),
+                    .D1(4'b0), 
                     .Q1(), 
-                    .WE1(),
-                    .CE1(),
+                    .WE1(1'b0),
+                    .CE1(1'b0),
 					.WEM0(),
 					.WEM1());
             end else begin 
@@ -474,11 +474,11 @@ module localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_da
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
                     .CE0(rd_en),
-                    .A1(),
-                    .D1(), 
+                    .A1(12'b0),
+                    .D1(4'b0), 
                     .Q1(), 
-                    .WE1(),
-                    .CE1(),
+                    .WE1(1'b0),
+                    .CE1(1'b0),
 					.WEM0(),
     				.WEM1());
             end 
