@@ -113,7 +113,7 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
         end
     end
    
-    llc_req_in_t llc_dma_req_in_i;
+    llc_req_in_t.in llc_dma_req_in_i;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             dma_addr <= 0;
@@ -182,11 +182,11 @@ module regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr
     assign set_is_dma_write_to_resume = set_is_dma_write_to_resume_decoder | set_is_dma_write_to_resume_process;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
-            is_dma_write_to_resume = 1'b0;
+            is_dma_write_to_resume <= 1'b0;
         end else  if (rst_state || clr_is_dma_write_to_resume) begin 
             is_dma_write_to_resume <= 1'b0; 
         end else if (set_is_dma_write_to_resume) begin
-            is_dma_write_to_resume = 1'b1;
+            is_dma_write_to_resume <= 1'b1;
         end
     end 
 

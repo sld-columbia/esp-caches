@@ -20,7 +20,7 @@ module interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_r
     output logic llc_req_in_valid_tmp;
     
     llc_req_in_t.in llc_req_in_i;
-    llc_req_in_t llc_req_in_tmp; 
+    llc_req_in_t.out llc_req_in_tmp; 
     llc_req_in_t.out llc_req_in_next; 
     
     interface_controller llc_req_in_intf(.clk(clk), .rst(rst), .ready_in(llc_req_in_ready_int), .valid_in(llc_req_in_valid), .ready_out(llc_req_in_ready), .valid_out(llc_req_in_valid_int), .valid_tmp(llc_req_in_valid_tmp)); 
@@ -59,7 +59,7 @@ module interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_r
     output logic llc_dma_req_in_valid_tmp;
     
     llc_req_in_t.in llc_dma_req_in_i;
-    llc_req_in_t llc_dma_req_in_tmp; 
+    llc_req_in_t.out llc_dma_req_in_tmp; 
     llc_req_in_t.out llc_dma_req_in_next; 
     
     interface_controller llc_dma_req_in_intf(.clk(clk), .rst(rst), .ready_in(llc_dma_req_in_ready_int), .valid_in(llc_dma_req_in_valid), .ready_out(llc_dma_req_in_ready), .valid_out(llc_dma_req_in_valid_int), .valid_tmp(llc_dma_req_in_valid_tmp)); 
@@ -98,7 +98,7 @@ module interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_r
     output logic llc_rsp_in_valid_tmp;
     
     llc_rsp_in_t.in llc_rsp_in_i;
-    llc_rsp_in_t llc_rsp_in_tmp; 
+    llc_rsp_in_t.out llc_rsp_in_tmp; 
     llc_rsp_in_t.out llc_rsp_in_next; 
     
     interface_controller llc_rsp_in_intf(.clk(clk), .rst(rst), .ready_in(llc_rsp_in_ready_int), .valid_in(llc_rsp_in_valid), .ready_out(llc_rsp_in_ready), .valid_out(llc_rsp_in_valid_int), .valid_tmp(llc_rsp_in_valid_tmp)); 
