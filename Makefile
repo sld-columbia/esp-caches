@@ -12,33 +12,41 @@ FLAGS += -TOP glbl
 FLAGS += -access +R
 
 INCDIR ?=
-INCDIR += -I./rtl
-INCDIR += -I./sim
+INCDIR += -I./llc/rtl
+INCDIR += -I./llc/sim
 INCDIR += -I$(ACCEL)
 INCDIR += -I$(ESPROOT)/systemc/common/caches
 INCDIR += -I$(ESPROOT)/systemc/llc/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
-INCDIR += +incdir+defs 
+INCDIR += +incdir+common/defs 
 
-SC_TB ?=
-SC_TB += $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
-SC_TB += sim/sc_main.cpp
+LLC_TB ?=
+LLC_TB += $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
+LLC_TB += llc/sim/sc_main.cpp
+
+L2_TB ?= $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
+L2_TB += llc/sim/sc_main.cpp
 
 #SC_SRC ?=
 #/SC_SRC += src/scc.cpp
 
-RTL_COSIM_SRC ?=
-RTL_COSIM_SRC += sim/llc_wrap.cpp
+LLC_COSIM_SRC ?=
+LLC_COSIM_SRC += llc/sim/llc_wrap.cpp
+
+L2_COSIM_SRC ?=
+L2_COSIM_SRC += l2/sim/l2_wrap.cpp
+
+LLC_SRC ?=
+LLC_SRC += ./llc/rtl/*.sv
+
+L2_SRC ?= 
+L2_SRC += ./l2/rtl/*.sv 
 
 RTL_SRC ?=
-#RTL_SRC += rtl/llc_wrapper.sv rtl/llc.sv rtl/lookup_way.sv rtl/localmem.sv rtl/read_set.sv rtl/input_decoder.sv
-RTL_SRC += ./rtl/*.sv
 RTL_SRC += $(ESPROOT)/tech/virtex7/mem/*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/glbl.v
 RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
-#RTL_SRC += rtl/llc_wrapper.sv
-#RTL_SRC += rtl/llc.sv
 
 #sc-sim-gui: $(SC_TB) $(SC_SRC)
 #	ncsc_run  $(INCDIR) $(FLAGS) -GUI $^
@@ -46,12 +54,17 @@ RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
 #sc-sim: $(SC_TB) $(SC_SRC)
 #	ncsc_run  $(INCDIR) $(FLAGS) $^
 
-rtl-sim: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
+llc-sim: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
 
-rtl-sim-gui: $(SC_TB) $(RTL_COSIM_SRC) $(RTL_SRC)
+llc-sim-gui: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^
 
+l2-sim: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
+	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
+
+l2-sim-gui: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
+	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
 
 clean:
 	rm -rf 			\
@@ -60,6 +73,8 @@ clean:
 		INCA_libs	\
 		.simvision	\
 		*.key		\
-		*.shm
+		*.shm		\
+		*.err 		\
+        *.daig
 
 .PHONY: sc-sim sc-sim-gui clean
