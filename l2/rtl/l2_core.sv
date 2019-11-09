@@ -16,15 +16,15 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req, l2_cpu_req_ready, l2_fwd_
 
     input logic l2_cpu_req_valid; 
     output logic l2_cpu_req_ready;
-    l2_cpu_req_t.in l2_cpu_req;
+    l2_cpu_req_t.in l2_cpu_req_i;
 
     input logic l2_fwd_in_valid;
     output logic l2_fwd_in_ready; 
-    l2_fwd_in_t.in l2_fwd_in; 
+    l2_fwd_in_t.in l2_fwd_in_i; 
 
     input logic l2_rsp_in_valid;
     output logic l2_rsp_in_ready; 
-    l2_rsp_in_t.in l2_rsp_in; 
+    l2_rsp_in_t.in l2_rsp_in_i; 
     
     input logic l2_req_out_ready; 
     output logic l2_req_out_valid;
@@ -39,19 +39,19 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req, l2_cpu_req_ready, l2_fwd_
     l2_rd_rsp.out l2_rd_rsp; 
 
     input logic l2_flush_valid;
-    input logic l2_flush_data;
+    input logic l2_flush_i;
     output logic l2_flush_ready;
 
     input logic l2_inval_ready;
     output logic l2_inval_valid;
-    output l2_inval_t l2_inval_data;
+    output l2_inval_t l2_inval;
 
     output logic flush_done; 
 
 `ifdef STATS_ENABLE
     input logic l2_stats_ready;
     output logic l2_stats_valid;
-    output logic l2_stats_data; 
+    output logic l2_stats; 
 `endif 
 
 endmodule

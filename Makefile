@@ -47,6 +47,7 @@ RTL_SRC += $(ESPROOT)/tech/virtex7/mem/*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/glbl.v
 RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
+RTL_SRC += common/rtl/*.sv
 
 #sc-sim-gui: $(SC_TB) $(SC_SRC)
 #	ncsc_run  $(INCDIR) $(FLAGS) -GUI $^

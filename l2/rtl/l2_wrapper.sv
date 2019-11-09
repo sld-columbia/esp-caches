@@ -23,12 +23,12 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     input word_t l2_cpu_req_data_word;
     output logic l2_cpu_req_ready;
     
-    l2_cpu_req_t l2_cpu_req();
-    assign l2_cpu_req.cpu_msg = l2_cpu_req_data_cpu_msg;
-    assign l2_cpu_req.hsize = l2_cpu_req_data_hsize;
-    assign l2_cpu_req.hprot = l2_cpu_req_data_hprot;
-    assign l2_cpu_req.addr = l2_cpu_req_data_addr;
-    assign l2_cpu_req.word = l2_cpu_req_data_word;
+    l2_cpu_req_t l2_cpu_req_i();
+    assign l2_cpu_req_i.cpu_msg = l2_cpu_req_data_cpu_msg;
+    assign l2_cpu_req_i.hsize = l2_cpu_req_data_hsize;
+    assign l2_cpu_req_i.hprot = l2_cpu_req_data_hprot;
+    assign l2_cpu_req_i.addr = l2_cpu_req_data_addr;
+    assign l2_cpu_req_i.word = l2_cpu_req_data_word;
 
     input logic l2_fwd_in_valid;
     input mix_msg_t l2_fwd_in_data_coh_msg;
@@ -36,10 +36,10 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     input cache_id_t l2_fwd_in_data_req_id;
     output logic l2_fwd_in_ready;
 
-    l2_fwd_in_t l2_fwd_in(); 
-    assign l2_fwd_in.coh_msg = l2_fwd_in_data_coh_msg
-    assign l2_fwd_in.addr = l2_fwd_in_data_addr
-    assign l2_fwd_in.req_id = l2_fwd_in_data_req_id
+    l2_fwd_in_t l2_fwd_in_i(); 
+    assign l2_fwd_in_i.coh_msg = l2_fwd_in_data_coh_msg
+    assign l2_fwd_in_i.addr = l2_fwd_in_data_addr
+    assign l2_fwd_in_i.req_id = l2_fwd_in_data_req_id
 
     input logic l2_rsp_in_valid;
     input coh_msg_t l2_rsp_in_data_coh_msg;
@@ -48,11 +48,11 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     input invack_cnt_t l2_rsp_in_data_invack_cnt;
     output logic l2_rsp_in_ready;
 
-    l2_rsp_in_t l2_rsp_in();
-    assign l2_rsp_in.coh_msg = l2_rsp_in_data_coh_msg
-    assign l2_rsp_in.addr = l2_rsp_in_data_addr
-    assign l2_rsp_in.line = l2_rsp_in_data_line
-    assign l2_rsp_in.invack_cnt = l2_rsp_in_data_invack_cnt
+    l2_rsp_in_t l2_rsp_in_i();
+    assign l2_rsp_in_i.coh_msg = l2_rsp_in_data_coh_msg
+    assign l2_rsp_in_i.addr = l2_rsp_in_data_addr
+    assign l2_rsp_in_i.line = l2_rsp_in_data_line
+    assign l2_rsp_in_i.invack_cnt = l2_rsp_in_data_invack_cnt
 
     input logic l2_req_out_ready;
     output logic l2_req_out_valid;
@@ -92,19 +92,28 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     input logic l2_flush_valid;
     input logic l2_flush_data;
     output logic l2_flush_ready;
+   
+    logic l2_flush_i;
+    assign l2_flush_i = l2_flush_data;
 
     input logic l2_inval_ready;
     output logic l2_inval_valid;
     output l2_inval_t l2_inval_data;
 
+    logic l2_inval; 
+    assign l2_inval_data = l2_inval;
+
 `ifdef STATS_ENABLE
     input logic l2_stats_ready;
     output logic l2_stats_valid;
     output logic l2_stats_data;
+
+    logic llc_stats; 
+    assign llc_stats_data = llc_stats; 
 `endif
 
     output logic flush_done;
      
-    //l2_core l2_u(.*);
+    l2_core l2_u(.*);
 endmodule
 

@@ -62,6 +62,10 @@ interface l2_cpu_req_t;
     hprot_t hprot;
     addr_t addr;
     word_t word;
+
+    modport in (input cpu_msg, hsize, hprot, addr, word); 
+    modport out (output cpu_msg, hsize, hprot, addr, word); 
+
 endinterface
 
 /* L2 to L1 */
@@ -69,6 +73,10 @@ endinterface
 // read data response
 interface l2_rd_rsp_t;
     line_t line;
+
+    modport in (input line);
+    modport out (output line); 
+
 endinterface
 
 // invalidate address
@@ -79,6 +87,10 @@ interface  l2_fwd_in_t;
     mix_msg_t coh_msg;
     line_addr_t addr;
     cache_id_t req_id;
+
+    modport in (input coh_msg, addr, req_id); 
+    modport out (output coh_msg, addr, req_id); 
+
 endinterface
 
 // responses
@@ -87,6 +99,10 @@ interface l2_rsp_in_t;
     line_addr_t		addr;
     line_t		line;
     invack_cnt_t	invack_cnt;
+
+    modport in (input coh_msg, addr, line, invack_cnt);
+    modport out (output coh_msg, addr, line, invack_cnt); 
+
 endinterface
 
 interface llc_rsp_out_t;
@@ -121,6 +137,10 @@ interface l2_req_out_t;
     hprot_t	hprot;
     line_addr_t	addr;
     line_t	line;
+
+    modport in (input coh_msg, hprot, addr, line); 
+    modport out (output cog_msg, hprot, addr, line); 
+
 endinterface
 
 interface llc_req_in_t;
@@ -144,6 +164,10 @@ interface l2_rsp_out_t;
     logic[1:0]  to_req;
     line_addr_t	addr;
     line_t	line;
+
+    modport in (input coh_msg, req_id, to_req, addr, line); 
+    modport out (output coh_msg, req_id, to_req, addr, line); 
+
 endinterface
 
 interface llc_rsp_in_t;
@@ -185,6 +209,10 @@ endinterface
 interface line_breakdown_l2_t;
     l2_tag_t tag;
     l2_set_t set;
+
+    modport in (input tag, set); 
+    modport out (output tag, set); 
+
 endinterface
 
 interface line_breakdown_llc_t;
