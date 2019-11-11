@@ -146,7 +146,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     line_addr_t addr_evict;
     
     //instance
-    regs regs_u(.*); 
+    llc_regs regs_u(.*); 
 
     //DECODE
 
@@ -156,7 +156,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     llc_set_t set, set_next, set_in;     
  
     //instance
-    input_decoder input_decoder_u(.*);
+    llc_input_decoder input_decoder_u(.*);
   
     //assign outputs
     assign set_in = rd_set_en ? set_next : set; 
@@ -188,7 +188,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     assign llc_dma_req_in_ready_int = decode_en & do_get_dma_req;
  
     //instance
-    interfaces interfaces_u (.*); 
+    llc_interfaces interfaces_u (.*); 
 
     //MEMORY
     
@@ -219,7 +219,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     assign rd_en = !idle; 
    
     //instance
-    localmem localmem_u(.*);
+    llc_localmem localmem_u(.*);
 
     //BUFFERS
     llc_way_t evict_way_buf; 
@@ -235,7 +235,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     logic incr_evict_way_buf; 
     logic rst_state;
     
-    bufs bufs_u(.*);
+    llc_bufs bufs_u(.*);
 
     //LOOKUP 
 
@@ -245,12 +245,12 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     assign tag = line_br.tag;
  
     //instance
-    lookup_way lookup_way_u(.*); 
+    llc_lookup_way lookup_way_u(.*); 
    
     //PROCESS 
 
     //instance
-    process_request process_request_u(.*);
+    llc_process_request process_request_u(.*);
     
     //UPDATE 
 
@@ -266,6 +266,6 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     logic [(`NUM_PORTS-1):0] wr_rst_flush;
     
     //instance
-    update update_u (.*);
+    llc_update update_u (.*);
     
 endmodule

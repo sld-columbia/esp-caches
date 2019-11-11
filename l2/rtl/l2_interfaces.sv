@@ -2,10 +2,10 @@
 `include "cache_consts.svh" 
 `include "cache_types.svh" 
 
-// interfaces.sv
+// l2_interfaces.sv
 // Author: Joseph Zuckerman
 // bypassable queue implementation for l2 channels
-module interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_valid_int, l2_cpu_req_ready_int, l2_cpu_req_i, l2_fwd_in_valid, l2_fwd_in_ready, l2_fwd_in_valid_int, l2_fwd_in_ready_int, l2_fwd_in_i, l2_rsp_in_valid, l2_rsp_in_ready, l2_rsp_in_valid_int, l2_rsp_in_ready_int, l2_rsp_in_i, l2_flush_valid, l2_flush_ready, l2_flush_valid_int, l2_flush_ready_int, l2_flush_i, l2_req_out_valid, l2_req_out_ready, l2_req_out_valid_int, l2_req_out_ready_int, l2_req_out, l2_req_out_o, l2_rsp_out_valid, l2_rsp_out_ready, l2_rsp_out_valid_int, l2_rsp_out_ready_int, l2_rsp_out, l2_rsp_out_o, l2_rd_rsp_valid, l2_rd_rsp_ready, l2_rd_rsp_valid_int, l2_rd_rsp_ready_int, l2_rd_rsp, l2_rd_rsp_o, l2_inval_valid, l2_inval_ready, l2_inval_valid_int, l2_inval_ready_int, l2_inval, l2_inval_o
+module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_valid_int, l2_cpu_req_ready_int, l2_cpu_req_i, l2_fwd_in_valid, l2_fwd_in_ready, l2_fwd_in_valid_int, l2_fwd_in_ready_int, l2_fwd_in_i, l2_rsp_in_valid, l2_rsp_in_ready, l2_rsp_in_valid_int, l2_rsp_in_ready_int, l2_rsp_in_i, l2_flush_valid, l2_flush_ready, l2_flush_valid_int, l2_flush_ready_int, l2_flush_i, l2_req_out_valid, l2_req_out_ready, l2_req_out_valid_int, l2_req_out_ready_int, l2_req_out, l2_req_out_o, l2_rsp_out_valid, l2_rsp_out_ready, l2_rsp_out_valid_int, l2_rsp_out_ready_int, l2_rsp_out, l2_rsp_out_o, l2_rd_rsp_valid, l2_rd_rsp_ready, l2_rd_rsp_valid_int, l2_rd_rsp_ready_int, l2_rd_rsp, l2_rd_rsp_o, l2_inval_valid, l2_inval_ready, l2_inval_valid_int, l2_inval_ready_int, l2_inval, l2_inval_o
 `ifdef STATS_ENABLE
     , l2_stats_valid, l2_stats_ready, l2_stats_valid_int, l2_stats_ready_int, l2_stats, l2_stats_o
 `endif

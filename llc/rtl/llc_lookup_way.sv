@@ -2,11 +2,11 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-//lookup_way.sv 
+//llc_lookup_way.sv 
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict); 
+module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict); 
     
     input logic clk, rst; 
     input llc_tag_t tag; 

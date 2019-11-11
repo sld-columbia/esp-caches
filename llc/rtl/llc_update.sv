@@ -2,11 +2,11 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-// update.sv
+// llc_update.sv
 // Author: Joseph Zuckerman
 // write back to memory 
 
-module update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, update_evict_way, states_buf, hprots_buf, lines_buf, tags_buf, sharers_buf, owners_buf, dirty_bits_buf, evict_way_buf, way, wr_data_hprot, wr_data_state, wr_data_sharers, wr_data_tag, wr_data_owner, wr_data_evict_way, wr_data_line, wr_rst_flush, incr_rst_flush_stalled_set); 
+module llc_update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way, is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, update_evict_way, states_buf, hprots_buf, lines_buf, tags_buf, sharers_buf, owners_buf, dirty_bits_buf, evict_way_buf, way, wr_data_hprot, wr_data_state, wr_data_sharers, wr_data_tag, wr_data_owner, wr_data_evict_way, wr_data_line, wr_rst_flush, incr_rst_flush_stalled_set); 
 
     input logic clk, rst, update_en; 
     input logic is_rst_to_resume, is_flush_to_resume, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume;

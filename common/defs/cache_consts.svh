@@ -414,35 +414,6 @@
 
 //memory
 
-`define NUM_PORTS ((`LLC_WAYS >= 16) ? 16 : ((`LLC_WAYS >= 8) ? 8 : 4))
-//each BRAM is split between 2 ways
-//each way has LLC_SETS entries
-//this is the number of banks needed to hold each way
-//@TODO make evict ways and tags flexible for size
-`define HPROT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
-`define HPROT_BRAM_INDEX_BITS $clog2(`HPROT_BRAMS_PER_WAY)
-`define SHARERS_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
-`define SHARERS_BRAM_INDEX_BITS $clog2(`SHARERS_BRAMS_PER_WAY)
-`define OWNER_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
-`define OWNER_BRAM_INDEX_BITS $clog2(`OWNER_BRAMS_PER_WAY)
-`define DIRTY_BIT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BIT / 2))
-`define DIRTY_BIT_BRAM_INDEX_BITS $clog2(`DIRTY_BIT_BRAMS_PER_WAY)
-`define STATE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
-`define STATE_BRAM_INDEX_BITS $clog2(`STATE_BRAMS_PER_WAY)
-`define TAG_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
-`define TAG_BRAM_INDEX_BITS $clog2(`TAG_BRAMS_PER_WAY)
-
-//assuming 16 or fewer ways - need to change this
-//only need one entry per set
-`define EVICT_WAY_BRAMS ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
-`define EVICT_WAY_BRAM_INDEX_BITS $clog2(`EVICT_WAY_BRAMS)
-
-`define LINE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
-`define LINE_BRAM_INDEX_BITS $clog2(`LINE_BRAMS_PER_WAY)
-
-//each line is 128 bits, so need to split data across multiple BRAMs
-`define BRAMS_PER_LINE (`BITS_PER_LINE / 32)
-
 `define BRAM_SIZE_16_BITS 1024
 `define BRAM_SIZE_1_BIT 16384
 `define BRAM_SIZE_8_BITS 2048
@@ -457,5 +428,58 @@
 `define BRAM_8192_ADDR_WIDTH 13
 `define BRAM_16384_ADDR_WIDTH 14
 
+//LLC
+`define LLC_NUM_PORTS ((`LLC_WAYS >= 16) ? 16 : ((`LLC_WAYS >= 8) ? 8 : 4))
+//each BRAM is split between 2 ways
+//each way has LLC_SETS entries
+//this is the number of banks needed to hold each way
+//@TODO make evict ways and tags flexible for size
+`define LLC_HPROT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BITS / 2))
+`define LLC_HPROT_BRAM_INDEX_BITS $clog2(`LLC_HPROT_BRAMS_PER_WAY)
+`define LLC_SHARERS_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
+`define LLC_SHARERS_BRAM_INDEX_BITS $clog2(`LLC_SHARERS_BRAMS_PER_WAY)
+`define LLC_OWNER_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define LLC_OWNER_BRAM_INDEX_BITS $clog2(`LLV_OWNER_BRAMS_PER_WAY)
+`define LLC_DIRTY_BIT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BIT / 2))
+`define LLC_DIRTY_BIT_BRAM_INDEX_BITS $clog2(`LLC_DIRTY_BIT_BRAMS_PER_WAY)
+`define LLC_STATE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define LLC_STATE_BRAM_INDEX_BITS $clog2(`LLC_STATE_BRAMS_PER_WAY)
+`define LLC_TAG_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define LLC_TAG_BRAM_INDEX_BITS $clog2(`LLC_TAG_BRAMS_PER_WAY)
+
+//assuming 16 or fewer ways - need to change this
+//only need one entry per set
+`define LLC_EVICT_WAY_BRAMS ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define LLC_EVICT_WAY_BRAM_INDEX_BITS $clog2(`LLC_EVICT_WAY_BRAMS)
+
+`define LLC_LINE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define LLC_LINE_BRAM_INDEX_BITS $clog2(`LLC_LINE_BRAMS_PER_WAY)
+
+//each line is 128 bits, so need to split data across multiple BRAMs
+`define LLC_BRAMS_PER_LINE (`BITS_PER_LINE / 32)
+
+//L2
+`define L2_NUM_PORTS ((`L2_WAYS >= 16) ? 16 : ((`L2_WAYS >= 8) ? 8 : 4))
+//each BRAM is split between 2 ways
+//each way has L2_SETS entries
+//this is the number of banks needed to hold each way
+//@TODO make evict ways and tags flexible for size
+`define L2_HPROT_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define L2_HPROT_BRAM_INDEX_BITS $clog2(`L2_HPROT_BRAMS_PER_WAY)
+`define L2_STATE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define L2_STATE_BRAM_INDEX_BITS $clog2(`L2_STATE_BRAMS_PER_WAY)
+`define L2_TAG_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define L2_TAG_BRAM_INDEX_BITS $clog2(`L2_TAG_BRAMS_PER_WAY)
+
+//assuming 16 or fewer ways - need to change this
+//only need one entry per set
+`define L2_EVICT_WAY_BRAMS ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define L2_EVICT_WAY_BRAM_INDEX_BITS $clog2(`L2_EVICT_WAY_BRAMS)
+
+`define L2_LINE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define L2_LINE_BRAM_INDEX_BITS $clog2(`L2_LINE_BRAMS_PER_WAY)
+
+//each line is 128 bits, so need to split data across multiple BRAMs
+`define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 32)
 
 `endif // __CACHES_CONSTS_SVH__
