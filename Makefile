@@ -17,15 +17,16 @@ INCDIR += -I./llc/sim
 INCDIR += -I$(ACCEL)
 INCDIR += -I$(ESPROOT)/systemc/common/caches
 INCDIR += -I$(ESPROOT)/systemc/llc/tb
+INCDIR += -I$(ESPROOT)/systemc/l2/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
-INCDIR += +incdir+common/defs 
+INCDIR += +incdir+common/defs
 
 LLC_TB ?=
 LLC_TB += $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
 LLC_TB += llc/sim/sc_main.cpp
 
-L2_TB ?= $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
-L2_TB += llc/sim/sc_main.cpp
+L2_TB ?= $(ESPROOT)/systemc/l2/tb/l2_tb.cpp
+L2_TB += l2/sim/sc_main.cpp
 
 #SC_SRC ?=
 #/SC_SRC += src/scc.cpp

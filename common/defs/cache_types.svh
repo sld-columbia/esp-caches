@@ -139,7 +139,7 @@ interface l2_req_out_t;
     line_t	line;
 
     modport in (input coh_msg, hprot, addr, line); 
-    modport out (output cog_msg, hprot, addr, line); 
+    modport out (output coh_msg, hprot, addr, line); 
 
 endinterface
 

@@ -434,12 +434,12 @@
 //each way has LLC_SETS entries
 //this is the number of banks needed to hold each way
 //@TODO make evict ways and tags flexible for size
-`define LLC_HPROT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BITS / 2))
+`define LLC_HPROT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BIT / 2))
 `define LLC_HPROT_BRAM_INDEX_BITS $clog2(`LLC_HPROT_BRAMS_PER_WAY)
 `define LLC_SHARERS_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define LLC_SHARERS_BRAM_INDEX_BITS $clog2(`LLC_SHARERS_BRAMS_PER_WAY)
 `define LLC_OWNER_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
-`define LLC_OWNER_BRAM_INDEX_BITS $clog2(`LLV_OWNER_BRAMS_PER_WAY)
+`define LLC_OWNER_BRAM_INDEX_BITS $clog2(`LLC_OWNER_BRAMS_PER_WAY)
 `define LLC_DIRTY_BIT_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BIT / 2))
 `define LLC_DIRTY_BIT_BRAM_INDEX_BITS $clog2(`LLC_DIRTY_BIT_BRAMS_PER_WAY)
 `define LLC_STATE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
@@ -464,9 +464,9 @@
 //each way has L2_SETS entries
 //this is the number of banks needed to hold each way
 //@TODO make evict ways and tags flexible for size
-`define L2_HPROT_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define L2_HPROT_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_1_BIT /2) -1)  / (`BRAM_SIZE_1_BIT / 2))
 `define L2_HPROT_BRAM_INDEX_BITS $clog2(`L2_HPROT_BRAMS_PER_WAY)
-`define L2_STATE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
+`define L2_STATE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_2_BITS /2) -1)  / (`BRAM_SIZE_2_BITS / 2))
 `define L2_STATE_BRAM_INDEX_BITS $clog2(`L2_STATE_BRAMS_PER_WAY)
 `define L2_TAG_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
 `define L2_TAG_BRAM_INDEX_BITS $clog2(`L2_TAG_BRAMS_PER_WAY)

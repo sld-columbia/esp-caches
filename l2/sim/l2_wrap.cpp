@@ -1,7 +1,7 @@
 #include "l2_wrap.h"
 
 void l2_wrapper_conv::thread_l2_cpu_req_data_conv(){
-    l2_cpu_req_in_t tmp = l2_cpu_req.data.read();
+    l2_cpu_req_t tmp = l2_cpu_req.data.read();
     l2_cpu_req_data_conv_cpu_msg = tmp.cpu_msg;
     l2_cpu_req_data_conv_hprot = tmp.hprot;
     l2_cpu_req_data_conv_addr = tmp.addr;
@@ -9,11 +9,11 @@ void l2_wrapper_conv::thread_l2_cpu_req_data_conv(){
     l2_cpu_req_data_conv_word = tmp.word;
 }
 
-void l2_wrapper_conv::thread_l2_fwd_in_in_data_conv(){
-    l2_fwd_in_t tmp = l2_fwd_in_in.data.read();
-    l2_fwd_in_in_data_conv_coh_msg = tmp.coh_msg;
-    l2_fwd_in_in_data_conv_addr = tmp.addr;
-    l2_fwd_in_in_data_conv_req_id = tmp.req_id;
+void l2_wrapper_conv::thread_l2_fwd_in_data_conv(){
+    l2_fwd_in_t tmp = l2_fwd_in.data.read();
+    l2_fwd_in_data_conv_coh_msg = tmp.coh_msg;
+    l2_fwd_in_data_conv_addr = tmp.addr;
+    l2_fwd_in_data_conv_req_id = tmp.req_id;
 }
 
 void l2_wrapper_conv::thread_l2_rsp_in_data_conv(){
@@ -38,7 +38,7 @@ void l2_wrapper_conv::thread_l2_req_out_data_conv(){
 }
 
 void l2_wrapper_conv::thread_l2_rsp_out_data_conv(){
-    l2_req_out_t tmp;
+    l2_rsp_out_t tmp;
     tmp.coh_msg = l2_rsp_out_data_conv_coh_msg.read();
     tmp.addr = l2_rsp_out_data_conv_addr.read();
     tmp.line = l2_rsp_out_data_conv_line.read();

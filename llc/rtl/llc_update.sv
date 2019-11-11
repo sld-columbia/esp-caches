@@ -29,11 +29,11 @@ module llc_update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way
     output llc_way_t wr_data_evict_way;
     output line_t wr_data_line;
     output logic wr_en, wr_en_evict_way, wr_data_dirty_bit;
-    output logic [(`NUM_PORTS-1):0] wr_rst_flush;
+    output logic [(`LLC_NUM_PORTS-1):0] wr_rst_flush;
     output logic incr_rst_flush_stalled_set; 
 
     always_comb begin 
-        wr_rst_flush = {`NUM_PORTS{1'b0}};
+        wr_rst_flush = {`LLC_NUM_PORTS{1'b0}};
         wr_data_state = 0;
         wr_data_dirty_bit = 1'b0; 
         wr_data_sharers = 0;
@@ -48,7 +48,7 @@ module llc_update(clk, rst, update_en, wr_en, wr_data_dirty_bit, wr_en_evict_way
         incr_rst_flush_stalled_set = 1'b0;
         if (update_en) begin 
             if (is_rst_to_resume) begin 
-                wr_rst_flush  = {`NUM_PORTS{1'b1}};
+                wr_rst_flush  = {`LLC_NUM_PORTS{1'b1}};
                 wr_data_state = `INVALID;
                 wr_data_dirty_bit = 1'b0; 
                 wr_data_sharers = 0; 

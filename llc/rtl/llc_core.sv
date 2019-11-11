@@ -263,7 +263,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     owner_t wr_data_owner; 
     llc_way_t wr_data_evict_way;
     line_t wr_data_line; 
-    logic [(`NUM_PORTS-1):0] wr_rst_flush;
+    logic [(`LLC_NUM_PORTS-1):0] wr_rst_flush;
     
     //instance
     llc_update update_u (.*);

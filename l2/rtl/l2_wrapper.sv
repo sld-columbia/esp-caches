@@ -18,7 +18,7 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     input logic l2_cpu_req_valid;
     input cpu_msg_t l2_cpu_req_data_cpu_msg;
     input hsize_t l2_cpu_req_data_hsize;
-    input hprot_t l2_cpu_req_data_hprot;
+    input logic[1:0] l2_cpu_req_data_hprot;
     input addr_t l2_cpu_req_data_addr;
     input word_t l2_cpu_req_data_word;
     output logic l2_cpu_req_ready;
@@ -26,7 +26,7 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     l2_cpu_req_t l2_cpu_req_i();
     assign l2_cpu_req_i.cpu_msg = l2_cpu_req_data_cpu_msg;
     assign l2_cpu_req_i.hsize = l2_cpu_req_data_hsize;
-    assign l2_cpu_req_i.hprot = l2_cpu_req_data_hprot;
+    assign l2_cpu_req_i.hprot = l2_cpu_req_data_hprot[0];
     assign l2_cpu_req_i.addr = l2_cpu_req_data_addr;
     assign l2_cpu_req_i.word = l2_cpu_req_data_word;
 
@@ -37,9 +37,9 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     output logic l2_fwd_in_ready;
 
     l2_fwd_in_t l2_fwd_in_i(); 
-    assign l2_fwd_in_i.coh_msg = l2_fwd_in_data_coh_msg
-    assign l2_fwd_in_i.addr = l2_fwd_in_data_addr
-    assign l2_fwd_in_i.req_id = l2_fwd_in_data_req_id
+    assign l2_fwd_in_i.coh_msg = l2_fwd_in_data_coh_msg;
+    assign l2_fwd_in_i.addr = l2_fwd_in_data_addr;
+    assign l2_fwd_in_i.req_id = l2_fwd_in_data_req_id;
 
     input logic l2_rsp_in_valid;
     input coh_msg_t l2_rsp_in_data_coh_msg;
@@ -49,23 +49,23 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     output logic l2_rsp_in_ready;
 
     l2_rsp_in_t l2_rsp_in_i();
-    assign l2_rsp_in_i.coh_msg = l2_rsp_in_data_coh_msg
-    assign l2_rsp_in_i.addr = l2_rsp_in_data_addr
-    assign l2_rsp_in_i.line = l2_rsp_in_data_line
-    assign l2_rsp_in_i.invack_cnt = l2_rsp_in_data_invack_cnt
+    assign l2_rsp_in_i.coh_msg = l2_rsp_in_data_coh_msg;
+    assign l2_rsp_in_i.addr = l2_rsp_in_data_addr;
+    assign l2_rsp_in_i.line = l2_rsp_in_data_line;
+    assign l2_rsp_in_i.invack_cnt = l2_rsp_in_data_invack_cnt;
 
     input logic l2_req_out_ready;
     output logic l2_req_out_valid;
     output coh_msg_t l2_req_out_data_coh_msg;
-    output hprot_t l2_req_out_data_hprot;
+    output logic[1:0] l2_req_out_data_hprot;
     output line_addr_t l2_req_out_data_addr;
     output line_t l2_req_out_data_line;
    
     l2_req_out_t l2_req_out();
-    assign l2_req_out_data_coh_msg = l2_req_out.coh_msg
-    assign l2_req_out_data_hprot = l2_req_out.hprot
-    assign l2_req_out_data_addr = l2_req_out.addr
-    assign l2_req_out_data_line = l2_req_out.line
+    assign l2_req_out_data_coh_msg = l2_req_out.coh_msg;
+    assign l2_req_out_data_hprot = {1'b0,  l2_req_out.hprot};
+    assign l2_req_out_data_addr = l2_req_out.addr;
+    assign l2_req_out_data_line = l2_req_out.line;
 
     input logic l2_rsp_out_ready;
     output logic l2_rsp_out_valid;
@@ -76,11 +76,11 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     output line_t l2_rsp_out_data_line;
    
     l2_rsp_out_t l2_rsp_out(); 
-    assign l2_rsp_out_data_coh_msg = l2_rsp_out.coh_msg
-    assign l2_rsp_out_data_req_id = l2_rsp_out.req_id
-    assign l2_rsp_out_data_to_req = l2_rsp_out.to_req
-    assign l2_rsp_out_data_addr = l2_rsp_out.addr
-    assign l2_rsp_out_data_line = l2_rsp_out.line
+    assign l2_rsp_out_data_coh_msg = l2_rsp_out.coh_msg;
+    assign l2_rsp_out_data_req_id = l2_rsp_out.req_id;
+    assign l2_rsp_out_data_to_req = l2_rsp_out.to_req;
+    assign l2_rsp_out_data_addr = l2_rsp_out.addr;
+    assign l2_rsp_out_data_line = l2_rsp_out.line;
 
     input logic l2_rd_rsp_ready;
     output logic l2_rd_rsp_valid;
@@ -100,7 +100,7 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     output logic l2_inval_valid;
     output l2_inval_t l2_inval_data;
 
-    logic l2_inval; 
+    l2_inval_t l2_inval; 
     assign l2_inval_data = l2_inval;
 
 `ifdef STATS_ENABLE
@@ -108,8 +108,8 @@ module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_ms
     output logic l2_stats_valid;
     output logic l2_stats_data;
 
-    logic llc_stats; 
-    assign llc_stats_data = llc_stats; 
+    logic l2_stats; 
+    assign l2_stats_data = l2_stats; 
 `endif
 
     output logic flush_done;

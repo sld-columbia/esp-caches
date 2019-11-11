@@ -32,7 +32,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_cpu_req_tmp.hprot <= 0; 
             l2_cpu_req_tmp.addr <= 0; 
             l2_cpu_req_tmp.word <= 0;
-        else if (l2_cpu_req_valid && l2_cpu_req_ready && !l2_cpu_req_ready_int) begin 
+        end else if (l2_cpu_req_valid && l2_cpu_req_ready && !l2_cpu_req_ready_int) begin 
             l2_cpu_req_tmp.cpu_msg <= l2_cpu_req_i.cpu_msg; 
             l2_cpu_req_tmp.hsize <= l2_cpu_req_i.hsize;
             l2_cpu_req_tmp.hprot <= l2_cpu_req_i.hprot; 
@@ -64,7 +64,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_fwd_in_tmp.coh_msg <= 0; 
             l2_fwd_in_tmp.addr <= 0; 
             l2_fwd_in_tmp.req_id <= 0;
-        else if (l2_fwd_in_valid && l2_fwd_in_ready && !l2_fwd_in_ready_int) begin 
+        end else if (l2_fwd_in_valid && l2_fwd_in_ready && !l2_fwd_in_ready_int) begin 
             l2_fwd_in_tmp.coh_msg <= l2_fwd_in_i.coh_msg; 
             l2_fwd_in_tmp.addr <= l2_fwd_in_i.addr; 
             l2_fwd_in_tmp.req_id <= l2_fwd_in_i.req_id;  
@@ -93,7 +93,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_rsp_in_tmp.addr <= 0; 
             l2_rsp_in_tmp.line <= 0;
             l2_rsp_in_tmp.invack_cnt <= 0;
-        else if (l2_rsp_in_valid && l2_rsp_in_ready && !l2_rsp_in_ready_int) begin 
+        end else if (l2_rsp_in_valid && l2_rsp_in_ready && !l2_rsp_in_ready_int) begin 
             l2_rsp_in_tmp.coh_msg <= l2_rsp_in_i.coh_msg; 
             l2_rsp_in_tmp.addr <= l2_rsp_in_i.addr; 
             l2_rsp_in_tmp.line <= l2_rsp_in_i.line;  
@@ -120,7 +120,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_flush_tmp <= 0; 
-        else if (l2_flush_valid && l2_flush_ready && !l2_flush_ready_int) begin 
+        end else if (l2_flush_valid && l2_flush_ready && !l2_flush_ready_int) begin 
             l2_flush_tmp <= l2_flush_i; 
         end
     end
@@ -145,18 +145,18 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_req_out_tmp.hprot <= 0;
             l2_req_out_tmp.addr <= 0; 
             l2_req_out_tmp.line <= 0;
-        else if (l2_req_out_valid && l2_req_out_ready && !l2_req_out_ready_int) begin 
-            l2_req_out_tmp.coh_msg <= l2_req_out_i.coh_msg; 
-            l2_req_out_tmp.hprot <= l2_req_out_i.hprot;  
-            l2_req_out_tmp.addr <= l2_req_out_i.addr; 
-            l2_req_out_tmp.line <= l2_req_out_i.line;  
+        end else if (l2_req_out_valid && l2_req_out_ready && !l2_req_out_ready_int) begin 
+            l2_req_out_tmp.coh_msg <= l2_req_out_o.coh_msg; 
+            l2_req_out_tmp.hprot <= l2_req_out_o.hprot;  
+            l2_req_out_tmp.addr <= l2_req_out_o.addr; 
+            l2_req_out_tmp.line <= l2_req_out_o.line;  
         end
     end
 
-    assign l2_req_out_next.coh_msg = (!l2_req_out_valid_tmp) ? l2_req_out_i.coh_msg : l2_req_out_tmp.coh_msg;
-    assign l2_req_out_next.hprot = (!l2_req_out_valid_tmp) ? l2_req_out_i.hprot : l2_req_out_tmp.hprot;
-    assign l2_req_out_next.addr = (!l2_req_out_valid_tmp) ? l2_req_out_i.addr : l2_req_out_tmp.addr;
-    assign l2_req_out_next.line = (!l2_req_out_valid_tmp) ? l2_req_out_i.line : l2_req_out_tmp.line;
+    assign l2_req_out_next.coh_msg = (!l2_req_out_valid_tmp) ? l2_req_out_o.coh_msg : l2_req_out_tmp.coh_msg;
+    assign l2_req_out_next.hprot = (!l2_req_out_valid_tmp) ? l2_req_out_o.hprot : l2_req_out_tmp.hprot;
+    assign l2_req_out_next.addr = (!l2_req_out_valid_tmp) ? l2_req_out_o.addr : l2_req_out_tmp.addr;
+    assign l2_req_out_next.line = (!l2_req_out_valid_tmp) ? l2_req_out_o.line : l2_req_out_tmp.line;
 
     //L2 RSP OUT
     
@@ -177,20 +177,20 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_rsp_out_tmp.to_req <= 0;
             l2_rsp_out_tmp.addr <= 0; 
             l2_rsp_out_tmp.line <= 0;
-        else if (l2_rsp_out_valid && l2_rsp_out_ready && !l2_rsp_out_ready_int) begin 
-            l2_rsp_out_tmp.coh_msg <= l2_rsp_out_i.coh_msg; 
-            l2_rsp_out_tmp.req_id <= l2_rsp_out_i.req_id;  
-            l2_rsp_out_tmp.to_req <= l2_rsp_out_i.to_req;  
-            l2_rsp_out_tmp.addr <= l2_rsp_out_i.addr; 
-            l2_rsp_out_tmp.line <= l2_rsp_out_i.line;  
+        end else if (l2_rsp_out_valid && l2_rsp_out_ready && !l2_rsp_out_ready_int) begin 
+            l2_rsp_out_tmp.coh_msg <= l2_rsp_out_o.coh_msg; 
+            l2_rsp_out_tmp.req_id <= l2_rsp_out_o.req_id;  
+            l2_rsp_out_tmp.to_req <= l2_rsp_out_o.to_req;  
+            l2_rsp_out_tmp.addr <= l2_rsp_out_o.addr; 
+            l2_rsp_out_tmp.line <= l2_rsp_out_o.line;  
         end
     end
 
-    assign l2_rsp_out_next.coh_msg = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_i.coh_msg : l2_rsp_out_tmp.coh_msg;
-    assign l2_rsp_out_next.req_id = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_i.req_id : l2_rsp_out_tmp.req_id;
-    assign l2_rsp_out_next.to_req = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_i.to_req : l2_rsp_out_tmp.to_req;
-    assign l2_rsp_out_next.addr = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_i.addr : l2_rsp_out_tmp.addr;
-    assign l2_rsp_out_next.line = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_i.line : l2_rsp_out_tmp.line;
+    assign l2_rsp_out_next.coh_msg = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.coh_msg : l2_rsp_out_tmp.coh_msg;
+    assign l2_rsp_out_next.req_id = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.req_id : l2_rsp_out_tmp.req_id;
+    assign l2_rsp_out_next.to_req = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.to_req : l2_rsp_out_tmp.to_req;
+    assign l2_rsp_out_next.addr = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.addr : l2_rsp_out_tmp.addr;
+    assign l2_rsp_out_next.line = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.line : l2_rsp_out_tmp.line;
 
     //L2 RD RSP
     
@@ -207,15 +207,37 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_rd_rsp_tmp.line <= 0;
-        else if (l2_rd_rsp_valid && l2_rd_rsp_ready && !l2_rd_rsp_ready_int) begin 
-            l2_rd_rsp_tmp.line <= l2_rd_rsp_i.line;  
+        end else if (l2_rd_rsp_valid && l2_rd_rsp_ready && !l2_rd_rsp_ready_int) begin 
+            l2_rd_rsp_tmp.line <= l2_rd_rsp_o.line;  
         end
     end
 
-    assign l2_rd_rsp_next.line = (!l2_rd_rsp_valid_tmp) ? l2_rd_rsp_i.line : l2_rd_rsp_tmp.line;
+    assign l2_rd_rsp_next.line = (!l2_rd_rsp_valid_tmp) ? l2_rd_rsp_o.line : l2_rd_rsp_tmp.line;
 
     //L2 INVAL
     
+    input logic l2_inval_valid, l2_inval_ready_int; 
+    output logic l2_inval_ready, l2_inval_valid_int; 
+    logic l2_inval_valid_tmp; 
+
+    input line_addr_t l2_inval_o; 
+    line_addr_t l2_inval_tmp; 
+    output line_addr_t l2_inval; 
+    
+    interface_controller l2_inval_intf(.clk(clk), .rst(rst), .ready_in(l2_inval_ready), .valid_in(l2_inval_valid_int), .ready_out(l2_inval_ready_int), .valid_out(l2_inval_valid), .valid_tmp(l2_inval_valid_tmp)); 
+
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_inval_tmp <= 0;
+        end else if (l2_inval_valid && l2_inval_ready && !l2_inval_ready_int) begin 
+            l2_inval_tmp <= l2_inval_o;  
+        end
+    end
+
+    assign l2_inval_next = (!l2_inval_valid_tmp) ? l2_inval_o : l2_inval_tmp;
+
+    //L2 STATS
+`ifdef STATS_ENABLE    
     input logic l2_stats_valid, l2_stats_ready_int; 
     output logic l2_stats_ready, l2_stats_valid_int; 
     logic l2_stats_valid_tmp; 
@@ -229,12 +251,12 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_stats_tmp <= 0;
-        else if (l2_stats_valid && l2_stats_ready && !l2_stats_ready_int) begin 
-            l2_stats_tmp <= l2_stats_i.line;  
+        end else if (l2_stats_valid && l2_stats_ready && !l2_stats_ready_int) begin 
+            l2_stats_tmp <= l2_stats_o;  
         end
     end
 
-    assign l2_stats_next = (!l2_stats_valid_tmp) ? l2_stats_i : l2_stats_tmp;
- 
+    assign l2_stats_next = (!l2_stats_valid_tmp) ? l2_stats : l2_stats_tmp;
+`endif
 
 endmodule

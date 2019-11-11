@@ -6,9 +6,9 @@
 // Author: Joseph Zuckerman
 // top level l2 cache module
 
-module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req, l2_cpu_req_ready, l2_fwd_in_valid, l2_fwd_in, l2_fwd_in_ready, l2_rsp_in_valid, l2_rsp_in, l2_rsp_in_ready, l2_req_out_ready, l2_req_out_valid, l2_req_out, l2_rsp_out_ready, l2_rsp_out_valid, l2_rsp_out, l2_rd_rsp_ready, l2_rd_rsp_valid, l2_rd_rsp, l2_flush_valid, l2_flush_data, l2_flush_ready, l2_inval_ready, l2_inval_valid, l2_inval_data
+module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fwd_in_valid, l2_fwd_in_i, l2_fwd_in_ready, l2_rsp_in_valid, l2_rsp_in_i, l2_rsp_in_ready, l2_req_out_ready, l2_req_out_valid, l2_req_out, l2_rsp_out_ready, l2_rsp_out_valid, l2_rsp_out, l2_rd_rsp_ready, l2_rd_rsp_valid, l2_rd_rsp, l2_flush_valid, l2_flush_i, l2_flush_ready, l2_inval_ready, l2_inval_valid, l2_inval, flush_done
 `ifdef STATS_ENABLE
-    , l2_stats_ready, l2_stats_valid, l2_stats_data
+    , l2_stats_ready, l2_stats_valid, l2_stats
 `endif
 );
 
@@ -28,15 +28,15 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req, l2_cpu_req_ready, l2_fwd_
     
     input logic l2_req_out_ready; 
     output logic l2_req_out_valid;
-    l2_req_out.out l2_req_out;
+    l2_req_out_t.out l2_req_out;
 
     input logic l2_rsp_out_ready; 
     output logic l2_rsp_out_valid; 
-    l2_rsp_out.out l2_rsp_out;
+    l2_rsp_out_t.out l2_rsp_out;
 
     input logic l2_rd_rsp_ready;
-    output logic l2_rd_rsp_valud; 
-    l2_rd_rsp.out l2_rd_rsp; 
+    output logic l2_rd_rsp_valid; 
+    l2_rd_rsp_t.out l2_rd_rsp; 
 
     input logic l2_flush_valid;
     input logic l2_flush_i;

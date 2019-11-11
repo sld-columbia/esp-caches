@@ -10,28 +10,28 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
     
     input logic clk, rst; 
     input logic rd_en;
-    input llc_set_t set_in;
-    input llc_way_t way;
+    input l2_set_t set_in;
+    input l2_way_t way;
     input line_t wr_data_line;
-    input llc_tag_t wr_data_tag;
+    input l2_tag_t wr_data_tag;
     input hprot_t wr_data_hprot; 
-    input llc_way_t wr_data_evict_way;  
-    input  llc_state_t wr_data_state;
+    input l2_way_t wr_data_evict_way;  
+    input state_t wr_data_state;
     input logic wr_en;
     input logic [(`L2_NUM_PORTS-1):0] wr_rst_flush;
     input logic wr_en_evict_way;
 
     output line_t rd_data_line[`L2_NUM_PORTS];
-    output llc_tag_t rd_data_tag[`L2_NUM_PORTS];
+    output l2_tag_t rd_data_tag[`L2_NUM_PORTS];
     output hprot_t rd_data_hprot[`L2_NUM_PORTS];
-    output llc_way_t rd_data_evict_way;
-    output llc_state_t rd_data_state[`L2_NUM_PORTS];
+    output l2_way_t rd_data_evict_way;
+    output state_t rd_data_state[`L2_NUM_PORTS];
 
     
     //for following 2 use BRAM data width to aviod warnings, only copy relevant bits to output data 
-    logic [3:0] rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
+    state_t rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
     logic [31:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
-    llc_way_t rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
+    l2_way_t rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
     line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY]; 
     hprot_t rd_data_hprot_tmp[`L2_NUM_PORTS][`L2_HPROT_BRAMS_PER_WAY]; 
     
@@ -59,9 +59,9 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
 
     //extend to the appropriate BRAM width 
     logic [3:0] wr_data_state_extended;
-    assign wr_data_state_extended = {{(4-`L2_STATE_BITS){1'b0}}, wr_data_state};
+    assign wr_data_state_extended = {{(4-`STABLE_STATE_BITS){1'b0}}, wr_data_state};
     logic [31:0] wr_data_tag_extended;
-    assign wr_data_tag_extended = {{(4-`L2_STATE_BITS){1'b0}}, wr_data_tag};
+    assign wr_data_tag_extended = {{(4-`STABLE_STATE_BITS){1'b0}}, wr_data_tag};
 
     generate 
         if (`L2_HPROT_BRAMS_PER_WAY == 1) begin 
@@ -181,15 +181,15 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
             //state memory 
             //need 3 bits for state - 4096x4 BRAM
             for (j = 0; j < `L2_STATE_BRAMS_PER_WAY; j++) begin
-                 if (`BRAM_4096_ADDR_WIDTH > (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) + 1) begin 
-                    BRAM_4096x4 state_bram( 
+                 if (`BRAM_8192_ADDR_WIDTH > (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) + 1) begin 
+                    BRAM_8192x2 state_bram( 
                         .CLK(clk), 
-                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`BRAM_8192_ADDR_WIDTH - (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b0, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_state_extended), 
                         .Q0(rd_data_state_tmp[2*i][j]),
                         .WE0(wr_en_port[2*i] & wr_en_state_bank[j]),
                         .CE0(rd_en),
-                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
+                        .A1({{(`BRAM_8192_ADDR_WIDTH - (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) - 1){1'b0}} , 1'b1, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D1(wr_data_state_extended), 
                         .Q1(rd_data_state_tmp[2*i+1][j]), 
                         .WE1(wr_en_port[2*i+1] & wr_en_state_bank[j]),
@@ -197,7 +197,7 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
 						.WEM0(),
 						.WEM1());
                 end else begin 
-                    BRAM_4096x4 state_bram( 
+                    BRAM_8192x4 state_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_state_extended), 
@@ -292,7 +292,7 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
             if (`BRAM_4096_ADDR_WIDTH > (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)) begin 
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
-                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, set_in[(`L22_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
                     .D0(wr_data_evict_way), 
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
@@ -351,7 +351,7 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
             end
         end else begin 
             always_comb begin
-                for (int i = 0; i < `NUM_PORTS; i++) begin 
+                for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
                     for (int j = 0; j < `L2_STATE_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS)]) begin 
                             rd_data_state[i] = rd_data_state_tmp[i][j];
