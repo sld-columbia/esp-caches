@@ -5,7 +5,7 @@
 // l2_interfaces.sv
 // Author: Joseph Zuckerman
 // bypassable queue implementation for l2 channels
-module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_valid_int, l2_cpu_req_ready_int, l2_cpu_req_i, l2_fwd_in_valid, l2_fwd_in_ready, l2_fwd_in_valid_int, l2_fwd_in_ready_int, l2_fwd_in_i, l2_rsp_in_valid, l2_rsp_in_ready, l2_rsp_in_valid_int, l2_rsp_in_ready_int, l2_rsp_in_i, l2_flush_valid, l2_flush_ready, l2_flush_valid_int, l2_flush_ready_int, l2_flush_i, l2_req_out_valid, l2_req_out_ready, l2_req_out_valid_int, l2_req_out_ready_int, l2_req_out, l2_req_out_o, l2_rsp_out_valid, l2_rsp_out_ready, l2_rsp_out_valid_int, l2_rsp_out_ready_int, l2_rsp_out, l2_rsp_out_o, l2_rd_rsp_valid, l2_rd_rsp_ready, l2_rd_rsp_valid_int, l2_rd_rsp_ready_int, l2_rd_rsp, l2_rd_rsp_o, l2_inval_valid, l2_inval_ready, l2_inval_valid_int, l2_inval_ready_int, l2_inval, l2_inval_o
+module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_valid_int, l2_cpu_req_ready_int, l2_cpu_req_i, l2_fwd_in_valid, l2_fwd_in_ready, l2_fwd_in_valid_int, l2_fwd_in_ready_int, l2_fwd_in_i, l2_rsp_in_valid, l2_rsp_in_ready, l2_rsp_in_valid_int, l2_rsp_in_ready_int, l2_rsp_in_i, l2_flush_valid, l2_flush_ready, l2_flush_valid_int, l2_flush_ready_int, l2_flush_i, l2_req_out_valid, l2_req_out_ready, l2_req_out_valid_int, l2_req_out_ready_int, l2_req_out, l2_req_out_o, l2_rsp_out_valid, l2_rsp_out_ready, l2_rsp_out_valid_int, l2_rsp_out_ready_int, l2_rsp_out, l2_rsp_out_o, l2_rd_rsp_valid, l2_rd_rsp_ready, l2_rd_rsp_valid_int, l2_rd_rsp_ready_int, l2_rd_rsp, l2_rd_rsp_o, l2_inval_valid, l2_inval_ready, l2_inval_valid_int, l2_inval_ready_int, l2_inval, l2_inval_o, l2_cpu_req, set_cpu_req_from_conflict, set_cpu_req_conflict, l2_fwd_in, set_fwd_in_from_stalled, set_fwd_in_stalled, l2_rsp_in, l2_flush
 `ifdef STATS_ENABLE
     , l2_stats_valid, l2_stats_ready, l2_stats_valid_int, l2_stats_ready_int, l2_stats, l2_stats_o
 `endif
@@ -129,8 +129,8 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     
     //L2 REQ OUT
     
-    input logic l2_req_out_valid, l2_req_out_ready_int; 
-    output logic l2_req_out_ready, l2_req_out_valid_int; 
+    input logic l2_req_out_valid_int, l2_req_out_ready; 
+    output logic l2_req_out_ready_int, l2_req_out_valid; 
     logic l2_req_out_valid_tmp; 
 
     l2_req_out_t.in l2_req_out_o; 
@@ -153,15 +153,15 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
         end
     end
 
-    assign l2_req_out_next.coh_msg = (!l2_req_out_valid_tmp) ? l2_req_out_o.coh_msg : l2_req_out_tmp.coh_msg;
-    assign l2_req_out_next.hprot = (!l2_req_out_valid_tmp) ? l2_req_out_o.hprot : l2_req_out_tmp.hprot;
-    assign l2_req_out_next.addr = (!l2_req_out_valid_tmp) ? l2_req_out_o.addr : l2_req_out_tmp.addr;
-    assign l2_req_out_next.line = (!l2_req_out_valid_tmp) ? l2_req_out_o.line : l2_req_out_tmp.line;
+    assign l2_req_out.coh_msg = (!l2_req_out_valid_tmp) ? l2_req_out_o.coh_msg : l2_req_out_tmp.coh_msg;
+    assign l2_req_out.hprot = (!l2_req_out_valid_tmp) ? l2_req_out_o.hprot : l2_req_out_tmp.hprot;
+    assign l2_req_out.addr = (!l2_req_out_valid_tmp) ? l2_req_out_o.addr : l2_req_out_tmp.addr;
+    assign l2_req_out.line = (!l2_req_out_valid_tmp) ? l2_req_out_o.line : l2_req_out_tmp.line;
 
     //L2 RSP OUT
     
-    input logic l2_rsp_out_valid, l2_rsp_out_ready_int; 
-    output logic l2_rsp_out_ready, l2_rsp_out_valid_int; 
+    input logic l2_rsp_out_valid_int, l2_rsp_out_ready; 
+    output logic l2_rsp_out_ready_int, l2_rsp_out_valid; 
     logic l2_rsp_out_valid_tmp; 
 
     l2_rsp_out_t.in l2_rsp_out_o; 
@@ -186,16 +186,16 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
         end
     end
 
-    assign l2_rsp_out_next.coh_msg = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.coh_msg : l2_rsp_out_tmp.coh_msg;
-    assign l2_rsp_out_next.req_id = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.req_id : l2_rsp_out_tmp.req_id;
-    assign l2_rsp_out_next.to_req = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.to_req : l2_rsp_out_tmp.to_req;
-    assign l2_rsp_out_next.addr = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.addr : l2_rsp_out_tmp.addr;
-    assign l2_rsp_out_next.line = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.line : l2_rsp_out_tmp.line;
+    assign l2_rsp_out.coh_msg = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.coh_msg : l2_rsp_out_tmp.coh_msg;
+    assign l2_rsp_out.req_id = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.req_id : l2_rsp_out_tmp.req_id;
+    assign l2_rsp_out.to_req = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.to_req : l2_rsp_out_tmp.to_req;
+    assign l2_rsp_out.addr = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.addr : l2_rsp_out_tmp.addr;
+    assign l2_rsp_out.line = (!l2_rsp_out_valid_tmp) ? l2_rsp_out_o.line : l2_rsp_out_tmp.line;
 
     //L2 RD RSP
     
-    input logic l2_rd_rsp_valid, l2_rd_rsp_ready_int; 
-    output logic l2_rd_rsp_ready, l2_rd_rsp_valid_int; 
+    input logic l2_rd_rsp_valid_int, l2_rd_rsp_ready; 
+    output logic l2_rd_rsp_ready_int, l2_rd_rsp_valid; 
     logic l2_rd_rsp_valid_tmp; 
 
     l2_rd_rsp_t.in l2_rd_rsp_o; 
@@ -212,12 +212,12 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
         end
     end
 
-    assign l2_rd_rsp_next.line = (!l2_rd_rsp_valid_tmp) ? l2_rd_rsp_o.line : l2_rd_rsp_tmp.line;
+    assign l2_rd_rsp.line = (!l2_rd_rsp_valid_tmp) ? l2_rd_rsp_o.line : l2_rd_rsp_tmp.line;
 
     //L2 INVAL
     
-    input logic l2_inval_valid, l2_inval_ready_int; 
-    output logic l2_inval_ready, l2_inval_valid_int; 
+    input logic l2_inval_valid_int, l2_inval_ready; 
+    output logic l2_inval_ready_int, l2_inval_valid; 
     logic l2_inval_valid_tmp; 
 
     input line_addr_t l2_inval_o; 
@@ -234,12 +234,12 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
         end
     end
 
-    assign l2_inval_next = (!l2_inval_valid_tmp) ? l2_inval_o : l2_inval_tmp;
+    assign l2_inval = (!l2_inval_valid_tmp) ? l2_inval_o : l2_inval_tmp;
 
     //L2 STATS
 `ifdef STATS_ENABLE    
-    input logic l2_stats_valid, l2_stats_ready_int; 
-    output logic l2_stats_ready, l2_stats_valid_int; 
+    input logic l2_stats_valid_int, l2_stats_ready; 
+    output logic l2_stats_ready_int, l2_stats_valid; 
     logic l2_stats_valid_tmp; 
 
     input logic l2_stats_o; 
@@ -258,5 +258,107 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
 
     assign l2_stats_next = (!l2_stats_valid_tmp) ? l2_stats : l2_stats_tmp;
 `endif
+    
+    //READ FROM INPUT
+    
+    //cpu req + conflict
+    input logic set_cpu_req_from_conflict, set_cpu_req_conflict; 
+    l2_cpu_req_t l2_cpu_req_conflict (); 
+    l2_cpu_req_t.out l2_cpu_req; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_cpu_req.cpu_msg <= 0; 
+            l2_cpu_req.hsize <= 0; 
+            l2_cpu_req.hprot <= 0; 
+            l2_cpu_req.addr <= 0; 
+            l2_cpu_req.word <= 0;
+        end else if (set_cpu_req_from_conflict) begin 
+            l2_cpu_req.cpu_msg <= l2_cpu_req_conflict.cpu_msg; 
+            l2_cpu_req.hsize <= l2_cpu_req_conflict.hsize;
+            l2_cpu_req.hprot <= l2_cpu_req_conflict.hprot; 
+            l2_cpu_req.addr <= l2_cpu_req_conflict.addr; 
+            l2_cpu_req.word <= l2_cpu_req_conflict.word; 
+        end else if (l2_cpu_req_valid_int && l2_cpu_req_ready_int) begin 
+            l2_cpu_req.cpu_msg <= l2_cpu_req_next.cpu_msg; 
+            l2_cpu_req.hsize <= l2_cpu_req_next.hsize;
+            l2_cpu_req.hprot <= l2_cpu_req_next.hprot; 
+            l2_cpu_req.addr <= l2_cpu_req_next.addr; 
+            l2_cpu_req.word <= l2_cpu_req_next.word; 
+        end
+    end
+    
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_cpu_req_conflict.cpu_msg <= 0; 
+            l2_cpu_req_conflict.hsize <= 0; 
+            l2_cpu_req_conflict.hprot <= 0; 
+            l2_cpu_req_conflict.addr <= 0; 
+            l2_cpu_req_conflict.word <= 0;
+        end else if (set_cpu_req_conflict) begin 
+            l2_cpu_req_conflict.cpu_msg <= l2_cpu_req.cpu_msg; 
+            l2_cpu_req_conflict.hsize <= l2_cpu_req.hsize;
+            l2_cpu_req_conflict.hprot <= l2_cpu_req.hprot; 
+            l2_cpu_req_conflict.addr <= l2_cpu_req.addr; 
+            l2_cpu_req_conflict.word <= l2_cpu_req.word; 
+        end
+    end
+
+    //fwd in + stalled 
+    input logic set_fwd_in_from_stalled, set_fwd_in_stalled; 
+    l2_fwd_in_t l2_fwd_in_stalled (); 
+    l2_fwd_in_t.out l2_fwd_in; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_fwd_in.coh_msg <= 0; 
+            l2_fwd_in.addr <= 0; 
+            l2_fwd_in.req_id <= 0;
+        end else if (set_fwd_in_from_stalled) begin 
+            l2_fwd_in.coh_msg <= l2_fwd_in_stalled.coh_msg; 
+            l2_fwd_in.addr <= l2_fwd_in_stalled.addr; 
+            l2_fwd_in.req_id <= l2_fwd_in_stalled.req_id; 
+        end else if (l2_fwd_in_valid_int && l2_fwd_in_ready_int) begin 
+            l2_fwd_in.coh_msg <= l2_fwd_in_next.coh_msg; 
+            l2_fwd_in.addr <= l2_fwd_in_next.addr; 
+            l2_fwd_in.req_id <= l2_fwd_in_next.req_id; 
+        end
+    end
+    
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_fwd_in_stalled.coh_msg <= 0; 
+            l2_fwd_in_stalled.addr <= 0; 
+            l2_fwd_in_stalled.req_id <= 0;
+        end else if (set_fwd_in_stalled) begin 
+            l2_fwd_in_stalled.coh_msg <= l2_fwd_in.coh_msg; 
+            l2_fwd_in_stalled.addr <= l2_fwd_in.addr; 
+            l2_fwd_in_stalled.req_id <= l2_fwd_in.req_id; 
+        end
+    end
+
+    //rsp in 
+    l2_rsp_in_t.out l2_rsp_in; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_rsp_in.coh_msg <= 0; 
+            l2_rsp_in.addr <= 0; 
+            l2_rsp_in.line <= 0;
+            l2_rsp_in.invack_cnt <= 0;
+        end else if (l2_rsp_in_valid_int && l2_rsp_in_ready_int) begin 
+            l2_rsp_in.coh_msg <= l2_rsp_in_next.coh_msg; 
+            l2_rsp_in.addr <= l2_rsp_in_next.addr; 
+            l2_rsp_in.line <= l2_rsp_in_next.line;  
+            l2_rsp_in.invack_cnt <= l2_rsp_in_next.invack_cnt;  
+        end
+    end
+
+    //flush
+    output logic l2_flush; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_flush <= 0; 
+        end else if (l2_flush_valid_int && l2_flush_ready_int) begin 
+            l2_flush <= l2_flush_next; 
+        end
+    end
 
 endmodule
