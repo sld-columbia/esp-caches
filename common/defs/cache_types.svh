@@ -229,7 +229,7 @@ endinterface
  */
 
 // ongoing request buffer
-interface reqs_buf_t;
+typedef struct packed{
     cpu_msg_t           cpu_msg;
     l2_tag_t		tag;
     l2_tag_t            tag_estall;
@@ -243,22 +243,20 @@ interface reqs_buf_t;
     invack_cnt_calc_t	invack_cnt;
     word_t		word;
     line_t		line;
-endinterface
+} reqs_buf_t; 
+
+//    modport in (input cpu_msg, tag, tag_estall, set, way, hsize, w_off, b_off, state, hprot, invack_cnt, word, line); 
+//    modport out (output cpu_msg, tag, tag_estall, set, way, hsize, w_off, b_off, state, hprot, invack_cnt, word, line);
+//endinterface
 
 // forward stall backup
 interface fwd_stall_backup_t;
     coh_msg_t coh_msg;
     line_addr_t addr;
 endinterface
-//TB classes - commenting out for now
 
-/*
 // addr breakdown
 interface addr_breakdown_t;
-{
-
-public:
-
     addr_t              line;
     line_addr_t         line_addr;
     addr_t              word;
@@ -266,188 +264,10 @@ public:
     l2_set_t            set;
     word_offset_t       w_off;
     byte_offset_t       b_off;
+    
+    modport in (input line, line_addr, word, tag, set, w_off, b_off); 
+    modport out (output line, line_addr, word, tag, set, w_off, b_off); 
 
-    addr_breakdown_t() :
-	line(0),
-	line_addr(0),
-	word(0),
-	tag(0),
-	set(0),
-	w_off(0),
-	b_off(0)
-    {}
-
-    inline addr_breakdown_t& operator = (const addr_breakdown_t& x) {
-	line	  = x.line;
-	line_addr = x.line_addr;
-	word	  = x.word;
-	tag	  = x.tag;
-	set	  = x.set;
-	w_off	  = x.w_off;
-	b_off	  = x.b_off;
-	return *this;
-    }
-    inline bool operator == (const addr_breakdown_t& x) const {
-	return (x.line	    == line		&&
-		x.line_addr == line_addr	&&
-		x.word	    == word		&&
-		x.tag	    == tag		&&
-		x.set	    == set		&&
-		x.w_off	    == w_off		&&
-		x.b_off	    == b_off);
-    }
-    inline friend ostream & operator<<(ostream& os, const addr_breakdown_t& x) {
-	os << hex << "("
-	   << "line: "      << x.line
-	   << "line_addr: " << x.line_addr
-	   << ", word: "    << x.word
-	   << ", tag: "     << x.tag
-	   << ", set: "     << x.set
-	   << ", w_off: "   << x.w_off
-	   << ", b_off: "   << x.b_off << ")";
-	return os;
-    }
-
-    void tag_incr(int a) {
-	line	  += a * L2_TAG_OFFSET;
-	line_addr += a * L2_SETS;
-	word	  += a * L2_TAG_OFFSET;
-	tag	  += a;
-    }
-
-    void set_incr(int a) {
-	line += a * SET_OFFSET;
-	line_addr += a;
-	word += a * SET_OFFSET;
-	set  += a;
-    }
-
-    void tag_decr(int a) {
-    	line	  -= a * L2_TAG_OFFSET;
-    	line_addr -= a * L2_SETS;
-    	word	  -= a * L2_TAG_OFFSET;
-    	tag	  -= a;
-    }
-
-    void set_decr(int a) {
-	line -= a * SET_OFFSET;
-	line_addr -= a;
-	word -= a * SET_OFFSET;
-	set  -= a;
-    }
-
-    void breakdown(addr_t addr)
-    {
-	line = addr;
-	line_addr = addr.range(TAG_RANGE_HI, SET_RANGE_LO);
-	word  = addr;
-	tag   = addr.range(TAG_RANGE_HI, L2_TAG_RANGE_LO);
-	set   = addr.range(L2_SET_RANGE_HI, SET_RANGE_LO);
-	w_off = addr.range(W_OFF_RANGE_HI, W_OFF_RANGE_LO);
-	b_off = addr.range(B_OFF_RANGE_HI, B_OFF_RANGE_LO);
-
-	line.range(OFF_RANGE_HI, OFF_RANGE_LO)	   = 0;
-	word.range(B_OFF_RANGE_HI, B_OFF_RANGE_LO) = 0;
-    }
-};
-
-// addr breakdown
-interface addr_breakdown_llc_t;
-{
-
-public:
-
-    addr_t              line;
-    line_addr_t         line_addr;
-    addr_t              word;
-    llc_tag_t            tag;
-    llc_set_t            set;
-    word_offset_t       w_off;
-    byte_offset_t       b_off;
-
-    addr_breakdown_llc_t() :
-	line(0),
-	line_addr(0),
-	word(0),
-	tag(0),
-	set(0),
-	w_off(0),
-	b_off(0)
-    {}
-
-    inline addr_breakdown_llc_t& operator = (const addr_breakdown_llc_t& x) {
-	line	  = x.line;
-	line_addr = x.line_addr;
-	word	  = x.word;
-	tag	  = x.tag;
-	set	  = x.set;
-	w_off	  = x.w_off;
-	b_off	  = x.b_off;
-	return *this;
-    }
-    inline bool operator == (const addr_breakdown_llc_t& x) const {
-	return (x.line	    == line		&&
-		x.line_addr == line_addr	&&
-		x.word	    == word		&&
-		x.tag	    == tag		&&
-		x.set	    == set		&&
-		x.w_off	    == w_off		&&
-		x.b_off	    == b_off);
-    }
-    inline friend ostream & operator<<(ostream& os, const addr_breakdown_llc_t& x) {
-	os << hex << "("
-	   << "line: "      << x.line
-	   << "line_addr: " << x.line_addr
-	   << ", word: "    << x.word
-	   << ", tag: "     << x.tag
-	   << ", set: "     << x.set
-	   << ", w_off: "   << x.w_off
-	   << ", b_off: "   << x.b_off << ")";
-	return os;
-    }
-
-    void tag_incr(int a) {
-	line	  += a * LLC_TAG_OFFSET;
-	line_addr += a * LLC_SETS;
-	word	  += a * LLC_TAG_OFFSET;
-	tag	  += a;
-    }
-
-    void set_incr(int a) {
-	line += a * SET_OFFSET;
-	line_addr += a;
-	word += a * SET_OFFSET;
-	set  += a;
-    }
-
-    void tag_decr(int a) {
-    	line	  -= a * LLC_TAG_OFFSET;
-    	line_addr -= a * LLC_SETS;
-    	word	  -= a * LLC_TAG_OFFSET;
-    	tag	  -= a;
-    }
-
-    void set_decr(int a) {
-	line -= a * SET_OFFSET;
-	line_addr -= a;
-	word -= a * SET_OFFSET;
-	set  -= a;
-    }
-
-    void breakdown(addr_t addr)
-    {
-	line = addr;
-	line_addr = addr.range(TAG_RANGE_HI, SET_RANGE_LO);
-	word  = addr;
-	tag   = addr.range(TAG_RANGE_HI, LLC_TAG_RANGE_LO);
-	set   = addr.range(LLC_SET_RANGE_HI, SET_RANGE_LO);
-	w_off = addr.range(W_OFF_RANGE_HI, W_OFF_RANGE_LO);
-	b_off = addr.range(B_OFF_RANGE_HI, B_OFF_RANGE_LO);
-
-	line.range(OFF_RANGE_HI, OFF_RANGE_LO)	   = 0;
-	word.range(B_OFF_RANGE_HI, B_OFF_RANGE_LO) = 0;
-    }
-};
-*/ 
+endinterface
 
 `endif // __CACHE_TYPES_HPP__

@@ -6,7 +6,7 @@
 // llc memory 
 // author: Joseph Zuckerman
 
-module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr_data_hprot, wr_data_evict_way, wr_data_state, wr_en, wr_rst_flush, wr_en_evict_way,rd_data_line, rd_data_tag, rd_data_hprot, rd_data_evict_way, rd_data_state);  
+module l2_localmem (clk, rst, set_in, way, rd_en, wr_data_line, wr_data_tag, wr_data_hprot, wr_data_evict_way, wr_data_state, wr_en_state, wr_en_line, wr_en_tag, wr_en_hprot, wr_rst, wr_en_evict_way,rd_data_line, rd_data_tag, rd_data_hprot, rd_data_evict_way, rd_data_state);  
     
     input logic clk, rst; 
     input logic rd_en;
@@ -17,9 +17,8 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
     input hprot_t wr_data_hprot; 
     input l2_way_t wr_data_evict_way;  
     input state_t wr_data_state;
-    input logic wr_en;
-    input logic [(`L2_NUM_PORTS-1):0] wr_rst_flush;
-    input logic wr_en_evict_way;
+    input logic wr_en_line, wr_en_state, wr_en_tag, wr_en_hprot, wr_en_evict_way;
+    input logic wr_rst;
 
     output line_t rd_data_line[`L2_NUM_PORTS];
     output l2_tag_t rd_data_tag[`L2_NUM_PORTS];
@@ -40,10 +39,10 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
     always_comb begin 
         for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
             wr_en_port[i] = 1'b0; 
-            if (wr_rst_flush[i]) begin 
+            if (wr_rst) begin 
                 wr_en_port[i] = 1'b1;
             end else if (way == i) begin 
-                wr_en_port[i] = wr_en; 
+                wr_en_port[i] = 1'b1; 
             end
         end
     end
@@ -54,9 +53,6 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
     logic wr_en_evict_way_bank[`L2_EVICT_WAY_BRAMS];
     logic wr_en_line_bank[`L2_LINE_BRAMS_PER_WAY];
 
-    logic wr_rst_flush_or; 
-    assign wr_rst_flush_or = |(wr_rst_flush); 
-
     //extend to the appropriate BRAM width 
     logic [3:0] wr_data_state_extended;
     assign wr_data_state_extended = {{(4-`STABLE_STATE_BITS){1'b0}}, wr_data_state};
@@ -66,14 +62,14 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
     generate 
         if (`L2_HPROT_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_hprot_bank[0] = wr_en;
+                wr_en_hprot_bank[0] = wr_en_hprot;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `L2_HPROT_BRAMS_PER_WAY; j++) begin 
                     wr_en_hprot_bank[j] = 1'b0;
                     if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_HPROT_BRAM_INDEX_BITS)]) begin 
-                        wr_en_hprot_bank[j] = wr_en;
+                        wr_en_hprot_bank[j] = wr_en_hprot;
                     end
                 end
             end
@@ -81,14 +77,14 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
         
         if (`L2_STATE_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_state_bank[0] = wr_en  | wr_rst_flush_or;
+                wr_en_state_bank[0] = wr_en_state  | wr_rst;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `L2_STATE_BRAMS_PER_WAY; j++) begin 
                     wr_en_state_bank[j] = 1'b0;
                     if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS)]) begin 
-                        wr_en_state_bank[j] = wr_en  | wr_rst_flush_or;
+                        wr_en_state_bank[j] = wr_en_state  | wr_rst;
                     end
                 end
             end
@@ -96,14 +92,14 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
 
         if (`L2_TAG_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_tag_bank[0] = wr_en;
+                wr_en_tag_bank[0] = wr_en_tag;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `L2_TAG_BRAMS_PER_WAY; j++) begin 
                     wr_en_tag_bank[j] = 1'b0;
                     if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS)]) begin 
-                        wr_en_tag_bank[j] = wr_en;
+                        wr_en_tag_bank[j] = wr_en_tag;
                     end
                 end
             end
@@ -126,14 +122,14 @@ module l2_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, wr
 
         if (`L2_LINE_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_line_bank[0] = wr_en;
+                wr_en_line_bank[0] = wr_en_line;
             end
         end else begin 
             always_comb begin 
                 for (int j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
                     wr_en_line_bank[j] = 1'b0;
                     if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
-                        wr_en_line_bank[j] = wr_en;
+                        wr_en_line_bank[j] = wr_en_line;
                     end
                 end
             end

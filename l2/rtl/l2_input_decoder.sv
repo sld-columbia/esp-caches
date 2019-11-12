@@ -2,7 +2,7 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done);
+module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle);
     
     input logic clk, rst; 
     input decode_en; 
@@ -20,6 +20,7 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
     output logic set_cpu_req_from_conflict, set_fwd_in_from_stalled;
     output logic incr_flush_set, clr_flush_set, clr_flush_way;
     output logic flush_done; 
+    output logic idle; 
 
     logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next;
     always_comb begin 
@@ -40,6 +41,7 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
         clr_ongoing_flush = 1'b0; 
         flush_done = 1'b0; 
         set_cpu_req_from_conflict = 1'b0;
+        idle = 1'b0; 
         if (decode_en) begin 
             if (l2_flush_valid_int && reqs_cnt == `N_REQS) begin 
                 do_flush_next = 1'b1;
@@ -78,6 +80,8 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
                 end else begin 
                     set_cpu_req_from_conflict = 1'b1; 
                 end
+            end else begin 
+                idle = 1'b1; 
             end 
         end
     end    

@@ -482,4 +482,11 @@
 //each line is 128 bits, so need to split data across multiple BRAMs
 `define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 32)
 
+//L2 REQ DEFINES
+`define L2_REQS_LOOKUP 3'b000
+`define L2_REQS_PEEK_REQ 3'b001
+`define L2_REQS_PEEK_FLUSH 3'b010
+`define L2_REQS_PEEK_FWD 3'b011
+`define L2_REQS_IDLE 3'b100
+
 `endif // __CACHES_CONSTS_SVH__

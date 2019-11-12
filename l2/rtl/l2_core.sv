@@ -72,7 +72,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     //DECODE
 
     //input wires
-    logic fwd_stall, fwd_stall_ended, ongoing_flush, set_conflict, evict_stall, ongoing_atomic;
+    logic fwd_stall, fwd_stall_ended, ongoing_flush, set_conflict, evict_stall, ongoing_atomic, idle;
     logic [`REQS_BITS_P1-1:0] reqs_cnt;  
     //output wires
     logic do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req; 
@@ -109,8 +109,27 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_interfaces interfaces_u(.*); 
 
     //REGS
-    logic incr_flush_way; 
+    logic incr_flush_way, set_set_conflict, clr_set_conflict, set_fwd_stall, clr_fwd_stall, set_fwd_stall_i;
 
     l2_regs regs_u (.*); 
 
+    line_breakdown_l2_t line_br();
+    addr_breakdown_t addr_br(); 
+    reqs_buf_t reqs[`N_REQS]; 
+    logic fill_reqs, reqs_hit; 
+    logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i;
+    cpu_msg_t cpu_msg_wr_data_req;
+    l2_tag_t tag_estall_wr_data_req;
+    l2_way_t way_hit; 
+    hsize_t hsize_wr_data_req; 
+    unstable_state_t state_wr_data_req; 
+    hprot_t hprot_wr_data_req;
+    word_t word_wr_data_req; 
+    line_t line_wr_data_req;
+    logic [2:0] reqs_op_code; 
+    l2_set_t set; 
+    mix_msg_t fwd_in_coh_msg; 
+    assign fwd_in_coh_msg = l2_fwd_in.coh_msg; 
+    
+    l2_reqs reqs_u (.*); 
 endmodule
