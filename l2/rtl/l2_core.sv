@@ -107,4 +107,10 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
 
     //instance 
     l2_interfaces interfaces_u(.*); 
+
+    //REGS
+    logic incr_flush_way; 
+
+    l2_regs regs_u (.*); 
+
 endmodule
