@@ -33,9 +33,6 @@
 `define WORD_BITS	2 // defined in l2,llc/stratus/project.tcl
 `endif
 
-//@TODO fix implementation so don't need this macro
-`define WORDS_PER_LINE_4
-
 `define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)
 
 `define LINE_RANGE_HI	(`ADDR_BITS - 1)
@@ -66,7 +63,6 @@
 `define DMA_MSG_TYPE_WIDTH      1
 `define MIX_MSG_TYPE_WIDTH	(`COH_MSG_TYPE_WIDTH + `DMA_MSG_TYPE_WIDTH)
 `define HSIZE_WIDTH		3
-// TODO: HPROT_WIDTH should be 1, but that triggers a bug of the memory generator
 `define HPROT_WIDTH	    1	
 `define INVACK_CNT_WIDTH	`MAX_N_L2_BITS
 `define INVACK_CNT_CALC_WIDTH   (`INVACK_CNT_WIDTH + 1)

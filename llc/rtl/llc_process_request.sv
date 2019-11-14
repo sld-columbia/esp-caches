@@ -547,7 +547,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         end 
     end
   
-    logic [`WORDS_PER_LINE-1:0] words_to_write; 
+    logic [`WORDS_PER_LINE-1:0] words_to_write;
+    logic [`WORD_BITS-1:0] words_to_write_sum; 
     always_comb begin 
         llc_mem_req_o.hwrite = 0; 
         llc_mem_req_o.hsize = 0; 
@@ -642,6 +643,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         clr_dma_write_pending = 1'b0; 
             
         words_to_write = 0;
+        words_to_write_sum = 0; 
         case (state)
             IDLE : begin  
                 dma_write_woffset = llc_dma_req_in.word_offset;
@@ -1024,25 +1026,17 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                             words_to_write[i] = 1'b1; 
                         end
                     end
-                    
-                    if (words_to_write[0] && valid_words > 0) begin 
-                        lines_buf_wr_data[`BITS_PER_WORD -1:0] = llc_dma_req_in.line[`BITS_PER_WORD -1:0 ];
+                   
+                    for (int i = 0; i < `WORDS_PER_LINE; i++) begin 
+                        words_to_write_sum = 0; 
+                        for (int j = 0; j < i; j++) begin 
+                            words_to_write_sum = words_to_write_sum + words_to_write[j];
+                        end 
+                        if (words_to_write[i] && (valid_words > words_to_write_sum)) begin 
+                            lines_buf_wr_data[(`BITS_PER_WORD*i + `BITS_PER_WORD -1) -: (`BITS_PER_WORD)] = llc_dma_req_in.line[(`BITS_PER_WORD*i + `BITS_PER_WORD - 1) -: (`BITS_PER_WORD)];
+                        end
                     end
 
-                    if (words_to_write[1] && words_to_write[0] < valid_words) begin 
-                          lines_buf_wr_data[(`BITS_PER_WORD + `BITS_PER_WORD - 1):`BITS_PER_WORD]  = llc_dma_req_in.line[(`BITS_PER_WORD +`BITS_PER_WORD - 1):`BITS_PER_WORD];
-                    end
-
-`ifdef WORDS_PER_LINE_4 
-                    if (words_to_write[2] && words_to_write[0] + words_to_write[1] < valid_words) begin 
-                          lines_buf_wr_data[(`BITS_PER_WORD*2 + `BITS_PER_WORD - 1):`BITS_PER_WORD*2]  = llc_dma_req_in.line[(`BITS_PER_WORD*2 +`BITS_PER_WORD - 1):`BITS_PER_WORD*2];
-                    end
-
-                    if (words_to_write[3] && words_to_write[0] + words_to_write[1] + words_to_write[2] < valid_words) begin 
-                          lines_buf_wr_data[(`BITS_PER_WORD*3 + `BITS_PER_WORD - 1):`BITS_PER_WORD*3]  = llc_dma_req_in.line[(`BITS_PER_WORD*3 +`BITS_PER_WORD - 1):`BITS_PER_WORD*3];
-                    end
-`endif
-                    //lines_buf_wr_data[(`BITS_PER_WORD * i + `BITS_PER_WORD - 1):(`BITS_PER_WORD * i)]  = llc_dma_req_in.line[(`BITS_PER_WORD * i+`BITS_PER_WORD - 1):(`BITS_PER_WORD * i)];
                     wr_en_lines_buf = 1'b1; 
                 end else begin 
                     wr_en_lines_buf = 1'b1; 
