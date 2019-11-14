@@ -2,7 +2,7 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle);
+module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle, line_br, addr_br, rsp_in_addr, fwd_in_addr, cpu_req_addr, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next);
     
     input logic clk, rst; 
     input decode_en; 
@@ -13,6 +13,8 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
     input l2_set_t flush_set; 
     input l2_way_t flush_way; 
     input logic set_conflict, evict_stall, ongoing_atomic; 
+    input line_addr_t rsp_in_addr, fwd_in_addr; 
+    input addr_t cpu_req_addr; 
 
     output logic do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req; 
     output logic l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int;
@@ -21,8 +23,13 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
     output logic incr_flush_set, clr_flush_set, clr_flush_way;
     output logic flush_done; 
     output logic idle; 
+    line_breakdown_l2_t.out line_br; 
+    addr_breakdown_t.out addr_br;
 
-    logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next;
+    line_breakdown_l2_t line_br_next();
+    addr_breakdown_t addr_br_next(); 
+
+    output logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next;
     always_comb begin 
         do_flush_next = 1'b0; 
         do_rsp_next = 1'b0; 
@@ -82,7 +89,28 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
                 end
             end else begin 
                 idle = 1'b1; 
+            end
+
+            if (do_rsp_next) begin 
+                line_br_next.tag = rsp_in_addr[`ADDR_BITS - `OFFSET_BITS - 1 : `L2_SET_BITS];
+                line_br_next.set = rsp_in_addr[`L2_SET_BITS - 1 : 0]; 
+            end else if (do_fwd_next) begin 
+                line_br_next.tag = fwd_in_addr[`ADDR_BITS - `OFFSET_BITS - 1 : `L2_SET_BITS];
+                line_br_next.set = fwd_in_addr[`L2_SET_BITS - 1 : 0]; 
+            end else begin 
+                line_br_next.tag = 0; 
+                line_br_next.set = 0; 
             end 
+
+            addr_br_next.line = cpu_req_addr;
+            addr_br_next.line_addr = cpu_req_addr[`TAG_RANGE_HI :`SET_RANGE_LO ];
+            addr_br_next.word = cpu_req_addr;
+            addr_br_next.tag = cpu_req_addr[ `TAG_RANGE_HI :`L2_TAG_RANGE_LO ];
+            addr_br_next.set = cpu_req_addr[`L2_SET_RANGE_HI : `SET_RANGE_LO ]; 
+            addr_br_next.w_off = cpu_req_addr[`W_OFF_RANGE_HI : `W_OFF_RANGE_LO ];
+            addr_br_next.b_off = cpu_req_addr[`B_OFF_RANGE_HI : `B_OFF_RANGE_LO ]; 
+            addr_br_next.line[`OFF_RANGE_HI : `OFF_RANGE_LO ] = 0; 
+            addr_br_next.word[`B_OFF_RANGE_HI : `B_OFF_RANGE_LO ] = 0; 
         end
     end    
 
@@ -92,13 +120,31 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
             do_rsp <= 1'b0; 
             do_fwd <= 1'b0; 
             do_ongoing_flush <= 1'b0; 
-            do_cpu_req <= 1'b0; 
+            do_cpu_req <= 1'b0;
+            line_br.tag <= 0; 
+            line_br.set <= 0; 
+            addr_br.line <= 0; 
+            addr_br.line_addr <= 0; 
+            addr_br.word <= 0; 
+            addr_br.tag <= 0; 
+            addr_br.set <= 0; 
+            addr_br.w_off <= 0; 
+            addr_br.b_off <= 0; 
         end else if (decode_en) begin 
             do_flush <= do_flush_next; 
             do_rsp <= do_rsp_next; 
             do_fwd <= do_fwd_next; 
             do_ongoing_flush <= do_ongoing_flush_next; 
             do_cpu_req <= do_cpu_req_next; 
+            line_br.tag <= line_br_next.tag; 
+            line_br.set <= line_br_next.set; 
+            addr_br.line <= addr_br_next.line; 
+            addr_br.line_addr <= addr_br_next.line_addr; 
+            addr_br.word <= addr_br_next.word; 
+            addr_br.tag <= addr_br_next.tag; 
+            addr_br.set <= addr_br_next.set; 
+            addr_br.w_off <= addr_br_next.w_off; 
+            addr_br.b_off <= addr_br_next.b_off; 
         end
     end
 

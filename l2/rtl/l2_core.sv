@@ -53,21 +53,37 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     output logic l2_stats_valid;
     output logic l2_stats; 
 `endif 
-    // STATE LOGIC 
+    //INTERFACES
+    
+    //interfaces
+    l2_cpu_req_t l2_cpu_req(); 
+    l2_fwd_in_t l2_fwd_in();
+    l2_rsp_in_t l2_rsp_in(); 
+    logic is_flush_all;
 
-    localparam RESET = 3'b000; 
-    localparam DECODE = 3'b001; 
-    logic [2:0] state, next_state;
-    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
-            state <= RESET; 
-        end else begin 
-            state <= next_state; 
-        end 
-    end
+    l2_rsp_out_t l2_rsp_out_o(); 
+    l2_req_out_t l2_req_out_o(); 
+    l2_rd_rsp_t l2_rd_rsp_o(); 
+    l2_inval_t l2_inval_o;
+   
+    line_breakdown_l2_t line_br();
+    addr_breakdown_t addr_br(); 
+    line_addr_t rsp_in_addr, fwd_in_addr;
+    addr_t cpu_req_addr;
+ 
+    //wires
+    logic l2_cpu_req_ready_int, l2_fwd_in_ready_int, l2_rsp_in_ready_int, l2_flush_ready_int, l2_rsp_out_ready_int, l2_req_out_ready_int, l2_inval_ready_int, l2_rd_rsp_ready_int;
+    logic l2_cpu_req_valid_int, l2_fwd_in_valid_int, l2_rsp_in_valid_int, l2_flush_valid_int, l2_rsp_out_valid_int, l2_req_out_valid_int, l2_inval_valid_int, l2_rd_rsp_valid_int; 
+`ifdef STATS_ENABLE
+    logic l2_stats_ready_int, l2_stats_valid_int, l2_stats_o; 
+`endif
+    logic set_cpu_req_conflict, set_fwd_in_stalled;
+    //instance 
+    l2_interfaces interfaces_u(.*); 
 
-    logic decode_en; 
-    assign decode_en = (state == DECODE); 
+    // FSM CONTROLLER 
+    logic decode_en, lookup_en; 
+    l2_fsm fsm_u(.*);  
     
     //DECODE
 
@@ -78,46 +94,22 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     logic do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req; 
     logic set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled; 
     logic incr_flush_set, clr_flush_set, clr_flush_way; 
+    logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next; 
     l2_set_t flush_set; 
     l2_way_t flush_way; 
         
     //instance
     l2_input_decoder decode_u (.*);
 
-    //INTERFACES
-    
-    //interfaces
-    l2_cpu_req_t l2_cpu_req(); 
-    l2_fwd_in_t l2_fwd_in();
-    l2_rsp_in_t l2_rsp_in(); 
-    logic l2_flush;
-
-    l2_rsp_out_t l2_rsp_out_o(); 
-    l2_req_out_t l2_req_out_o(); 
-    l2_rd_rsp_t l2_rd_rsp_o(); 
-    l2_inval_t l2_inval_o;
-    
-    //wires
-    logic l2_cpu_req_ready_int, l2_fwd_in_ready_int, l2_rsp_in_ready_int, l2_flush_ready_int, l2_rsp_out_ready_int, l2_req_out_ready_int, l2_inval_ready_int, l2_rd_rsp_ready_int;
-    logic l2_cpu_req_valid_int, l2_fwd_in_valid_int, l2_rsp_in_valid_int, l2_flush_valid_int, l2_rsp_out_valid_int, l2_req_out_valid_int, l2_inval_valid_int, l2_rd_rsp_valid_int; 
-`ifdef STATS_ENABLE
-    logic l2_stats_ready_int, l2_stats_valid_int, l2_stats_o; 
-`endif
-    logic set_cpu_req_conflict, set_fwd_in_stalled;
-
-    //instance 
-    l2_interfaces interfaces_u(.*); 
-
     //REGS
-    logic incr_flush_way, set_set_conflict, clr_set_conflict, set_fwd_stall, clr_fwd_stall, set_fwd_stall_i;
-
+    logic incr_flush_way, set_set_conflict, clr_set_conflict, set_fwd_stall, clr_fwd_stall, set_fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, clr_fwd_stall_ended; 
     l2_regs regs_u (.*); 
 
-    line_breakdown_l2_t line_br();
-    addr_breakdown_t addr_br(); 
+
+    //REQS BUFFER
     reqs_buf_t reqs[`N_REQS]; 
-    logic fill_reqs, reqs_hit; 
-    logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i;
+    logic fill_reqs, reqs_hit, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs; 
+    logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i, reqs_i_wr;
     cpu_msg_t cpu_msg_wr_data_req;
     l2_tag_t tag_estall_wr_data_req;
     l2_way_t way_hit; 
@@ -126,10 +118,25 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     hprot_t hprot_wr_data_req;
     word_t word_wr_data_req; 
     line_t line_wr_data_req;
+    invack_cnt_calc_t invack_cnt_wr_data_req;  
     logic [2:0] reqs_op_code; 
     l2_set_t set; 
+
     mix_msg_t fwd_in_coh_msg; 
     assign fwd_in_coh_msg = l2_fwd_in.coh_msg; 
     
     l2_reqs reqs_u (.*); 
+
+    //localmem
+    logic wr_rst, wr_en_state, wr_en_line, wr_en_tag, wr_en_hprot, wr_en_evict_way, rd_en; 
+    state_t wr_data_state, rd_data_state[`L2_WAYS];
+    line_t wr_data_line, rd_data_line[`L2_WAYS]; 
+    hprot_t wr_data_hprot, rd_data_hprot[`L2_WAYS]; 
+    l2_tag_t wr_data_tag, rd_data_tag[`L2_WAYS];
+    l2_set_t set_in;
+    l2_way_t way, wr_data_evict_way, rd_data_evict_way;
+    assign rd_en = 1'b1; 
+  
+    //instance
+    l2_localmem localmem_u (.*);
 endmodule

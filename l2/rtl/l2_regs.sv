@@ -2,7 +2,7 @@
 `include "cache_consts.svh" 
 `include "cache_types.svh" 
 
-module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, incr_flush_set, clr_flush_set, flush_set, incr_flush_way, clr_flush_way, flush_way, set_set_conflict, clr_set_conflict, set_conflict, set_fwd_stall, clr_fwd_stall, fwd_stall, set_fwd_stall_i, fwd_stall_i_wr_data, fwd_stall_i); 
+module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, incr_flush_set, clr_flush_set, flush_set, incr_flush_way, clr_flush_way, flush_way, set_set_conflict, clr_set_conflict, set_conflict, set_fwd_stall, clr_fwd_stall, fwd_stall, set_fwd_stall_i, fwd_stall_i_wr_data, fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, reqs_cnt, clr_fwd_stall_ended, wr_en_put_reqs, reqs_i, fwd_stall_ended); 
     
     input logic clk, rst;
 
@@ -24,6 +24,13 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
     input logic set_fwd_stall_i; 
     input logic [`REQS_BITS-1:0] fwd_stall_i_wr_data;
     output logic [`REQS_BITS-1:0] fwd_stall_i; 
+   
+    input logic clr_reqs_cnt, incr_reqs_cnt; 
+    output logic [`REQS_BITS_P1-1:0] reqs_cnt; 
+
+    input logic clr_fwd_stall_ended, wr_en_put_reqs; 
+    input logic [`REQS_BITS-1:0] reqs_i; 
+    output logic fwd_stall_ended; 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -83,5 +90,24 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
         end 
     end
 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            reqs_cnt <= 0; 
+        end else if (clr_reqs_cnt) begin 
+            reqs_cnt <= 0; 
+        end else if (incr_reqs_cnt) begin 
+            reqs_cnt <= reqs_cnt + 1; 
+        end
+    end
+
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            fwd_stall_ended <= 1'b0;
+        end else if (clr_fwd_stall_ended) begin
+            fwd_stall_ended <= 1'b0;
+        end else if (wr_en_put_reqs && fwd_stall && fwd_stall_i == reqs_i) begin 
+            fwd_stall_ended <= 1'b1; 
+        end
+    end
 endmodule
 
