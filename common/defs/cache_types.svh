@@ -4,11 +4,6 @@
 `ifndef __CACHE_TYPES_SVH__
 `define __CACHE_TYPES_SVH__
 
-
-//#include <stdint.h>
-//#include <sstream>
-//#include "math.h"
-//#include "systemc.h"
 `include "cache_consts.svh"
 
 /*

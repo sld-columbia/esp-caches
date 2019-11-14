@@ -39,9 +39,9 @@ module llc_localmem (clk, rst, set_in, way, rd_en,  wr_data_line, wr_data_tag, w
     logic rd_data_dirty_bit_tmp[`LLC_NUM_PORTS][`LLC_DIRTY_BIT_BRAMS_PER_WAY]; 
     
     //for following 2 use BRAM data width to aviod warnings, only copy relevant bits to output data 
-    logic [3:0] rd_data_state_tmp[`LLC_NUM_PORTS][`LLC_STATE_BRAMS_PER_WAY]; 
-    logic [31:0] rd_data_tag_tmp[`LLC_NUM_PORTS][`LLC_TAG_BRAMS_PER_WAY]; 
-    llc_way_t rd_data_evict_way_tmp[`LLC_EVICT_WAY_BRAMS]; 
+    logic [`LLC_STATE_BRAM_WIDTH-1:0] rd_data_state_tmp[`LLC_NUM_PORTS][`LLC_STATE_BRAMS_PER_WAY]; 
+    logic [`LLC_TAG_BRAM_WIDTH-1:0] rd_data_tag_tmp[`LLC_NUM_PORTS][`LLC_TAG_BRAMS_PER_WAY]; 
+    logic [`LLC_EVICT_WAY_BRAM_WIDTH-1:0] rd_data_evict_way_tmp[`LLC_EVICT_WAY_BRAMS]; 
     line_t rd_data_line_tmp[`LLC_NUM_PORTS][`LLC_LINE_BRAMS_PER_WAY]; 
     
     //write enable decoder for ways 
