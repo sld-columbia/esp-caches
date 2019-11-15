@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // stores one set of data from cache
 
-module llc_bufs(clk, rst, rst_state, rd_mem_en, look, incr_evict_way_buf, llc_mem_rsp_ready, llc_mem_rsp_valid, way, evict_way_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, states_buf, lines_buf, wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_owners_buf, wr_en_sharers_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, lines_buf_wr_data, states_buf_wr_data, owners_buf_wr_data, tags_buf_wr_data, hprots_buf_wr_data, sharers_buf_wr_data, dirty_bits_buf_wr_data, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state);
+module llc_bufs(clk, rst, rst_state, rd_mem_en, look, incr_evict_way_buf, llc_mem_rsp_ready, llc_mem_rsp_valid, way, evict_way_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, states_buf, lines_buf, wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_owners_buf, wr_en_sharers_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, lines_buf_wr_data, states_buf_wr_data, owners_buf_wr_data, tags_buf_wr_data, hprots_buf_wr_data, sharers_buf_wr_data, dirty_bits_buf_wr_data, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state, llc_mem_rsp_i);
 
     input logic clk, rst, rst_state; 
     input logic rd_mem_en, look, incr_evict_way_buf;
@@ -29,6 +29,7 @@ module llc_bufs(clk, rst, rst_state, rd_mem_en, look, incr_evict_way_buf, llc_me
     input logic rd_data_dirty_bit[`LLC_WAYS];
     input llc_way_t rd_data_evict_way; 
     input llc_state_t rd_data_state[`LLC_WAYS];
+    llc_mem_rsp_t.in llc_mem_rsp_i;
 
     output llc_way_t evict_way_buf; 
     output line_t lines_buf[`LLC_WAYS];
