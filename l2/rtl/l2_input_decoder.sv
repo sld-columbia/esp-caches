@@ -2,7 +2,7 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle, line_br, addr_br, rsp_in_addr, fwd_in_addr, cpu_req_addr, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next);
+module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle, line_br, addr_br, line_br_next, addr_br_next, rsp_in_addr, fwd_in_addr, cpu_req_addr, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next);
     
     input logic clk, rst; 
     input decode_en; 
@@ -26,8 +26,8 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
     line_breakdown_l2_t.out line_br; 
     addr_breakdown_t.out addr_br;
 
-    line_breakdown_l2_t line_br_next();
-    addr_breakdown_t addr_br_next(); 
+    line_breakdown_l2_t.out line_br_next;
+    addr_breakdown_t.out addr_br_next; 
 
     output logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next;
     always_comb begin 

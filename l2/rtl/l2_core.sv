@@ -66,8 +66,8 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_rd_rsp_t l2_rd_rsp_o(); 
     l2_inval_t l2_inval_o;
    
-    line_breakdown_l2_t line_br();
-    addr_breakdown_t addr_br(); 
+    line_breakdown_l2_t line_br(), line_br_next();
+    addr_breakdown_t addr_br(), addr_br_next(), addr_br_reqs(); 
     line_addr_t rsp_in_addr, fwd_in_addr;
     addr_t cpu_req_addr;
  
@@ -92,7 +92,8 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     logic [`REQS_BITS_P1-1:0] reqs_cnt;  
     //output wires
     logic do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req; 
-    logic set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled; 
+    logic set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled;
+    logic set_ongoing_atomic, clr_ongoing_atomic;
     logic incr_flush_set, clr_flush_set, clr_flush_way; 
     logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next; 
     l2_set_t flush_set; 
@@ -139,4 +140,19 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
   
     //instance
     l2_localmem localmem_u (.*);
+
+    //bufs 
+    l2_way_t evict_way_buf; 
+    line_t lines_buf[`L2_WAYS];
+    l2_tag_t tags_buf[`L2_WAYS];
+    hprot_t hprots_buf[`L2_WAYS];
+    state_t states_buf[`L2_WAYS];
+    logic rd_mem_en, incr_evict_way_buf;
+    logic wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_hprots_buf; 
+    line_t lines_buf_wr_data; 
+    state_t states_buf_wr_data;
+    l2_tag_t tags_buf_wr_data;
+    hprot_t hprots_buf_wr_data;
+
+    l2_bufs bufs_u(.*);
 endmodule
