@@ -153,7 +153,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
 
     //wires
     logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
-    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr; 
     llc_set_t set, set_next, set_in;     
  
     //instance

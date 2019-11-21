@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // bypassable-queue implementation for input channels
 
-module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_ready, llc_req_in_valid_int, llc_req_in_i, llc_req_in, llc_dma_req_in_valid, llc_dma_req_in_ready_int, llc_dma_req_in_ready, llc_dma_req_in_valid_int, llc_dma_req_in_i, llc_dma_req_in, llc_rsp_in_valid, llc_rsp_in_ready_int, llc_rsp_in_ready, llc_rsp_in_valid_int, llc_rsp_in_i, llc_rsp_in, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_mem_rsp_ready, llc_mem_rsp_valid_int, llc_mem_rsp_i, llc_mem_rsp, llc_rst_tb_valid, llc_rst_tb_ready_int, llc_rst_tb_ready, llc_rst_tb_valid_int, llc_rst_tb_i, llc_rst_tb, llc_rsp_out_valid, llc_rsp_out_ready, llc_rsp_out_valid_int, llc_rsp_out_ready_int, llc_rsp_out, llc_rsp_out_o, llc_dma_rsp_out_valid, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_o, llc_dma_rsp_out, llc_fwd_out_valid, llc_fwd_out_ready, llc_fwd_out_valid_int, llc_fwd_out_ready_int, llc_fwd_out_o, llc_fwd_out, llc_mem_req_valid, llc_mem_req_ready, llc_mem_req_valid_int, llc_mem_req_ready_int, llc_mem_req_o, llc_mem_req, llc_rst_tb_done_valid, llc_rst_tb_done_ready, llc_rst_tb_done_valid_int, llc_rst_tb_done_ready_int, llc_rst_tb_done_o, llc_rst_tb_done, set_req_in_stalled, update_req_in_from_stalled,req_in_addr, rsp_in_addr, dma_req_in_addr, rst_in, llc_mem_rsp_next, llc_dma_req_in_next 
+module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_ready, llc_req_in_valid_int, llc_req_in_i, llc_req_in, llc_dma_req_in_valid, llc_dma_req_in_ready_int, llc_dma_req_in_ready, llc_dma_req_in_valid_int, llc_dma_req_in_i, llc_dma_req_in, llc_rsp_in_valid, llc_rsp_in_ready_int, llc_rsp_in_ready, llc_rsp_in_valid_int, llc_rsp_in_i, llc_rsp_in, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_mem_rsp_ready, llc_mem_rsp_valid_int, llc_mem_rsp_i, llc_mem_rsp, llc_rst_tb_valid, llc_rst_tb_ready_int, llc_rst_tb_ready, llc_rst_tb_valid_int, llc_rst_tb_i, llc_rst_tb, llc_rsp_out_valid, llc_rsp_out_ready, llc_rsp_out_valid_int, llc_rsp_out_ready_int, llc_rsp_out, llc_rsp_out_o, llc_dma_rsp_out_valid, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_o, llc_dma_rsp_out, llc_fwd_out_valid, llc_fwd_out_ready, llc_fwd_out_valid_int, llc_fwd_out_ready_int, llc_fwd_out_o, llc_fwd_out, llc_mem_req_valid, llc_mem_req_ready, llc_mem_req_valid_int, llc_mem_req_ready_int, llc_mem_req_o, llc_mem_req, llc_rst_tb_done_valid, llc_rst_tb_done_ready, llc_rst_tb_done_valid_int, llc_rst_tb_done_ready_int, llc_rst_tb_done_o, llc_rst_tb_done, set_req_in_stalled, update_req_in_from_stalled,req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr, rst_in, llc_mem_rsp_next, llc_dma_req_in_next 
 `ifdef STATS_ENABLE
     ,llc_stats_valid, llc_stats_ready, llc_stats_valid_int, llc_stats_ready_int, llc_stats_o, llc_stats
 `endif
@@ -459,11 +459,12 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
         end
     end
 
-    output line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr; 
+    output line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr; 
     
     assign req_in_addr = llc_req_in_valid_tmp ? llc_req_in_tmp.addr : llc_req_in_i.addr;
     assign rsp_in_addr = llc_rsp_in_valid_tmp ? llc_rsp_in_tmp.addr : llc_rsp_in_i.addr;
     assign dma_req_in_addr = llc_dma_req_in_valid_tmp ? llc_dma_req_in_tmp.addr : llc_dma_req_in_i.addr; 
+    assign req_in_stalled_addr = req_in_stalled.addr;
 
     output logic rst_in;
     assign rst_in = llc_rst_tb; 
