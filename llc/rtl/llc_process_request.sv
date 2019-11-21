@@ -127,11 +127,11 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     end 
 
     logic [(`MAX_N_L2_BITS - 1):0] l2_cnt, invack_cnt;
-    logic incr_invack_cnt;
+    logic incr_invack_cnt, skip;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && llc_fwd_out_ready_int) begin 
+        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip)) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -517,7 +517,6 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         end
     end
 
-    logic skip; 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             cur_way <= 0; 
@@ -779,7 +778,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     sharers_buf_wr_data = (1 << llc_req_in.req_id) | (1 << owners_buf[way]); 
                     wr_en_states_buf = 1'b1; 
                 end else if (llc_req_in.coh_msg == `REQ_GETM) begin 
-                    llc_fwd_out_o.coh_msg = `REQ_GETM;
+                    llc_fwd_out_o.coh_msg = `FWD_GETM;
                     if (states_buf[way] == `EXCLUSIVE) begin 
                         wr_en_states_buf = 1'b1; 
                         states_buf_wr_data = `MODIFIED;
@@ -806,6 +805,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     llc_fwd_out_o.req_id = llc_req_in.req_id; 
                     llc_fwd_out_o.dest_id = l2_cnt; 
                     llc_fwd_out_valid_int = 1'b1;
+                end else begin 
+                    skip = 1'b1;
                 end
             end
             REQ_GETM_S_RSP : begin 
@@ -899,7 +900,9 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     llc_fwd_out_o.req_id = l2_cnt; 
                     llc_fwd_out_o.dest_id = l2_cnt;
                     llc_fwd_out_valid_int = 1'b1; 
-                end    
+                end else begin 
+                    skip = 1'b1;
+                end
             end
             DMA_EVICT : begin 
                 clr_recall_pending = 1'b1;

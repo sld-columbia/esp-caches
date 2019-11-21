@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // llc registers 
 
-module llc_regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr_rst_stall, rst_stall, clr_flush_stall, set_flush_stall, flush_stall, clr_req_stall_decoder, clr_req_stall_process, set_req_stall, req_stall, clr_req_in_stalled_valid, set_req_in_stalled_valid, req_in_stalled_valid, clr_rst_flush_stalled_set, incr_rst_flush_stalled_set, rst_flush_stalled_set, update_dma_addr_from_req, incr_dma_addr, dma_addr, clr_recall_pending, set_recall_pending, recall_pending, clr_dma_read_pending, set_dma_read_pending, dma_read_pending, clr_dma_write_pending, set_dma_write_pending, dma_write_pending, clr_recall_valid, set_recall_valid, recall_valid, clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process, is_dma_read_to_resume, clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process, is_dma_write_to_resume, update_req_in_stalled, req_in_stalled_set, req_in_stalled_tag, set_update_evict_way, update_evict_way, line_br, set, tags_buf, way_next, addr_evict, llc_dma_req_in_i);    
+module llc_regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr_rst_stall, rst_stall, clr_flush_stall, set_flush_stall, flush_stall, clr_req_stall_decoder, clr_req_stall_process, set_req_stall, req_stall, clr_req_in_stalled_valid, set_req_in_stalled_valid, req_in_stalled_valid, clr_rst_flush_stalled_set, incr_rst_flush_stalled_set, rst_flush_stalled_set, update_dma_addr_from_req, incr_dma_addr, dma_addr, clr_recall_pending, set_recall_pending, recall_pending, clr_dma_read_pending, set_dma_read_pending, dma_read_pending, clr_dma_write_pending, set_dma_write_pending, dma_write_pending, clr_recall_valid, set_recall_valid, recall_valid, clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process, is_dma_read_to_resume, clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process, is_dma_write_to_resume, update_req_in_stalled, req_in_stalled_set, req_in_stalled_tag, set_update_evict_way, update_evict_way, line_br, set, tags_buf, way_next, addr_evict, llc_dma_req_in_next);    
     
     input logic clk, rst, rst_state; 
     input logic decode_en, rd_set_en, lookup_en, update_en; 
@@ -113,14 +113,14 @@ module llc_regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en,
         end
     end
    
-    llc_req_in_t.in llc_dma_req_in_i;
+    llc_req_in_t.in llc_dma_req_in_next;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             dma_addr <= 0;
         end else if (rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req && rd_set_en) begin 
-            dma_addr <= llc_dma_req_in_i.addr;
+            dma_addr <= llc_dma_req_in_next.addr;
         end else if (incr_dma_addr) begin 
             dma_addr <= dma_addr + 1; 
         end 

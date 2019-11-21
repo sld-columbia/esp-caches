@@ -146,6 +146,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     line_addr_t addr_evict;
     
     //instance
+    llc_req_in_t llc_dma_req_in_next(); 
     llc_regs regs_u(.*); 
 
     //DECODE
@@ -186,7 +187,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     assign llc_rst_tb_ready_int = decode_en & is_rst_to_get_next; 
     assign llc_req_in_ready_int = decode_en & do_get_req; 
     assign llc_dma_req_in_ready_int = decode_en & do_get_dma_req;
- 
+    llc_mem_rsp_t llc_mem_rsp_next();
     //instance
     llc_interfaces interfaces_u (.*); 
 
