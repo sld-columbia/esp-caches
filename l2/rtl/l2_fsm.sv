@@ -2,7 +2,7 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_en_put_reqs, reqs_i_wr, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_hit, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req); 
+module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_en_put_reqs, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_wr_data_req, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req, clr_evict_stall, lookup_mode, reqs_lookup_en, evict_stall, fwd_stall, wr_en_evict_way, wr_data_evict_way, clr_flush_stall_ended, set_fwd_in_stalled, wr_req_tag, tag_wr_data_req, clr_fwd_stall_ended); 
    
     input logic clk, rst;
     input logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, is_flush_all;
@@ -21,25 +21,27 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     input hprot_t rd_data_hprot[`L2_NUM_PORTS];
     input line_t lines_buf[`L2_WAYS];
     input l2_tag_t tags_buf[`L2_WAYS];
+    input logic fwd_stall, evict_stall; 
 
-    output logic decode_en, lookup_en, rd_mem_en; 
+    output logic decode_en, reqs_lookup_en, lookup_en, rd_mem_en, lookup_mode; 
     output logic wr_rst, wr_en_state, fill_reqs; 
     output state_t wr_data_state;
     output unstable_state_t state_wr_data_req;
     output line_t wr_data_line, line_wr_data_req;
     output hprot_t wr_data_hprot, hprot_wr_data_req; 
-    output l2_tag_t wr_data_tag, tag_estall_wr_data_req;
+    output l2_tag_t wr_data_tag, tag_estall_wr_data_req, tag_wr_data_req;
     output invack_cnt_calc_t invack_cnt_wr_data_req;
     output hsize_t hsize_wr_data_req;
     output word_t word_wr_data_req;
     output cpu_msg_t cpu_msg_wr_data_req; 
-    output logic wr_req_state, wr_req_invack_cnt, wr_req_line, wr_en_put_reqs;
-    output logic [`REQS_BITS-1:0] reqs_i_wr;
+    output logic wr_req_state, wr_req_invack_cnt, wr_req_line, wr_en_put_reqs, wr_req_tag;
+    output logic wr_en_evict_way;
     output logic [2:0] reqs_op_code;
     output logic l2_rd_rsp_valid_int, l2_req_out_valid_int; 
     output l2_set_t set_in;
-    output l2_way_t way, way_hit;
-    output logic incr_reqs_cnt, set_ongoing_atomic, incr_flush_way; 
+    output l2_way_t way, way_wr_data_req, wr_data_evict_way;
+    output logic incr_reqs_cnt, set_ongoing_atomic, incr_flush_way, clr_flush_stall_ended, clr_evict_stall; 
+    output logic set_fwd_in_stalled, clr_fwd_stall_ended;
     l2_rd_rsp_t.out l2_rd_rsp_o; 
     l2_rsp_out_t.out l2_rsp_out_o; 
     l2_req_out_t.out l2_req_out_o; 
@@ -51,11 +53,13 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     localparam RSP_DATA_XMAD = 5'b00100;
     localparam RSP_DATA_XMADW = 5'b00101;
     localparam RSP_INVACK = 5'b00110; 
-    localparam FWD = 5'b00100; 
-    localparam ONGOING_FLUSH_RD_MEM = 5'b01000; 
-    localparam ONGOING_FLUSH_LOOKUP = 5'b01001; 
-    localparam ONGOING_FLUSH_PROCESS = 5'b01010;
-    localparam CPU_REQ = 5'b11000;
+    localparam FWD_LOOKUP = 5'b00111;
+    localparam FWD_PUTACK = 5'b01000;
+    localparam FWD_STALL = 5'b01001; 
+    localparam ONGOING_FLUSH_RD_MEM = 5'b01100; 
+    localparam ONGOING_FLUSH_LOOKUP = 5'b01101; 
+    localparam ONGOING_FLUSH_PROCESS = 5'b01110;
+    localparam CPU_REQ = 5'b01111;
 
     logic [4:0] state, next_state;
     always_ff @(posedge clk or negedge rst) begin 
@@ -93,7 +97,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end else if (do_rsp_next) begin 
                     next_state = RSP_LOOKUP; 
                 end else if (do_fwd_next) begin 
-                    next_state = FWD;
+                    next_state = FWD_LOOKUP;
                 end else if (do_ongoing_flush_next) begin 
                     next_state = ONGOING_FLUSH_RD_MEM;
                 end else if (do_cpu_req_next) begin 
@@ -148,6 +152,21 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             RSP_INVACK : begin 
                 next_state = DECODE;
             end
+            FWD_LOOKUP : begin 
+                if (l2_fwd_in.coh_msg == `FWD_PUTACK) begin 
+                    next_state = FWD_PUTACK;
+                end else if (fwd_stall) begin 
+                    next_state = FWD_STALL;
+                end 
+            end
+            FWD_PUTACK : begin 
+                if (l2_req_out_ready_int) begin 
+                    next_state  = DECODE;
+                end
+            end
+            FWD_STALL : begin 
+
+            end
             ONGOING_FLUSH_RD_MEM : begin 
                 if ((rd_data_state[flush_way] != `INVALID) && (is_flush_all || rd_data_hprot[flush_way])) begin 
                     next_state = ONGOING_FLUSH_LOOKUP;
@@ -183,22 +202,24 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         wr_rst = 1'b0; 
         wr_data_state = 0; 
         reqs_op_code = `L2_REQS_IDLE; 
-        lookup_en = 1'b0;
-        reqs_i_wr = 0; 
+        reqs_lookup_en = 1'b0;
+        lookup_en = 1'b0; 
+        lookup_mode = 1'b0; 
         wr_req_state = 1'b0;
-        state_wr_data_req = 0; 
         wr_req_line = 1'b0;
-        line_wr_data_req = 0; 
         wr_req_invack_cnt = 0;
+        wr_req_tag = 1'b0; 
         wr_en_put_reqs = 1'b0;
         wr_en_state = 1'b0; 
+        wr_en_evict_way = 1'b0; 
         set_in = 0; 
         way = 0; 
-        way_hit = 0;
+        way_wr_data_req = 0;
         wr_data_tag = 0;
         wr_data_hprot = 0; 
         wr_data_line = 0; 
         wr_data_state = 0; 
+        wr_data_evict_way = 0; 
         incr_reqs_cnt = 1'b0;
         set_ongoing_atomic = 1'b0; 
         rd_mem_en = 1'b0; 
@@ -208,6 +229,8 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         state_tmp = 0; 
         coh_msg_tmp = 0; 
         fill_reqs = 1'b0;
+        set_fwd_in_stalled = 1'b0; 
+        clr_fwd_stall_ended = 1'b0;
 
         l2_rd_rsp_o.line = 0; 
         l2_rd_rsp_valid_int = 1'b0; 
@@ -228,13 +251,14 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         hprot_wr_data_req = 0; 
         word_wr_data_req = 0;
         line_wr_data_req = 0;
+        tag_wr_data_req = 0; 
 
         l2_req_out_valid_int = 1'b1;
         l2_req_out_o.coh_msg = coh_msg_tmp;
         l2_req_out_o.hprot = 0;
         l2_req_out_o.addr = line_addr_tmp; 
         l2_req_out_o.line = lines_buf[flush_way];
-        
+                    
         case (state)
             RESET : begin 
                 wr_rst = 1'b1;
@@ -247,12 +271,11 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             end
             RSP_LOOKUP : begin 
                 reqs_op_code = `L2_REQS_LOOKUP;
-                lookup_en = 1'b1;
+                reqs_lookup_en = 1'b1;
             end
             RSP_E_DATA_ISD : begin 
                 l2_rd_rsp_valid_int = 1'b1;
                 l2_rd_rsp_o.line = l2_rsp_in.line;
-                reqs_i_wr = reqs_i;
                 wr_req_state = 1'b1; 
                 state_wr_data_req = `INVALID;
                 wr_en_put_reqs = 1'b1;
@@ -296,7 +319,6 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             RSP_DATA_XMADW : begin 
                 l2_rd_rsp_valid_int = 1'b1;
                 l2_rd_rsp_o.line = l2_rsp_in.line;
-                reqs_i_wr = reqs_i;
                 wr_req_line = 1'b1;
                 line_wr_data_req = l2_rsp_in.line;
                 wr_req_invack_cnt = 1'b1;
@@ -312,7 +334,6 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             RSP_INVACK : begin 
                 invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt - 1; 
                 wr_req_invack_cnt = 1'b1;
-                reqs_i_wr = reqs_i;
                 if (invack_cnt_wr_data_req == `MAX_N_L2) begin 
                     if (reqs[reqs_i].state == `IMA || reqs[reqs_i].state == `SMA) begin 
                        wr_en_put_reqs = 1'b1;
@@ -331,6 +352,50 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                         state_wr_data_req = `XMW;
                     end
                 end
+            end
+            FWD_LOOKUP : begin 
+                reqs_op_code = `L2_REQS_PEEK_FWD;
+                reqs_lookup_en = 1'b1; 
+                lookup_en = 1'b1; 
+                lookup_mode = `L2_LOOKUP_FWD;
+                clr_fwd_stall_ended = 1'b1; 
+            end
+            FWD_PUTACK : begin 
+                if (evict_stall) begin 
+                    clr_evict_stall = 1'b1; 
+                    case (reqs[reqs_i].cpu_msg) 
+                        `READ : begin 
+                            state_wr_data_req = `ISD;
+                            l2_req_out_o.coh_msg = `REQ_GETS;
+                        end
+                        `READ_ATOMIC : begin  
+                            state_wr_data_req = `IMADW;
+                            l2_req_out_o.coh_msg = `REQ_GETM;
+                        end
+                        `WRITE : begin 
+                            state_wr_data_req = `IMAD;
+                            l2_req_out_o.coh_msg = `REQ_GETM; 
+                        end
+                    endcase
+                    wr_req_state = 1'b1;
+                    wr_req_tag = 1'b1; 
+                    tag_wr_data_req = reqs[reqs_i].tag_estall; 
+                    
+                    wr_en_evict_way = 1'b1; 
+                    wr_data_evict_way = reqs[reqs_i].way + 1; 
+                    set_in = reqs[reqs_i].set; 
+
+                    l2_req_out_o.hprot = reqs[reqs_i].hprot; 
+                    l2_req_out_o.addr = (reqs[reqs_i].tag_estall << `L2_SET_BITS) | line_br.set; 
+                    l2_req_out_valid_int = 1'b1; 
+                end else begin 
+                    wr_req_state = 1'b1; 
+                    state_wr_data_req = `INVALID;
+                    incr_reqs_cnt = 1'b1; 
+                end
+            end
+            FWD_STALL : begin 
+                set_fwd_in_stalled = 1'b1; 
             end
             ONGOING_FLUSH_RD_MEM : begin 
                 rd_mem_en = 1'b1;
@@ -379,13 +444,12 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 fill_reqs = 1'b1;
                 cpu_msg_wr_data_req = 0;
                 tag_estall_wr_data_req = 0;
-                way_hit = flush_way;
+                way_wr_data_req = flush_way;
                 hsize_wr_data_req = 0;
                 state_wr_data_req = state_tmp;
                 hprot_wr_data_req = 0; 
                 word_wr_data_req = 0;
                 line_wr_data_req = lines_buf[flush_way];
-                reqs_i_wr = reqs_i;
 
                 l2_req_out_valid_int = 1'b1;
                 l2_req_out_o.coh_msg = coh_msg_tmp;

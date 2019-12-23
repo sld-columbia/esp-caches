@@ -2,7 +2,7 @@
 `include "cache_consts.svh" 
 `include "cache_types.svh" 
 
-module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, incr_flush_set, clr_flush_set, flush_set, incr_flush_way, clr_flush_way, flush_way, set_set_conflict, clr_set_conflict, set_conflict, set_fwd_stall, clr_fwd_stall, fwd_stall, set_fwd_stall_i, fwd_stall_i_wr_data, fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, reqs_cnt, clr_fwd_stall_ended, wr_en_put_reqs, reqs_i, fwd_stall_ended, clr_ongoing_atomic, set_ongoing_atomic, ongoing_atomic); 
+module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, incr_flush_set, clr_flush_set, flush_set, incr_flush_way, clr_flush_way, flush_way, set_set_conflict, clr_set_conflict, set_conflict, set_fwd_stall, clr_fwd_stall, fwd_stall, set_fwd_stall_i, fwd_stall_i_wr_data, fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, reqs_cnt, clr_fwd_stall_ended, wr_en_put_reqs, reqs_i, fwd_stall_ended, clr_ongoing_atomic, set_ongoing_atomic, ongoing_atomic, clr_evict_stall, set_evict_stall, evict_stall, clr_flush_stall_ended, set_flush_stall_ended, flush_stall_ended); 
     
     input logic clk, rst;
 
@@ -34,6 +34,12 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
 
     input logic clr_ongoing_atomic, set_ongoing_atomic; 
     output logic ongoing_atomic; 
+
+    input logic clr_evict_stall, set_evict_stall; 
+    output logic evict_stall; 
+
+    input logic clr_flush_stall_ended, set_flush_stall_ended; 
+    output logic flush_stall_ended; 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -122,6 +128,25 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
             ongoing_atomic <= 1'b1; 
         end
     end
+   
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            evict_stall <= 1'b0;
+        end else if (clr_evict_stall) begin
+            evict_stall <= 1'b0;
+        end else if (set_evict_stall) begin 
+            evict_stall <= 1'b1; 
+        end
+    end
  
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            flush_stall_ended <= 1'b0;
+        end else if (clr_flush_stall_ended) begin
+            flush_stall_ended <= 1'b0;
+        end else if (set_flush_stall_ended) begin 
+            flush_stall_ended <= 1'b1; 
+        end
+    end
 endmodule
 

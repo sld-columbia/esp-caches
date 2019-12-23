@@ -6,14 +6,14 @@
 // Author: Joseph Zuckerman
 // request buffer for l2 
 
-module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag_estall_wr_data_req, way_hit, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, reqs_i_wr, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, set, fwd_in_coh_msg, set_set_conflict, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, lookup_en);
+module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, set, fwd_in_coh_msg, set_set_conflict, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, reqs_lookup_en);
     
     input clk, rst; 
     input logic fill_reqs; 
     input cpu_msg_t cpu_msg_wr_data_req;
     addr_breakdown_t.in addr_br_reqs;
-    input l2_tag_t tag_estall_wr_data_req;
-    input l2_way_t way_hit; 
+    input l2_tag_t tag_estall_wr_data_req, tag_wr_data_req;;
+    input l2_way_t way_wr_data_req; 
     input hsize_t hsize_wr_data_req; 
     input unstable_state_t state_wr_data_req; 
     input hprot_t hprot_wr_data_req;
@@ -24,9 +24,8 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
     line_breakdown_l2_t.in line_br;
     input l2_set_t set; 
     input mix_msg_t fwd_in_coh_msg; 
-    input logic lookup_en; 
+    input logic reqs_lookup_en; 
     input logic wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag; 
-    input [`REQS_BITS-1:0] reqs_i_wr; 
 
     logic [`REQS_BITS-1:0] reqs_i_next;
     logic reqs_hit_next; 
@@ -50,11 +49,11 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
                 reqs[i].hprot <= 0; 
                 reqs[i].word <= 0; 
             end else if (fill_reqs) begin 
-                if (reqs_i_wr == i) begin 
+                if (reqs_i == i) begin 
                     reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
                     reqs[i].tag_estall <= tag_estall_wr_data_req;
                     reqs[i].set <= addr_br_reqs.set; 
-                    reqs[i].way <= way_hit; 
+                    reqs[i].way <= way_wr_data_req; 
                     reqs[i].hsize <= hsize_wr_data_req; 
                     reqs[i].w_off <= addr_br_reqs.w_off; 
                     reqs[i].b_off <= addr_br_reqs.b_off;
@@ -66,7 +65,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
             if (!rst) begin 
                 reqs[i].state <= 0; 
             end else if (wr_req_state || fill_reqs) begin 
-                if (reqs_i_wr == i) begin 
+                if (reqs_i == i) begin 
                     reqs[i].state <= state_wr_data_req;
                 end
             end
@@ -74,7 +73,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
             if (!rst) begin 
                 reqs[i].line <= 0; 
             end else if (wr_req_line || fill_reqs) begin 
-                if (reqs_i_wr == i) begin 
+                if (reqs_i == i) begin 
                     reqs[i].line <= line_wr_data_req;
                 end
             end
@@ -82,20 +81,24 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
             if (!rst) begin 
                 reqs[i].invack_cnt <= 0;
             end else if (fill_reqs) begin 
-                if (reqs_i_wr == i) begin 
+                if (reqs_i == i) begin 
                     reqs[i].invack_cnt <= `MAX_N_L2;
                 end
             end else if (wr_req_invack_cnt) begin 
-                if (reqs_i_wr == i) begin 
+                if (reqs_i == i) begin 
                     reqs[i].invack_cnt <= invack_cnt_wr_data_req;
                 end
             end
             //tag
             if (!rst) begin 
                 reqs[i].tag <= 0; 
-            end else if (wr_req_tag || fill_reqs) begin 
-                if (reqs_i_wr == i) begin 
+            end else if (fill_reqs) begin 
+                if (reqs_i == i) begin 
                     reqs[i].tag <= addr_br_reqs.tag;
+                end
+            end else if (wr_req_tag) begin 
+                if (reqs_i == i) begin 
+                    reqs[i].tag <= tag_wr_data_req;
                 end
             end
 
@@ -175,7 +178,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
         if (!rst) begin 
             reqs_i <= 0; 
             reqs_hit <= 1'b0; 
-        end else if (lookup_en) begin 
+        end else if (reqs_lookup_en) begin 
             reqs_i <= reqs_i_next; 
             reqs_hit <= reqs_hit_next;
         end

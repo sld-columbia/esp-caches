@@ -327,4 +327,7 @@
 `define L2_REQS_PEEK_FWD 3'b011
 `define L2_REQS_IDLE 3'b100
 
+`define L2_LOOKUP 1'b0
+`define L2_LOOKUP_FWD 1'b1
+
 `endif // __CACHES_CONSTS_SVH__
