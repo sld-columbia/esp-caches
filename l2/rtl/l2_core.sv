@@ -103,7 +103,9 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_input_decoder decode_u (.*);
 
     //REGS
+    logic set_set_conflict_fsm, set_set_conflict_reqs;
     logic incr_flush_way, set_set_conflict,clr_set_conflict;
+    assign set_set_conflict = set_set_conflict_fsm | set_set_conflict_reqs; 
     logic set_fwd_stall, clr_fwd_stall, set_fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, clr_fwd_stall_ended; 
     logic clr_evict_stall, set_evict_stall;
     logic clr_flush_stall_ended, set_flush_stall_ended, flush_stall_ended; 
@@ -134,6 +136,14 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     assign fwd_in_coh_msg = l2_fwd_in.coh_msg; 
     
     l2_reqs reqs_u (.*); 
+
+    //Write Word
+    word_t word_in;
+    word_offset_t w_off_in; 
+    byte_offset_t b_off_in;
+    hsize_t hsize_in; 
+    line_t line_in, line_out;
+    l2_write_word write_word_u(.*);
 
     //localmem
     logic wr_rst, wr_en_state, wr_en_line, wr_en_tag, wr_en_hprot, wr_en_evict_way, rd_en; 

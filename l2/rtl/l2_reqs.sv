@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // request buffer for l2 
 
-module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, set, fwd_in_coh_msg, set_set_conflict, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, reqs_lookup_en);
+module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, set, fwd_in_coh_msg, set_set_conflict_reqs, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, reqs_lookup_en);
     
     input clk, rst; 
     input logic fill_reqs; 
@@ -32,7 +32,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
 
     output reqs_buf_t reqs[`N_REQS]; 
     output logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data; 
-    output logic set_set_conflict, clr_set_conflict; 
+    output logic set_set_conflict_reqs, clr_set_conflict; 
     output logic reqs_hit; 
     output logic set_fwd_stall, clr_fwd_stall, set_fwd_stall_i; 
 
@@ -107,7 +107,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
 
     always_comb begin 
         clr_set_conflict = 1'b0; 
-        set_set_conflict = 1'b0; 
+        set_set_conflict_reqs = 1'b0; 
         clr_fwd_stall = 1'b0; 
         set_fwd_stall = 1'b0; 
         reqs_i_next = 0;
@@ -130,7 +130,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
                     end
 
                     if (reqs[i].set == set && reqs[i].state != `INVALID) begin
-                        set_set_conflict = 1'b1;
+                        set_set_conflict_reqs = 1'b1;
                         clr_set_conflict = 1'b0; 
                     end
                 end
