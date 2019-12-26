@@ -111,7 +111,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     logic clr_flush_stall_ended, set_flush_stall_ended, flush_stall_ended; 
     l2_regs regs_u (.*); 
     
-    logic lookup_mode, tag_hit, empty_way_found; 
+    logic lookup_mode, tag_hit, empty_way_found, tag_hit_next, empty_way_found_next;
     l2_way_t empty_way, way_hit;
     l2_lookup lookup_u(.*); 
 

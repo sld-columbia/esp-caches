@@ -50,7 +50,7 @@ l2-sim: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
 
 l2-sim-gui: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
-	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
+	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^
 
 clean:
 	rm -rf 			\

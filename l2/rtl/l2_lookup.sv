@@ -4,7 +4,7 @@
 
 // l2_lookup.sv
 
-module l2_lookup(clk, rst, lookup_mode, lookup_en, tags_buf, states_buf, line_br, addr_br, lookup_en, evict_way_buf, way_hit, empty_way, tag_hit, empty_way_found);
+module l2_lookup(clk, rst, lookup_mode, lookup_en, tags_buf, states_buf, line_br, addr_br, lookup_en, evict_way_buf, way_hit, empty_way, tag_hit, empty_way_found, tag_hit_next, empty_way_found_next);
 
     input logic clk, rst; 
     input logic lookup_mode; 
@@ -17,9 +17,9 @@ module l2_lookup(clk, rst, lookup_mode, lookup_en, tags_buf, states_buf, line_br
 
     output l2_way_t way_hit, empty_way;
     output logic tag_hit, empty_way_found; 
+    output logic tag_hit_next, empty_way_found_next; 
 
     l2_way_t way_hit_next, empty_way_next; 
-    logic tag_hit_next, empty_way_found_next; 
 
     always_comb begin 
         way_hit_next = 0;
