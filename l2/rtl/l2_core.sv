@@ -146,7 +146,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_write_word write_word_u(.*);
 
     //localmem
-    logic wr_rst, wr_en_state, wr_en_line, wr_en_tag, wr_en_hprot, wr_en_evict_way, rd_en; 
+    logic wr_rst, wr_en_state, wr_en_line, wr_en_evict_way, rd_en; 
     state_t wr_data_state, rd_data_state[`L2_WAYS];
     line_t wr_data_line, rd_data_line[`L2_WAYS]; 
     hprot_t wr_data_hprot, rd_data_hprot[`L2_WAYS]; 

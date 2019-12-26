@@ -430,6 +430,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         update_atomic = 1'b0;
         clr_evict_stall = 1'b0;
         clr_flush_stall_ended = 1'b0;
+        set_evict_stall = 1'b0;
 
         l2_rd_rsp_o.line = 0; 
         l2_rd_rsp_valid_int = 1'b0;
