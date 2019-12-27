@@ -10,7 +10,7 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
     output logic ongoing_flush;
     
     input logic incr_flush_set, clr_flush_set; 
-    output l2_set_t flush_set; 
+    output logic [`L2_SET_BITS:0] flush_set; 
 
     input logic incr_flush_way, clr_flush_way; 
     output logic [`L2_WAY_BITS:0] flush_way;
