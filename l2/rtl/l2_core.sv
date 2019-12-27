@@ -97,7 +97,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     logic incr_flush_set, clr_flush_set, clr_flush_way; 
     logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next; 
     l2_set_t flush_set; 
-    l2_way_t flush_way; 
+    logic [`L2_WAY_BITS:0] flush_way; 
         
     //instance
     l2_input_decoder decode_u (.*);

@@ -38,11 +38,11 @@ module l2_write_word(clk, rst, word_in, w_off_in, b_off_in, hsize_in, line_in, l
         line_out = line_in;
         
         if (hsize_in == `BYTE) begin 
-            line_out[off_bits +: 8] = line_in[b_off_bits +: 8]; 
+            line_out[off_bits +: 8] = word_in[b_off_bits +: 8]; 
         end else if (hsize_in == `HALFWORD) begin 
-            line_out[off_bits +: `BITS_PER_HALFWORD] = line_in[b_off_bits +: `BITS_PER_HALFWORD]; 
+            line_out[off_bits +: `BITS_PER_HALFWORD] = word_in[b_off_bits +: `BITS_PER_HALFWORD]; 
         end else if (hsize_in == `WORD) begin 
-            line_out[off_bits +: `BITS_PER_WORD] = line_in[b_off_bits +: `BITS_PER_WORD]; 
+            line_out[off_bits +: `BITS_PER_WORD] = word_in[b_off_bits +: `BITS_PER_WORD]; 
         end
     end
 

@@ -6,12 +6,12 @@
 // Author: Joseph Zuckerman
 // request buffer for l2 
 
-module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, set, fwd_in_coh_msg, set_set_conflict_reqs, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, reqs_lookup_en);
+module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, fwd_in_coh_msg, set_set_conflict_reqs, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, reqs_lookup_en);
     
     input clk, rst; 
     input logic fill_reqs; 
     input cpu_msg_t cpu_msg_wr_data_req;
-    addr_breakdown_t.in addr_br_reqs;
+    addr_breakdown_t.in addr_br;
     input l2_tag_t tag_estall_wr_data_req, tag_wr_data_req;;
     input l2_way_t way_wr_data_req; 
     input hsize_t hsize_wr_data_req; 
@@ -22,7 +22,6 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
     input invack_cnt_calc_t invack_cnt_wr_data_req; 
     input logic [2:0] reqs_op_code; 
     line_breakdown_l2_t.in line_br;
-    input l2_set_t set; 
     input mix_msg_t fwd_in_coh_msg; 
     input logic reqs_lookup_en; 
     input logic wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag; 
@@ -52,11 +51,11 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
                 if (reqs_i == i) begin 
                     reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
                     reqs[i].tag_estall <= tag_estall_wr_data_req;
-                    reqs[i].set <= addr_br_reqs.set; 
+                    reqs[i].set <= addr_br.set; 
                     reqs[i].way <= way_wr_data_req; 
                     reqs[i].hsize <= hsize_wr_data_req; 
-                    reqs[i].w_off <= addr_br_reqs.w_off; 
-                    reqs[i].b_off <= addr_br_reqs.b_off;
+                    reqs[i].w_off <= addr_br.w_off; 
+                    reqs[i].b_off <= addr_br.b_off;
                     reqs[i].hprot <= hprot_wr_data_req; 
                     reqs[i].word <= word_wr_data_req; 
                 end 
@@ -94,14 +93,13 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
                 reqs[i].tag <= 0; 
             end else if (fill_reqs) begin 
                 if (reqs_i == i) begin 
-                    reqs[i].tag <= addr_br_reqs.tag;
+                    reqs[i].tag <= addr_br.tag;
                 end
             end else if (wr_req_tag) begin 
                 if (reqs_i == i) begin 
                     reqs[i].tag <= tag_wr_data_req;
                 end
             end
-
         end 
     end
 
@@ -117,7 +115,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
         case(reqs_op_code) 
             `L2_REQS_LOOKUP : begin 
                 for (int i = 0; i < `N_REQS; i++) begin 
-                    if (reqs[i].tag == line_br.tag && reqs[i].set == set && reqs[i].state != `INVALID) begin 
+                    if (reqs[i].tag == line_br.tag && reqs[i].set == line_br.set && reqs[i].state != `INVALID) begin 
                         reqs_i_next = i; 
                     end
                 end     
@@ -129,7 +127,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br_reqs, tag
                         reqs_i_next = i; 
                     end
 
-                    if (reqs[i].set == set && reqs[i].state != `INVALID) begin
+                    if (reqs[i].set == addr_br.set && reqs[i].state != `INVALID) begin
                         set_set_conflict_reqs = 1'b1;
                         clr_set_conflict = 1'b0; 
                     end

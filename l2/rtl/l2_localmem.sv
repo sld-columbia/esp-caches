@@ -274,7 +274,7 @@ module l2_localmem (clk, rst, set_in, way, rd_en, wr_data_line, wr_data_tag, wr_
                             .A1({1'b1, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(32*(k+1)-1):(32*k)]), 
                             .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)-1):(32*k)]),
-                            .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
                             .CE1(rd_en),
 						    .WEM0(),
 						    .WEM1());

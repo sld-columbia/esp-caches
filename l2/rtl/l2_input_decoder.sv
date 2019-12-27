@@ -11,7 +11,7 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
     input logic fwd_stall, fwd_stall_ended;
     input logic ongoing_flush; 
     input l2_set_t flush_set; 
-    input l2_way_t flush_way; 
+    input [`L2_WAY_BITS:0] flush_way; 
     input logic set_conflict, evict_stall, ongoing_atomic; 
     input line_addr_t rsp_in_addr, fwd_in_addr; 
     input addr_t cpu_req_addr; 
