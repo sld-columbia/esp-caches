@@ -6,7 +6,7 @@
 // Author: Joseph Zuckerman
 // request buffer for l2 
 
-module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_op_code, line_br, fwd_in_coh_msg, set_set_conflict_reqs, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, fill_reqs_flush);
+module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, addr_br_reqs, tag_estall_wr_data_req, tag_wr_data_req, way_wr_data_req, hsize_wr_data_req, state_wr_data_req, hprot_wr_data_req, word_wr_data_req, line_wr_data_req, invack_cnt_wr_data_req, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, reqs_i, reqs_i_next, reqs_op_code, line_br, fwd_in_coh_msg, set_set_conflict_reqs, clr_set_conflict, reqs_hit, set_fwd_stall, clr_fwd_stall, fwd_stall_i_wr_data, set_fwd_stall_i, fill_reqs_flush);
     
     input clk, rst; 
     input logic fill_reqs, fill_reqs_flush; 
@@ -25,11 +25,10 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, addr_br_
     input mix_msg_t fwd_in_coh_msg; 
     input logic wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag; 
 
-    logic [`REQS_BITS-1:0] reqs_i_next;
     logic reqs_hit_next; 
 
     output reqs_buf_t reqs[`N_REQS]; 
-    output logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data; 
+    output logic [`REQS_BITS-1:0] reqs_i, reqs_i_next, fwd_stall_i_wr_data; 
     output logic set_set_conflict_reqs, clr_set_conflict; 
     output logic reqs_hit; 
     output logic set_fwd_stall, clr_fwd_stall, set_fwd_stall_i; 
