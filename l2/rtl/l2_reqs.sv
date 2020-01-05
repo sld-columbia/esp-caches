@@ -104,7 +104,7 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, addr_br_
                 reqs[i].tag <= 0; 
             end else if (fill_reqs) begin 
                 if (reqs_i == i) begin 
-                    reqs[i].tag <= addr_br.tag;
+                    reqs[i].tag <= tag_wr_data_req;
                 end
             end else if (fill_reqs_flush) begin 
                 if (reqs_i == i) begin 
