@@ -523,7 +523,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
 
                 invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt + l2_rsp_in.invack_cnt; 
                 wr_req_invack_cnt = 1'b1; 
-                if (reqs[reqs_i].invack_cnt == `MAX_N_L2) begin 
+                if (invack_cnt_wr_data_req == `MAX_N_L2) begin 
                     wr_en_put_reqs = 1'b1;
                     set_in = line_br.set; 
                     way = reqs[reqs_i].way; 
@@ -532,6 +532,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     wr_data_hprot = reqs[reqs_i].hprot;
                     wr_data_state = `MODIFIED; 
                     wr_req_state = 1'b1;
+                    state_wr_data_req = `INVALID;
                     incr_reqs_cnt = 1'b1; 
                 end else begin 
                     wr_req_state = 1'b1;
