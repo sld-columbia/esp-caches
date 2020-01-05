@@ -82,7 +82,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_interfaces interfaces_u(.*); 
 
     // FSM CONTROLLER 
-    logic decode_en, lookup_en, reqs_lookup_en;
+    logic decode_en, lookup_en;
     l2_fsm fsm_u(.*);  
     
     //DECODE
@@ -118,7 +118,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
 
     //REQS BUFFER
     reqs_buf_t reqs[`N_REQS]; 
-    logic fill_reqs, reqs_hit, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs; 
+    logic fill_reqs, fill_reqs_flush, reqs_hit, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs; 
     logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i, reqs_i_wr;
     cpu_msg_t cpu_msg_wr_data_req;
     l2_tag_t tag_estall_wr_data_req, tag_wr_data_req;
