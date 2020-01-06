@@ -103,9 +103,10 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_input_decoder decode_u (.*);
 
     //REGS
-    logic set_set_conflict_fsm, set_set_conflict_reqs;
+    logic set_set_conflict_fsm, set_set_conflict_reqs, clr_set_conflict_fsm, clr_set_conflict_reqs;
     logic incr_flush_way, set_set_conflict,clr_set_conflict;
     assign set_set_conflict = set_set_conflict_fsm | set_set_conflict_reqs; 
+    assign clr_set_conflict = clr_set_conflict_fsm | clr_set_conflict_reqs; 
     logic set_fwd_stall, clr_fwd_stall, set_fwd_stall_i, clr_reqs_cnt, incr_reqs_cnt, clr_fwd_stall_ended; 
     logic clr_evict_stall, set_evict_stall;
     logic clr_flush_stall_ended, set_flush_stall_ended, flush_stall_ended; 
@@ -118,8 +119,8 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
 
     //REQS BUFFER
     reqs_buf_t reqs[`N_REQS]; 
-    logic fill_reqs, fill_reqs_flush, reqs_hit, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs; 
-    logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i, reqs_i_next;
+    logic fill_reqs, fill_reqs_flush, reqs_hit, wr_req_state, wr_req_line, wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs, wr_req_state_atomic; 
+    logic [`REQS_BITS-1:0] reqs_i, fwd_stall_i_wr_data, fwd_stall_i, reqs_i_next, reqs_atomic_i;
     cpu_msg_t cpu_msg_wr_data_req;
     l2_tag_t tag_estall_wr_data_req, tag_wr_data_req;
     hsize_t hsize_wr_data_req; 

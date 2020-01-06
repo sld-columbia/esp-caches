@@ -2,7 +2,7 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, reqs_i_next, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_en_put_reqs, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, addr_br_reqs, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_wr_data_req, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req, clr_evict_stall, lookup_mode, evict_stall, fwd_stall, wr_en_evict_way, wr_data_evict_way, set_fwd_in_stalled, wr_req_tag, tag_wr_data_req, clr_fwd_stall_ended, l2_rsp_out_ready_int, l2_rsp_out_valid_int, reqs_hit, l2_inval_ready_int, l2_inval_valid_int, l2_inval_o, ongoing_flush, way_hit, set_conflict, ongoing_atomic, line_out, set_set_conflict_fsm, set_set_conflict_reqs, set_cpu_req_conflict, clr_ongoing_atomic, word_in, w_off_in, b_off_in, hsize_in, line_in, tag_hit_next, empty_way, empty_way_found_next, evict_way_buf, set_evict_stall, wr_en_line, incr_flush_set, fill_reqs_flush); 
+module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, reqs_i_next, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_req_state_atomic, wr_en_put_reqs, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, addr_br_reqs, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_wr_data_req, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req, clr_evict_stall, lookup_mode, evict_stall, fwd_stall, wr_en_evict_way, wr_data_evict_way, set_fwd_in_stalled, wr_req_tag, tag_wr_data_req, clr_fwd_stall_ended, l2_rsp_out_ready_int, l2_rsp_out_valid_int, reqs_hit, l2_inval_ready_int, l2_inval_valid_int, l2_inval_o, ongoing_flush, way_hit, set_conflict, ongoing_atomic, line_out, set_set_conflict_fsm, clr_set_conflict_fsm, set_set_conflict_reqs, set_cpu_req_conflict, clr_ongoing_atomic, word_in, w_off_in, b_off_in, hsize_in, line_in, tag_hit_next, empty_way, empty_way_found_next, evict_way_buf, set_evict_stall, wr_en_line, incr_flush_set, fill_reqs_flush, reqs_atomic_i, clr_set_conflict_reqs); 
    
     input logic clk, rst;
     input logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, is_flush_all;
@@ -21,7 +21,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     input line_t lines_buf[`L2_WAYS];
     input l2_tag_t tags_buf[`L2_WAYS];
     input logic fwd_stall, evict_stall, ongoing_flush; 
-    input logic reqs_hit, set_conflict, set_set_conflict_reqs, ongoing_atomic; 
+    input logic reqs_hit, set_conflict, set_set_conflict_reqs, ongoing_atomic, clr_set_conflict_reqs; 
     input l2_way_t way_hit, empty_way, evict_way_buf;
     input line_t line_out; 
     input logic tag_hit_next, empty_way_found_next; 
@@ -38,7 +38,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     output hsize_t hsize_wr_data_req;
     output word_t word_wr_data_req;
     output cpu_msg_t cpu_msg_wr_data_req; 
-    output logic wr_req_state, wr_req_invack_cnt, wr_req_line, wr_en_put_reqs, wr_req_tag;
+    output logic wr_req_state, wr_req_state_atomic, wr_req_invack_cnt, wr_req_line, wr_en_put_reqs, wr_req_tag;
     output logic wr_en_evict_way;
     output logic [2:0] reqs_op_code;
     output logic l2_rd_rsp_valid_int, l2_req_out_valid_int, l2_rsp_out_valid_int, l2_inval_valid_int; 
@@ -47,7 +47,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     output logic incr_reqs_cnt, set_ongoing_atomic, incr_flush_way, clr_evict_stall; 
     output logic set_fwd_in_stalled, clr_fwd_stall_ended;
     output line_addr_t l2_inval_o;
-    output logic set_set_conflict_fsm, set_cpu_req_conflict, clr_ongoing_atomic, set_evict_stall; 
+    output logic set_set_conflict_fsm, clr_set_conflict_fsm, set_cpu_req_conflict, clr_ongoing_atomic, set_evict_stall; 
     output word_t word_in; 
     output word_offset_t w_off_in; 
     output byte_offset_t b_off_in; 
@@ -123,7 +123,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         end
     end
     
-    logic[`REQS_BITS-1:0]  reqs_atomic_i;
+    output logic[`REQS_BITS-1:0]  reqs_atomic_i;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             reqs_atomic_i <= 0; 
@@ -322,7 +322,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                             next_state = CPU_REQ_ATOMIC_CONTINUE_WRITE;
                         end
                     end    
-                end else if (set_conflict | set_set_conflict_reqs) begin 
+                end else if ((set_conflict | set_set_conflict_reqs) & !clr_set_conflict_reqs) begin 
                     next_state = CPU_REQ_SET_CONFLICT; 
                 end else begin 
                     next_state = CPU_REQ_TAG_LOOKUP;
@@ -399,6 +399,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         lookup_en = 1'b0; 
         lookup_mode = 1'b0; 
         wr_req_state = 1'b0;
+        wr_req_state_atomic = 1'b0; 
         wr_req_line = 1'b0;
         wr_req_invack_cnt = 0;
         wr_req_tag = 1'b0; 
@@ -427,7 +428,8 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             
         set_fwd_in_stalled = 1'b0; 
         clr_fwd_stall_ended = 1'b0;
-        set_set_conflict_fsm = 1'b0; 
+        set_set_conflict_fsm = 1'b0;
+        clr_set_conflict_fsm = 1'b0; 
         set_cpu_req_conflict = 1'b0; 
         clr_ongoing_atomic  = 1'b0; 
         update_atomic = 1'b0;
@@ -798,7 +800,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 set_set_conflict_fsm = 1'b1;
                 set_cpu_req_conflict = 1'b1; 
                 state_wr_data_req = `INVALID;
-                wr_req_state = 1'b1; 
+                wr_req_state_atomic = 1'b1; 
                 incr_reqs_cnt = 1'b1; 
                 clr_ongoing_atomic  = 1'b1;
 
@@ -812,10 +814,11 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 wr_data_state = `MODIFIED; 
             end 
             CPU_REQ_ATOMIC_CONTINUE_READ :  begin 
+                clr_set_conflict_fsm = 1'b1;
                 l2_rd_rsp_valid_int = 1'b1; 
                 l2_rd_rsp_o.line = reqs[reqs_atomic_i].line;
                 if (l2_cpu_req.cpu_msg == `READ) begin 
-                    wr_req_state = 1'b1; 
+                    wr_req_state_atomic = 1'b1; 
                     state_wr_data_req = `INVALID;
                     incr_reqs_cnt = 1'b1; 
                     
@@ -830,13 +833,14 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end
             end 
             CPU_REQ_ATOMIC_CONTINUE_WRITE : begin 
+                clr_set_conflict_fsm = 1'b1; 
                 word_in = l2_cpu_req.word;
                 w_off_in = addr_br.w_off; 
                 b_off_in = addr_br.b_off; 
                 hsize_in = l2_cpu_req.hsize; 
                 line_in = reqs[reqs_atomic_i].line;
                     
-                wr_req_state = 1'b1; 
+                wr_req_state_atomic = 1'b1; 
                 state_wr_data_req = `INVALID;
                 incr_reqs_cnt = 1'b1;
 
