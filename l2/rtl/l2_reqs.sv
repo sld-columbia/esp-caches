@@ -160,12 +160,14 @@ module l2_reqs(clk, rst, reqs, fill_reqs, cpu_msg_wr_data_req, addr_br, addr_br_
                 end
             end
             `L2_REQS_PEEK_FWD : begin 
+                clr_fwd_stall = 1'b1; 
                 for (int i = 0; i < `N_REQS; i++) begin 
                     if (reqs[i].state != `INVALID && reqs[i].tag == line_br.tag && reqs[i].set == line_br.set) begin 
                         reqs_hit_next = 1'b1; 
                         reqs_i_next = i; 
                         
-                        set_fwd_stall = 1'b1; 
+                        set_fwd_stall = 1'b1;
+                        clr_fwd_stall = 1'b0; 
                         if (fwd_in_coh_msg == `FWD_PUTACK) begin 
                             set_fwd_stall = 1'b0; 
                             clr_fwd_stall = 1'b1; 
