@@ -113,7 +113,7 @@ module l2_core(clk, rst, l2_cpu_req_valid, l2_cpu_req_i, l2_cpu_req_ready, l2_fw
     l2_regs regs_u (.*); 
     
     logic lookup_mode, tag_hit, empty_way_found, tag_hit_next, empty_way_found_next;
-    l2_way_t empty_way, way_hit;
+    l2_way_t empty_way, way_hit, way_hit_next;
     l2_lookup lookup_u(.*); 
 
 
