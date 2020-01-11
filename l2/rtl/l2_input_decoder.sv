@@ -49,6 +49,18 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
         flush_done = 1'b0; 
         set_cpu_req_from_conflict = 1'b0;
         idle = 1'b0; 
+        line_br_next.tag = 0;
+        line_br_next.set = 0; 
+        
+        addr_br_next.line = 0;
+        addr_br_next.line_addr = 0;
+        addr_br_next.word = 0;
+        addr_br_next.tag = 0;
+        addr_br_next.set = 0; 
+        addr_br_next.w_off = 0;
+        addr_br_next.b_off = 0; 
+        addr_br_next.line[`OFF_RANGE_HI : `OFF_RANGE_LO ] = 0; 
+        addr_br_next.word[`B_OFF_RANGE_HI : `B_OFF_RANGE_LO ] = 0; 
         if (decode_en) begin 
             if (l2_flush_valid_int && reqs_cnt == `N_REQS) begin 
                 do_flush_next = 1'b1;
