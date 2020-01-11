@@ -259,7 +259,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
         end
     end
 
-    assign l2_stats_next = (!l2_stats_valid_tmp) ? l2_stats : l2_stats_tmp;
+    assign l2_stats = (!l2_stats_valid_tmp) ? l2_stats_o : l2_stats_tmp;
 `endif
     
     //READ FROM INPUT

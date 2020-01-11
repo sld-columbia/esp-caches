@@ -2,7 +2,11 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, reqs_i_next, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_req_state_atomic, wr_en_put_reqs, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, addr_br_reqs, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_wr_data_req, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req, clr_evict_stall, lookup_mode, evict_stall, fwd_stall, wr_en_evict_way, wr_data_evict_way, set_fwd_in_stalled, wr_req_tag, tag_wr_data_req, clr_fwd_stall_ended, l2_rsp_out_ready_int, l2_rsp_out_valid_int, reqs_hit, reqs_hit_next, l2_inval_ready_int, l2_inval_valid_int, l2_inval_o, ongoing_flush, way_hit, set_conflict, ongoing_atomic, line_out, set_set_conflict_fsm, clr_set_conflict_fsm, set_set_conflict_reqs, set_cpu_req_conflict, clr_ongoing_atomic, word_in, w_off_in, b_off_in, hsize_in, line_in, tag_hit_next, empty_way, empty_way_found_next, evict_way_buf, set_evict_stall, wr_en_line, incr_flush_set, fill_reqs_flush, reqs_atomic_i, clr_set_conflict_reqs, set_fwd_stall, clr_fwd_stall, way_hit_next, put_reqs_atomic); 
+module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, reqs, reqs_i, reqs_i_next, line_br, addr_br, l2_rd_rsp_ready_int, l2_rsp_in, l2_fwd_in, l2_cpu_req, decode_en, lookup_en, wr_rst, wr_data_state, state_wr_data_req, wr_data_line, wr_data_hprot, wr_data_tag, wr_req_state, wr_req_state_atomic, wr_en_put_reqs, reqs_op_code, l2_rd_rsp_valid_int, set_in, way, l2_rd_rsp_o, l2_rsp_out_o, l2_req_out_o, incr_reqs_cnt, set_ongoing_atomic, line_wr_data_req, invack_cnt_wr_data_req, wr_req_invack_cnt, wr_req_line, line_br_next, addr_br_next, addr_br_reqs, flush_set, flush_way, rd_data_state, rd_data_hprot, is_flush_all, incr_flush_way, l2_req_out_ready_int, l2_req_out_valid_int, states_buf, tags_buf, lines_buf, hprot_wr_data_req, tag_estall_wr_data_req, way_wr_data_req, rd_mem_en, wr_en_state, fill_reqs, cpu_msg_wr_data_req, hsize_wr_data_req, word_wr_data_req, clr_evict_stall, lookup_mode, evict_stall, fwd_stall, wr_en_evict_way, wr_data_evict_way, set_fwd_in_stalled, wr_req_tag, tag_wr_data_req, clr_fwd_stall_ended, l2_rsp_out_ready_int, l2_rsp_out_valid_int, reqs_hit, reqs_hit_next, l2_inval_ready_int, l2_inval_valid_int, l2_inval_o, ongoing_flush, way_hit, set_conflict, ongoing_atomic, line_out, set_set_conflict_fsm, clr_set_conflict_fsm, set_set_conflict_reqs, set_cpu_req_conflict, clr_ongoing_atomic, word_in, w_off_in, b_off_in, hsize_in, line_in, tag_hit, tag_hit_next, empty_way, empty_way_found_next, evict_way_buf, set_evict_stall, wr_en_line, incr_flush_set, fill_reqs_flush, reqs_atomic_i, clr_set_conflict_reqs, set_fwd_stall, clr_fwd_stall, way_hit_next, put_reqs_atomic
+`ifdef STATS_ENABLE
+, l2_stats_o, l2_stats_valid_int, l2_stats_ready_int
+`endif
+); 
    
     input logic clk, rst;
     input logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next, is_flush_all;
@@ -24,8 +28,12 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     input logic reqs_hit, reqs_hit_next, set_conflict, set_set_conflict_reqs, ongoing_atomic, clr_set_conflict_reqs; 
     input l2_way_t way_hit, empty_way, evict_way_buf, way_hit_next;
     input line_t line_out; 
-    input logic tag_hit_next, empty_way_found_next; 
+    input logic tag_hit_next, empty_way_found_next, tag_hit; 
     input logic incr_flush_set; 
+`ifdef STATS_ENABLE
+    input logic l2_stats_ready_int; 
+    output logic l2_stats_o, l2_stats_valid_int;
+`endif
 
     output logic decode_en, lookup_en, rd_mem_en, lookup_mode; 
     output logic wr_rst, wr_en_state, fill_reqs, wr_en_line; 
@@ -997,4 +1005,39 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
         endcase
     end 
 
+`ifdef STATS_ENABLE
+    localparam STATS_IDLE = 1'b0; 
+    localparam STATS_SEND = 1'b1;
+    
+    logic state_stats, next_state_stats; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            state_stats <= STATS_IDLE;
+        end else begin 
+            state_stats <= next_state_stats; 
+        end
+    end
+
+    always_comb begin 
+        next_state_stats = state_stats; 
+        l2_stats_o = 1'b0; 
+        l2_stats_valid_int = 1'b0; 
+        case (state_stats) 
+            STATS_IDLE : begin 
+                if (state == CPU_REQ_TAG_LOOKUP) begin
+                    next_state_stats = STATS_SEND;
+                end
+            end 
+            STATS_SEND : begin 
+                if (l2_stats_ready_int) begin 
+                    next_state_stats = STATS_IDLE;
+                end
+                l2_stats_valid_int = 1'b1; 
+                l2_stats_o = tag_hit;
+            end
+            default : next_state_stats = STATS_IDLE; 
+        endcase
+    end 
+
+`endif
 endmodule
