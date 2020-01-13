@@ -358,6 +358,8 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                         next_state = CPU_REQ_READ_ATOMIC_WRITE_S;
                     end else if (l2_cpu_req.cpu_msg == `WRITE && (states_buf[way_hit_next] == `EXCLUSIVE || states_buf[way_hit_next] == `MODIFIED)) begin  
                         next_state = CPU_REQ_WRITE_EM; 
+                    end else begin 
+                        next_state = DECODE; 
                     end
                 end else if (empty_way_found_next) begin 
                     next_state = CPU_REQ_EMPTY_WAY;
