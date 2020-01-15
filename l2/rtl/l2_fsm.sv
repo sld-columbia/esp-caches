@@ -708,8 +708,8 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     l2_rsp_out_o.addr = l2_fwd_in.addr; 
                     l2_rsp_out_o.line = 0;
                 end else if (l2_fwd_in.coh_msg == `FWD_GETM_LLC) begin 
-                    l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
-                    l2_rsp_out_o.to_req = 1'b1; 
+                    l2_rsp_out_o.req_id = 0; 
+                    l2_rsp_out_o.to_req = 1'b0; 
                     l2_rsp_out_o.addr = l2_fwd_in.addr; 
                     if (states_buf[way_hit] == `EXCLUSIVE) begin 
                         l2_rsp_out_o.coh_msg = `RSP_INVACK;
