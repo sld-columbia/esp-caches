@@ -246,7 +246,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end
             end
             FWD_PUTACK : begin 
-                if (l2_req_out_ready_int) begin 
+                if (l2_req_out_ready_int || !evict_stall) begin 
                     next_state  = DECODE;
                 end
             end

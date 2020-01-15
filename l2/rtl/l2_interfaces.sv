@@ -148,7 +148,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_req_out_tmp.hprot <= 0;
             l2_req_out_tmp.addr <= 0; 
             l2_req_out_tmp.line <= 0;
-        end else if (l2_req_out_valid && l2_req_out_ready && !l2_req_out_ready_int) begin 
+        end else if (l2_req_out_valid_int && l2_req_out_ready_int && !l2_req_out_ready) begin 
             l2_req_out_tmp.coh_msg <= l2_req_out_o.coh_msg; 
             l2_req_out_tmp.hprot <= l2_req_out_o.hprot;  
             l2_req_out_tmp.addr <= l2_req_out_o.addr; 
@@ -180,7 +180,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
             l2_rsp_out_tmp.to_req <= 0;
             l2_rsp_out_tmp.addr <= 0; 
             l2_rsp_out_tmp.line <= 0;
-        end else if (l2_rsp_out_valid && l2_rsp_out_ready && !l2_rsp_out_ready_int) begin 
+        end else if (l2_rsp_out_valid_int && l2_rsp_out_ready_int && !l2_rsp_out_ready) begin 
             l2_rsp_out_tmp.coh_msg <= l2_rsp_out_o.coh_msg; 
             l2_rsp_out_tmp.req_id <= l2_rsp_out_o.req_id;  
             l2_rsp_out_tmp.to_req <= l2_rsp_out_o.to_req;  
@@ -210,7 +210,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_rd_rsp_tmp.line <= 0;
-        end else if (l2_rd_rsp_valid && l2_rd_rsp_ready && !l2_rd_rsp_ready_int) begin 
+        end else if (l2_rd_rsp_valid_int && l2_rd_rsp_ready_int && !l2_rd_rsp_ready) begin 
             l2_rd_rsp_tmp.line <= l2_rd_rsp_o.line;  
         end
     end
@@ -232,7 +232,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_inval_tmp <= 0;
-        end else if (l2_inval_valid && l2_inval_ready && !l2_inval_ready_int) begin 
+        end else if (l2_inval_valid_int && l2_inval_ready_int && !l2_inval_ready) begin 
             l2_inval_tmp <= l2_inval_o;  
         end
     end
@@ -254,7 +254,7 @@ module l2_interfaces(clk, rst, l2_cpu_req_valid, l2_cpu_req_ready, l2_cpu_req_va
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             l2_stats_tmp <= 0;
-        end else if (l2_stats_valid && l2_stats_ready && !l2_stats_ready_int) begin 
+        end else if (l2_stats_valid_int && l2_stats_ready_int && !l2_stats_ready) begin 
             l2_stats_tmp <= l2_stats_o;  
         end
     end
