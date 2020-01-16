@@ -61,6 +61,6 @@ clean:
 		*.key		\
 		*.shm		\
 		*.err 		\
-        *.daig
+        *.diag
 
 .PHONY: sc-sim sc-sim-gui clean

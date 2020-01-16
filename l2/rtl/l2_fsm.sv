@@ -782,7 +782,6 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                         state_tmp = 0;
                     end 
                 endcase
-                fill_reqs_flush = 1'b1;
                 cpu_msg_wr_data_req = 0;
                 tag_estall_wr_data_req = 0;
                 way_wr_data_req = flush_way;
@@ -799,6 +798,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 l2_req_out_o.line = lines_buf[flush_way];
 
                 if (l2_req_out_ready_int) begin 
+                    fill_reqs_flush = 1'b1;
                     incr_flush_way = 1'b1;
                 end
             end
@@ -831,7 +831,9 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 if (l2_cpu_req.cpu_msg == `READ) begin 
                     wr_req_state_atomic = 1'b1; 
                     state_wr_data_req = `INVALID;
-                    incr_reqs_cnt = 1'b1; 
+                    if (l2_rd_rsp_ready_int) begin 
+                        incr_reqs_cnt = 1'b1;
+                    end
                     
                     set_in = reqs[reqs_atomic_i].set; 
                     way = reqs[reqs_atomic_i].way;
@@ -879,7 +881,9 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             end
             CPU_REQ_READ_READ_ATOMIC_EM : begin 
                 if (l2_cpu_req.cpu_msg == `READ_ATOMIC) begin 
-                    fill_reqs = 1'b1; 
+                    if (l2_rd_rsp_ready_int) begin 
+                        fill_reqs = 1'b1; 
+                    end
                     cpu_msg_wr_data_req = l2_cpu_req.cpu_msg;
                     tag_estall_wr_data_req = 0; 
                     tag_wr_data_req = addr_br.tag; 
@@ -900,8 +904,9 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end else if (l2_cpu_req.cpu_msg == `WRITE) begin 
                     state_wr_data_req = `SMAD;
                 end
-                
-                fill_reqs = 1'b1; 
+                if (l2_req_out_ready_int) begin  
+                    fill_reqs = 1'b1; 
+                end
                 cpu_msg_wr_data_req = l2_cpu_req.cpu_msg;
                 tag_estall_wr_data_req = 0; 
                 tag_wr_data_req = addr_br.tag; 
@@ -953,7 +958,9 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                         state_wr_data_req = `IMAD;
                     end
                 endcase
-                fill_reqs = 1'b1; 
+                if (l2_req_out_ready_int) begin 
+                    fill_reqs = 1'b1; 
+                end
                 cpu_msg_wr_data_req = l2_cpu_req.cpu_msg;
                 tag_estall_wr_data_req = 0; 
                 tag_wr_data_req = addr_br.tag; 
@@ -990,8 +997,15 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 l2_req_out_o.hprot = 0;
                 l2_req_out_o.addr = (tags_buf[evict_way_buf] << `L2_SET_BITS) | addr_br.set; 
                 l2_req_out_o.line = lines_buf[evict_way_buf]; 
-               
-                fill_reqs = 1'b1;
+              
+                if (l2_inval_ready_int && l2_req_out_ready_int) begin 
+                    fill_reqs = 1'b1;
+                end else if (ready_bits[0] && l2_req_out_ready_int) begin 
+                    fill_reqs = 1'b1;
+                end else if (l2_inval_ready_int && ready_bits[1]) begin 
+                    fill_reqs = 1'b1;
+                end
+ 
                 cpu_msg_wr_data_req = l2_cpu_req.cpu_msg;
                 tag_estall_wr_data_req = addr_br.tag;
                 tag_wr_data_req = tags_buf[evict_way_buf];
