@@ -818,6 +818,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 set_in = reqs[reqs_atomic_i].set; 
                 way = reqs[reqs_atomic_i].way;
 
+                put_reqs_atomic = 1'b1; 
                 wr_en_put_reqs = 1'b1; 
                 wr_data_tag = reqs[reqs_atomic_i].tag;
                 wr_data_line =  reqs[reqs_atomic_i].line;
@@ -838,7 +839,8 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     set_in = reqs[reqs_atomic_i].set; 
                     way = reqs[reqs_atomic_i].way;
                     clr_ongoing_atomic = 1'b1;
-
+                    
+                    put_reqs_atomic = 1'b1;
                     wr_en_put_reqs = 1'b1; 
                     wr_data_tag = reqs[reqs_atomic_i].tag;
                     wr_data_line =  reqs[reqs_atomic_i].line;
