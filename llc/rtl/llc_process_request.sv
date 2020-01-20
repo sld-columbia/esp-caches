@@ -253,7 +253,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     process_done = 1'b1; 
                 end
                 EVICT : begin
-                    if (llc_mem_req_ready_int) begin
+                    if ((states_buf[way] == `VALID && dirty_bits_buf[way] && llc_mem_req_ready_int) || (states_buf[way] != `VALID || !dirty_bits_buf[way])) begin
                         case(llc_req_in.coh_msg) 
                             `REQ_GETS : begin 
                                 case(states_buf_wr_data) 
@@ -400,7 +400,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end
                 end
                 DMA_RECALL_EMSD : begin 
-                    if (llc_fwd_out_ready_int) begin
+                    if (llc_fwd_out_ready_int || states_buf[way] == `SD) begin
                         if (recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
@@ -426,7 +426,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end 
                 end
                 DMA_RECALL_S : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready_int) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
                         if (!recall_pending || recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
