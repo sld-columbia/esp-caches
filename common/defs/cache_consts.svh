@@ -70,11 +70,11 @@
 //
 
 `ifndef L2_WAYS
-`define L2_WAYS      8 // defined in l2/stratus/project.tcl
+`define L2_WAYS      4 // defined in l2/stratus/project.tcl
 `endif
 
 `ifndef L2_SETS
-`define L2_SETS      256  // defined in l2/stratus/project.tcl
+`define L2_SETS      512  // defined in l2/stratus/project.tcl
 `endif
 
 `define L2_WAY_BITS	$clog2(`L2_WAYS)
@@ -100,7 +100,7 @@
 `endif
 
 `ifndef LLC_SETS
-`define LLC_SETS      256  // defined in l2/stratus/project.tcl
+`define LLC_SETS      1024  // defined in l2/stratus/project.tcl
 `endif
 
 `define LLC_WAY_BITS		$clog2(`LLC_WAYS)
