@@ -740,6 +740,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 way = way_hit; 
              end
             ONGOING_FLUSH_RD_MEM : begin 
+                set_in = flush_set; 
                 rd_mem_en = 1'b1;
                 if ((rd_data_state[flush_way] == `INVALID) || (~is_flush_all && ~rd_data_hprot[flush_way])) begin 
                     incr_flush_way = 1'b1;
