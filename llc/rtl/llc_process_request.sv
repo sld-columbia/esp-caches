@@ -231,7 +231,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end
                 end 
                 PROCESS_FLUSH_RESUME : begin 
-                    if (cur_way == `LLC_WAYS - 1) begin 
+                    if (cur_way == `LLC_WAYS - 1 && (llc_mem_req_ready_int || skip)) begin 
                         if (!flush_stall && !rst_stall) begin 
                             next_state = FINISH_RST_FLUSH;
                          end else begin 
@@ -521,7 +521,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         if (!rst || (state == IDLE)) begin 
             cur_way <= 0; 
         end else if ((state == PROCESS_FLUSH_RESUME) && (llc_mem_req_ready_int || skip)) begin 
-            cur_way = cur_way + 1; 
+            cur_way <= cur_way + 1; 
         end
     end
     
