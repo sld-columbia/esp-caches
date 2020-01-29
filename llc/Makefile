@@ -1,9 +1,9 @@
 # Copyright (c) 2011-2019 Columbia University, System Level Design Group
 # SPDC-License-Identifier: Apache-2.0
 
-VIVADO = /opt/cad/vivado
-ESPROOT = ../../esp
-ACCEL = ../../accel
+VIVADO = $(XILINX_VIVADO)
+ESPROOT ?= ../../../../../../
+ACCEL = $(ESPROOT)/accelerators/stratus_hls/common/syn-templates
 
 FLAGS ?=
 FLAGS += -NOWarn SCK505
