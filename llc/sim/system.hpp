@@ -4,11 +4,8 @@
 #ifndef __SYSTEM_HPP__
 #define __SYSTEM_HPP__
 
-
-//#include "llc.hpp"
 #include "llc_wrap.h"
 #include "llc_tb.hpp"
-
 
 class system_t : public sc_module
 {

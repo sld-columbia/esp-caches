@@ -1,3 +1,6 @@
+// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// SPDC-License-Identifier: Apache-2.0
+
 #include "llc_wrap.h"
 
 void llc_wrapper_conv::thread_llc_req_in_data_conv(){

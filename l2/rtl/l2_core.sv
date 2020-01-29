@@ -1,3 +1,6 @@
+// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// SPDC-License-Identifier: Apache-2.0
+
 `timescale 1ps / 1ps
 `include "cache_consts.svh" 
 `include "cache_types.svh"
