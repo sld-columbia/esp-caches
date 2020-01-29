@@ -6,7 +6,7 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid_int, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o
+module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid_int, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o, is_req_to_resume, set_req_pending, clr_req_pending
 `ifdef STATS_ENABLE 
     , llc_stats_ready_int, llc_stats_valid_int, llc_stats_o
 `endif
@@ -17,7 +17,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     input logic rst_in;
 
     input llc_way_t way, way_next;
-    input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume; 
+    input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_req_to_resume; 
     input llc_set_t set;  
     llc_req_in_t.in llc_req_in;     
     llc_req_in_t.in llc_dma_req_in;
@@ -81,7 +81,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     output logic set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process;
     output logic clr_recall_pending, clr_recall_valid; 
     output logic clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr; 
-
+    output logic set_req_pending, clr_req_pending; 
 `ifdef STATS_ENABLE
     input logic llc_stats_ready_int;
     output logic llc_stats_valid_int;
@@ -94,28 +94,30 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     localparam PROCESS_FLUSH_RESUME = 5'b00001; 
     localparam PROCESS_RST = 5'b00010;
     localparam PROCESS_RSP = 5'b00011;
-    localparam EVICT = 5'b00100; 
-    localparam REQ_GET_S_M_IV_MEM_REQ = 5'b00101;
-    localparam REQ_GET_S_M_IV_MEM_RSP = 5'b00110;
-    localparam REQ_GET_S_M_IV_SEND_RSP = 5'b00111;
-    localparam REQ_GETS_S = 5'b01000; 
-    localparam REQ_GET_S_M_EM = 5'b01001; 
-    localparam REQ_GET_S_M_SD = 5'b01010;
-    localparam REQ_GETM_S_FWD = 5'b01011;
-    localparam REQ_GETM_S_RSP = 5'b01100;
-    localparam REQ_PUTS = 5'b01101;
-    localparam REQ_PUTM = 5'b01110;
-    localparam DMA_REQ_TO_GET = 5'b01111;
-    localparam DMA_RECALL_EMSD = 5'b10000;
-    localparam DMA_RECALL_S = 5'b10001; 
-    localparam DMA_EVICT = 5'b10010; 
-    localparam DMA_READ_RESUME_MEM_REQ = 5'b10011; 
-    localparam DMA_READ_RESUME_MEM_RSP = 5'b10100;
-    localparam DMA_READ_RESUME_DMA_RSP = 5'b10101;
-    localparam DMA_WRITE_RESUME_MEM_REQ = 5'b10110;
-    localparam DMA_WRITE_RESUME_MEM_RSP = 5'b10111; 
-    localparam DMA_WRITE_RESUME_WRITE = 5'b11000;
-    localparam FINISH_RST_FLUSH = 5'b11001;
+    localparam REQ_RECALL_EMSD = 5'b00100; 
+    localparam REQ_RECALL_S = 5'b00101; 
+    localparam EVICT = 5'b00110; 
+    localparam REQ_GET_S_M_IV_MEM_REQ = 5'b00111;
+    localparam REQ_GET_S_M_IV_MEM_RSP = 5'b01000;
+    localparam REQ_GET_S_M_IV_SEND_RSP = 5'b01001;
+    localparam REQ_GETS_S = 5'b01010; 
+    localparam REQ_GET_S_M_EM = 5'b01011; 
+    localparam REQ_GET_S_M_SD = 5'b01100;
+    localparam REQ_GETM_S_FWD = 5'b01101;
+    localparam REQ_GETM_S_RSP = 5'b01110;
+    localparam REQ_PUTS = 5'b01111;
+    localparam REQ_PUTM = 5'b10000;
+    localparam DMA_REQ_TO_GET = 5'b10001;
+    localparam DMA_RECALL_EMSD = 5'b10010;
+    localparam DMA_RECALL_S = 5'b10011; 
+    localparam DMA_EVICT = 5'b10100; 
+    localparam DMA_READ_RESUME_MEM_REQ = 5'b10101; 
+    localparam DMA_READ_RESUME_MEM_RSP = 5'b10110;
+    localparam DMA_READ_RESUME_DMA_RSP = 5'b10111;
+    localparam DMA_WRITE_RESUME_MEM_REQ = 5'b11000;
+    localparam DMA_WRITE_RESUME_MEM_RSP = 5'b11001; 
+    localparam DMA_WRITE_RESUME_WRITE = 5'b11010;
+    localparam FINISH_RST_FLUSH = 5'b11011;
     
     logic [4:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -131,7 +133,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip)) begin 
+        end else if ((state == REQ_RECALL_S || state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip)) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -164,37 +166,47 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                         next_state = PROCESS_RST;
                     end else if (is_rsp_to_get) begin 
                         next_state = PROCESS_RSP; 
-                    end else if (is_req_to_get) begin 
-                        if (evict) begin 
-                            next_state = EVICT; 
-                        end else begin 
-                            case(llc_req_in.coh_msg) 
-                                `REQ_GETS : begin 
-                                    case(states_buf[way_next]) 
-                                        `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
-                                        `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
-                                        `SHARED : next_state = REQ_GETS_S;
-                                        `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
-                                        `MODIFIED : next_state = REQ_GET_S_M_EM; 
-                                        `SD : next_state = REQ_GET_S_M_SD;
-                                        default : next_state = IDLE;
-                                    endcase
-                                end
-                                `REQ_GETM : begin 
-                                    case(states_buf[way_next]) 
-                                        `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
-                                        `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
-                                        `SHARED : next_state = REQ_GETM_S_FWD;
-                                        `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
-                                        `MODIFIED : next_state = REQ_GET_S_M_EM; 
-                                        `SD : next_state = REQ_GET_S_M_SD;
-                                        default : next_state = IDLE;
-                                    endcase
-                            end
-                                `REQ_PUTS : next_state = REQ_PUTS;
-                                `REQ_PUTM : next_state = REQ_PUTM;
+                    end else if (is_req_to_get || is_req_to_resume) begin 
+                        if (evict && !recall_pending && !recall_valid && states_buf[way_next] != `VALID) begin 
+                            case (states_buf[way_next]) 
+                                `EXCLUSIVE : next_state = REQ_RECALL_EMSD;
+                                `MODIFIED : next_state = REQ_RECALL_EMSD;
+                                `SD : next_state = REQ_RECALL_EMSD;
+                                `SHARED : next_state = REQ_RECALL_S; 
                                 default : next_state = IDLE; 
                             endcase
+                        end else if (!recall_pending || recall_valid) begin 
+                            if (evict) begin 
+                                next_state = EVICT; 
+                            end else begin 
+                                case(llc_req_in.coh_msg) 
+                                    `REQ_GETS : begin 
+                                        case(states_buf[way_next]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETS_S;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                    end
+                                    `REQ_GETM : begin 
+                                        case(states_buf[way_next]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETM_S_FWD;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                end
+                                    `REQ_PUTS : next_state = REQ_PUTS;
+                                    `REQ_PUTM : next_state = REQ_PUTM;
+                                    default : next_state = IDLE; 
+                                endcase
+                            end
                         end
                     end else if (is_dma_req_to_get || is_dma_read_to_resume || is_dma_write_to_resume) begin 
                         if (is_dma_req_to_get) begin 
@@ -251,6 +263,90 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 PROCESS_RSP : begin 
                     next_state = IDLE; 
                     process_done = 1'b1; 
+                end
+                REQ_RECALL_EMSD : begin 
+                    if (llc_fwd_out_ready_int || states_buf[way] == `SD) begin
+                        if (recall_valid) begin 
+                            if (evict) begin 
+                                next_state = EVICT; 
+                            end else begin 
+                                case(llc_req_in.coh_msg) 
+                                    `REQ_GETS : begin 
+                                        case(states_buf[way]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETS_S;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                    end
+                                    `REQ_GETM : begin 
+                                        case(states_buf[way]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETM_S_FWD;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                end
+                                    `REQ_PUTS : next_state = REQ_PUTS;
+                                    `REQ_PUTM : next_state = REQ_PUTM;
+                                    default : next_state = IDLE; 
+                                endcase
+                            end
+                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                            next_state = FINISH_RST_FLUSH;
+                        end else begin 
+                            next_state = IDLE;
+                            process_done = 1'b1;
+                        end
+                    end
+                end
+                REQ_RECALL_S : begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
+                        if (recall_valid) begin 
+                            if (evict) begin 
+                                next_state = EVICT; 
+                            end else begin 
+                                case(llc_req_in.coh_msg) 
+                                    `REQ_GETS : begin 
+                                        case(states_buf[way]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETS_S;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                    end
+                                    `REQ_GETM : begin 
+                                        case(states_buf[way]) 
+                                            `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
+                                            `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
+                                            `SHARED : next_state = REQ_GETM_S_FWD;
+                                            `EXCLUSIVE : next_state = REQ_GET_S_M_EM; 
+                                            `MODIFIED : next_state = REQ_GET_S_M_EM; 
+                                            `SD : next_state = REQ_GET_S_M_SD;
+                                            default : next_state = IDLE;
+                                        endcase
+                                end
+                                    `REQ_PUTS : next_state = REQ_PUTS;
+                                    `REQ_PUTM : next_state = REQ_PUTM;
+                                    default : next_state = IDLE; 
+                                endcase
+                            end
+                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
+                            next_state = FINISH_RST_FLUSH;
+                        end else begin 
+                            next_state = IDLE;
+                            process_done = 1'b1;
+                        end
+                    end 
                 end
                 EVICT : begin
                     if ((states_buf[way] == `VALID && dirty_bits_buf[way] && llc_mem_req_ready_int) || (states_buf[way] != `VALID || !dirty_bits_buf[way])) begin
@@ -629,7 +725,9 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         set_recall_pending = 1'b0; 
         clr_recall_pending = 1'b0;
         clr_recall_valid = 1'b0; 
-        
+        set_req_pending = 1'b0;
+        clr_req_pending = 1'b0; 
+
         valid_words = `WORDS_PER_LINE;
         dma_read_woffset = 0;
         dma_write_woffset = 0; 
@@ -698,7 +796,31 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     states_buf_wr_data = `VALID;
                 end
             end
+            REQ_RECALL_EMSD : begin 
+                set_req_pending = 1'b1;
+                set_recall_pending = 1'b1;
+                if (states_buf[way] == `EXCLUSIVE || states_buf[way] == `MODIFIED) begin 
+                    llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
+                    llc_fwd_out_o.addr = addr_evict; 
+                    llc_fwd_out_o.req_id = owners_buf[way]; 
+                    llc_fwd_out_o.dest_id = owners_buf[way];;
+                    llc_fwd_out_valid_int = 1'b1; 
+                end
+            end
+            REQ_RECALL_S : begin 
+                if (sharers_buf[way] & (1 << l2_cnt)) begin 
+                    llc_fwd_out_o.coh_msg = `FWD_INV_LLC; 
+                    llc_fwd_out_o.addr = addr_evict; 
+                    llc_fwd_out_o.req_id = l2_cnt; 
+                    llc_fwd_out_o.dest_id = l2_cnt;
+                    llc_fwd_out_valid_int = 1'b1; 
+                end else begin 
+                    skip = 1'b1;
+                end
+            end
             EVICT : begin 
+                clr_recall_pending = 1'b1;
+                clr_recall_valid = 1'b1;
                 if (way == evict_way_buf) begin 
                     set_update_evict_way = 1'b1;  
                     incr_evict_way_buf = 1'b1;
@@ -715,6 +837,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 states_buf_wr_data = `INVALID;
             end
             REQ_GET_S_M_IV_MEM_REQ : begin 
+                clr_req_pending = 1'b1; 
                 llc_mem_req_valid_int = 1'b1; 
                 llc_mem_req_o.hwrite = `READ;
                 llc_mem_req_o.addr = llc_req_in.addr; 
@@ -723,6 +846,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_mem_req_o.line = 0; 
             end
             REQ_GET_S_M_IV_MEM_RSP : begin 
+                clr_req_pending = 1'b1; 
                 wr_en_hprots_buf = 1'b1; 
                 hprots_buf_wr_data = llc_req_in.hprot; 
                 wr_en_tags_buf = 1'b1; 
@@ -732,6 +856,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_mem_rsp_ready_int = 1'b1; 
             end
             REQ_GET_S_M_IV_SEND_RSP : begin 
+                clr_req_pending = 1'b1; 
                 if (llc_req_in.coh_msg == `REQ_GETS && llc_req_in.hprot == 1'b0)  begin 
                     llc_rsp_out_o.coh_msg = `RSP_DATA;
                     wr_en_sharers_buf = 1'b1; 
@@ -758,6 +883,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_rsp_out_valid_int = 1'b1; 
             end
             REQ_GETS_S : begin 
+                clr_req_pending = 1'b1; 
                 wr_en_sharers_buf = 1'b1; 
                 sharers_buf_wr_data = sharers_buf[way] | (1 << llc_req_in.req_id); 
 
@@ -771,6 +897,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_rsp_out_valid_int = 1'b1; 
             end
             REQ_GET_S_M_EM : begin 
+                clr_req_pending = 1'b1; 
                 if (llc_req_in.coh_msg == `REQ_GETS) begin 
                     states_buf_wr_data = `SD;    
                     llc_fwd_out_o.coh_msg = `FWD_GETS; 
@@ -792,12 +919,14 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_fwd_out_valid_int = 1'b1;
             end
             REQ_GET_S_M_SD : begin 
+                clr_req_pending = 1'b1; 
                 set_req_stall = 1'b1; 
                 set_req_in_stalled_valid = 1'b1; 
                 set_req_in_stalled = 1'b1; 
                 update_req_in_stalled = 1'b1;
             end
             REQ_GETM_S_FWD : begin 
+                clr_req_pending = 1'b1; 
                 if (((sharers_buf[way] & (1 << l2_cnt)) != 0) && (l2_cnt != llc_req_in.req_id)) begin 
                     incr_invack_cnt = 1'b1; 
                     llc_fwd_out_o.coh_msg = `FWD_INV; 
@@ -810,6 +939,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 end
             end
             REQ_GETM_S_RSP : begin 
+                clr_req_pending = 1'b1; 
                 llc_rsp_out_o.coh_msg = `RSP_DATA;
                 llc_rsp_out_o.addr = llc_req_in.addr; 
                 llc_rsp_out_o.line = lines_buf[way]; 
@@ -827,30 +957,32 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 sharers_buf_wr_data = 0; 
             end
             REQ_PUTS : begin 
-               llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
-               llc_fwd_out_o.addr = llc_req_in.addr; 
-               llc_fwd_out_o.req_id = llc_req_in.req_id; 
-               llc_fwd_out_o.dest_id = llc_req_in.req_id;
-               llc_fwd_out_valid_int = 1'b1; 
-               if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
+                clr_req_pending = 1'b1; 
+                llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
+                llc_fwd_out_o.addr = llc_req_in.addr; 
+                llc_fwd_out_o.req_id = llc_req_in.req_id; 
+                llc_fwd_out_o.dest_id = llc_req_in.req_id;
+                llc_fwd_out_valid_int = 1'b1; 
+                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
                     if (states_buf[way] == `SHARED && sharers_buf_wr_data == 0) begin 
                         states_buf_wr_data = `VALID;
                         wr_en_states_buf = 1'b1; 
                     end
-               end else if (states_buf[way] == `EXCLUSIVE && owners_buf[way] == llc_req_in.req_id) begin 
+                end else if (states_buf[way] == `EXCLUSIVE && owners_buf[way] == llc_req_in.req_id) begin 
                     wr_en_states_buf = 1'b1; 
                     states_buf_wr_data = `VALID; 
-               end 
+                end 
             end
             REQ_PUTM : begin 
-               llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
-               llc_fwd_out_o.addr = llc_req_in.addr; 
-               llc_fwd_out_o.req_id = llc_req_in.req_id; 
-               llc_fwd_out_o.dest_id = llc_req_in.req_id;
-               llc_fwd_out_valid_int = 1'b1; 
-               if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
+                clr_req_pending = 1'b1; 
+                llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
+                llc_fwd_out_o.addr = llc_req_in.addr; 
+                llc_fwd_out_o.req_id = llc_req_in.req_id; 
+                llc_fwd_out_o.dest_id = llc_req_in.req_id;
+                llc_fwd_out_valid_int = 1'b1; 
+                if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
                     wr_en_sharers_buf = 1'b1;
                     if (states_buf[way] == `SHARED && sharers_buf_wr_data == 0) begin 

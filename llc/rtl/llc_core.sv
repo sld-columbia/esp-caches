@@ -131,7 +131,8 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
     addr_t dma_addr;
     logic update_dma_addr_from_req, incr_dma_addr; 
-    logic recall_pending, clr_recall_pending, set_recall_pending;    
+    logic recall_pending, clr_recall_pending, set_recall_pending; 
+    logic req_pending, set_req_pending, clr_req_pending; 
     logic dma_read_pending, clr_dma_read_pending, set_dma_read_pending;    
     logic dma_write_pending, clr_dma_write_pending, set_dma_write_pending;    
     logic recall_valid, clr_recall_valid, set_recall_valid;    
@@ -152,7 +153,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     //DECODE
 
     //wires
-    logic is_rst_to_get, is_req_to_get, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
+    logic is_rst_to_get, is_req_to_get, is_req_to_resume, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
     line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr; 
     llc_set_t set, set_next, set_in;     
  

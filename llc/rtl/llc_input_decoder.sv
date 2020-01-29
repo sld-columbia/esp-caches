@@ -6,12 +6,12 @@
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
 
-module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle, req_in_stalled_addr); 
+module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle, req_in_stalled_addr, req_pending, is_req_to_resume); 
    
     input logic clk, rst; 
     input logic llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int; 
     input logic recall_pending, recall_valid;
-    input logic dma_read_pending, dma_write_pending; 
+    input logic dma_read_pending, dma_write_pending, req_pending; 
     input logic flush_stall, rst_stall, req_stall; 
     input logic req_in_stalled_valid;
     input logic decode_en; 
@@ -24,7 +24,7 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
     output logic update_req_in_from_stalled, clr_req_in_stalled_valid;  
     output logic look;
     output logic is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume;
-    output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get; 
+    output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_req_to_resume; 
     output logic is_rst_to_get_next, is_rsp_to_get_next;
     output logic do_get_req, do_get_dma_req;
     output llc_set_t set, set_next; 
@@ -39,28 +39,19 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
     //STATE LOGIC
 
     logic can_get_rst_tb, can_get_rsp_in, can_get_req_in, can_get_dma_req_in; 
-/*    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
-           can_get_rst_tb <= 1'b0;
-           can_get_rsp_in <= 1'b0; 
-           can_get_req_in <= 1'b0; 
-           can_get_dma_req_in <= 1'b0; 
-        end else begin */
-          assign can_get_rst_tb = llc_rst_tb_valid_int; 
-          assign can_get_rsp_in = llc_rsp_in_valid_int; 
-          assign can_get_req_in = llc_req_in_valid_int; 
-          assign can_get_dma_req_in = llc_dma_req_in_valid_int;
-       /* end
-    end */
-   
+    assign can_get_rst_tb = llc_rst_tb_valid_int; 
+    assign can_get_rsp_in = llc_rsp_in_valid_int; 
+    assign can_get_req_in = llc_req_in_valid_int; 
+    assign can_get_dma_req_in = llc_dma_req_in_valid_int;
     
-    logic is_rst_to_resume_next, is_flush_to_resume_next;
+    logic is_rst_to_resume_next, is_flush_to_resume_next, is_req_to_resume_next;
     logic is_req_to_get_next, is_dma_req_to_get_next; 
     
     
     always_comb begin  
         is_rst_to_resume_next =  1'b0; 
-        is_flush_to_resume_next = 1'b0; 
+        is_flush_to_resume_next = 1'b0;
+        is_req_to_resume_next = 1'b0; 
         is_rst_to_get_next = 1'b0; 
         is_rsp_to_get_next = 1'b0;  
         is_req_to_get_next = 1'b0;  
@@ -91,7 +82,9 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
                         is_rsp_to_get_next = 1'b1; 
                     end 
                 end else begin 
-                    if (dma_read_pending) begin 
+                    if (req_pending) begin 
+                        is_req_to_resume_next = 1'b1; 
+                    end else if (dma_read_pending) begin 
                         clr_is_dma_read_to_resume = 1'b0;
                         set_is_dma_read_to_resume_decoder = 1'b1; 
                     end else if (dma_write_pending) begin
@@ -133,7 +126,7 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
             
             if (is_rsp_to_get_next) begin 
                 addr_for_set = rsp_in_addr; 
-            end else if (is_req_to_get_next) begin 
+            end else if (is_req_to_get_next || is_req_to_resume_next) begin 
                 addr_for_set = update_req_in_from_stalled ? req_in_stalled_addr : req_in_addr;
             end else if (is_dma_req_to_get_next  || set_is_dma_read_to_resume_decoder || set_is_dma_write_to_resume_decoder) begin 
                 addr_for_set = is_dma_req_to_get_next ? dma_req_in_addr : dma_addr; 
@@ -164,7 +157,8 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
     always_ff@(posedge clk or negedge rst) begin 
         if (!rst) begin 
             is_rst_to_resume <= 1'b0; 
-            is_flush_to_resume <= 1'b0; 
+            is_flush_to_resume <= 1'b0;
+            is_req_to_resume <= 1'b0; 
             is_rst_to_get <= 1'b0; 
             is_req_to_get <= 1'b0;
             is_rsp_to_get <= 1'b0; 
@@ -173,7 +167,8 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
             line_br.set <= 0; 
         end else if (decode_en) begin 
             is_rst_to_resume <= is_rst_to_resume_next; 
-            is_flush_to_resume <= is_flush_to_resume_next; 
+            is_flush_to_resume <= is_flush_to_resume_next;
+            is_req_to_resume <= is_req_to_resume_next; 
             is_rst_to_get <= is_rst_to_get_next; 
             is_req_to_get <= is_req_to_get_next;
             is_rsp_to_get <= is_rsp_to_get_next;
@@ -184,7 +179,7 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
     end
     
     assign look =  is_flush_to_resume | is_rsp_to_get | 
-                   is_req_to_get | is_dma_req_to_get | 
+                   is_req_to_get | is_dma_req_to_get |
                    (is_dma_read_to_resume & ~recall_pending) | 
                    (is_dma_write_to_resume & ~recall_pending); 
     assign set_next = (is_flush_to_resume_next | is_rst_to_resume_next) ? rst_flush_stalled_set : line_br_next.set;
