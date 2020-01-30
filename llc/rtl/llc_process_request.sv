@@ -802,7 +802,9 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
             end
             REQ_GETM_S_FWD : begin 
                 if (((sharers_buf[way] & (1 << l2_cnt)) != 0) && (l2_cnt != llc_req_in.req_id)) begin 
-                    incr_invack_cnt = 1'b1; 
+                    if (llc_fwd_out_ready_int) begin 
+                        incr_invack_cnt = 1'b1; 
+                    end
                     llc_fwd_out_o.coh_msg = `FWD_INV; 
                     llc_fwd_out_o.addr = llc_req_in.addr; 
                     llc_fwd_out_o.req_id = llc_req_in.req_id; 
