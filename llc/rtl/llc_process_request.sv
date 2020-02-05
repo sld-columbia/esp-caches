@@ -432,7 +432,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     
                 end
                 REQ_GETM_S_FWD : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready_int) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
                         next_state = REQ_GETM_S_RSP;
                     end
                 end
