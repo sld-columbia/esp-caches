@@ -1,3 +1,6 @@
+// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// SPDC-License-Identifier: Apache-2.0
+
 `timescale 1ps / 1ps
 `include "cache_consts.svh"
 `include "cache_types.svh"
@@ -6,7 +9,7 @@
 // Author: Joseph Zuckerman
 // top level wrapper for l2 cache
       
-module l2_wrapper(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_msg, l2_cpu_req_data_hsize, l2_cpu_req_data_hprot, l2_cpu_req_data_addr, l2_cpu_req_data_word, l2_cpu_req_ready, l2_fwd_in_valid, l2_fwd_in_data_coh_msg, l2_fwd_in_data_addr, l2_fwd_in_data_req_id, l2_fwd_in_ready, l2_rsp_in_valid, l2_rsp_in_data_coh_msg, l2_rsp_in_data_addr, l2_rsp_in_data_line, l2_rsp_in_data_invack_cnt, l2_rsp_in_ready, l2_flush_valid, l2_flush_data, l2_flush_ready, l2_rd_rsp_valid, l2_rd_rsp_data_line, l2_rd_rsp_ready, l2_inval_valid, l2_inval_data, l2_inval_ready, l2_req_out_valid, l2_req_out_data_coh_msg, l2_req_out_data_hprot, l2_req_out_data_addr, l2_req_out_data_line, l2_req_out_ready, l2_rsp_out_valid, l2_rsp_out_data_coh_msg, l2_rsp_out_data_req_id, l2_rsp_out_data_to_req, l2_rsp_out_data_addr, l2_rsp_out_data_line, l2_rsp_out_ready, 
+module l2_rtl_top(clk, rst, flush_done, l2_cpu_req_valid, l2_cpu_req_data_cpu_msg, l2_cpu_req_data_hsize, l2_cpu_req_data_hprot, l2_cpu_req_data_addr, l2_cpu_req_data_word, l2_cpu_req_ready, l2_fwd_in_valid, l2_fwd_in_data_coh_msg, l2_fwd_in_data_addr, l2_fwd_in_data_req_id, l2_fwd_in_ready, l2_rsp_in_valid, l2_rsp_in_data_coh_msg, l2_rsp_in_data_addr, l2_rsp_in_data_line, l2_rsp_in_data_invack_cnt, l2_rsp_in_ready, l2_flush_valid, l2_flush_data, l2_flush_ready, l2_rd_rsp_valid, l2_rd_rsp_data_line, l2_rd_rsp_ready, l2_inval_valid, l2_inval_data, l2_inval_ready, l2_req_out_valid, l2_req_out_data_coh_msg, l2_req_out_data_hprot, l2_req_out_data_addr, l2_req_out_data_line, l2_req_out_ready, l2_rsp_out_valid, l2_rsp_out_data_coh_msg, l2_rsp_out_data_req_id, l2_rsp_out_data_to_req, l2_rsp_out_data_addr, l2_rsp_out_data_line, l2_rsp_out_ready, 
 `ifdef STATS_ENABLE
     l2_stats_valid, l2_stats_data, l2_stats_ready
 `endif

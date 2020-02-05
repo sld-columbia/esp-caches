@@ -4,6 +4,8 @@
 `ifndef __CACHES_CONSTS_SVH__
 `define __CACHES_CONSTS_SVH__
 
+`include "cache_cfg.svh"
+
 /*
  * System
  */
@@ -297,7 +299,7 @@
 `define LLC_STATE_BRAM_WIDTH 4
 
 //L2
-`define L2_NUM_PORTS ((`L2_WAYS >= 16) ? 16 : ((`L2_WAYS >= 8) ? 8 : 4))
+`define L2_NUM_PORTS ((`L2_WAYS >= 8) ? 8 : ((`L2_WAYS >= 4) ? 4 : 2))
 //each BRAM is split between 2 ways
 //each way has L2_SETS entries
 //this is the number of banks needed to hold each way

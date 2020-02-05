@@ -1,3 +1,6 @@
+// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// SPDC-License-Identifier: Apache-2.0
+
 #include "l2_wrap.h"
 
 void l2_wrapper_conv::thread_l2_cpu_req_data_conv(){

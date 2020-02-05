@@ -1,3 +1,6 @@
+// Copyright (c) 2011-2019 Columbia University, System Level Design Group
+// SPDC-License-Identifier: Apache-2.0
+
 `timescale 1ps / 1ps
 `include "cache_consts.svh"
 `include "cache_types.svh"
@@ -559,8 +562,12 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 l2_rd_rsp_o.line = l2_rsp_in.line;
                 wr_req_line = 1'b1;
                 line_wr_data_req = l2_rsp_in.line;
-                wr_req_invack_cnt = 1'b1;
-                invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt + l2_rsp_in.invack_cnt; 
+                
+                if (l2_rd_rsp_ready_int) begin 
+                    wr_req_invack_cnt = 1'b1;
+                    invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt + l2_rsp_in.invack_cnt; 
+                end
+                
                 if (invack_cnt_wr_data_req == `MAX_N_L2) begin 
                     set_ongoing_atomic = 1'b1; 
                     state_wr_data_req = `XMW;
