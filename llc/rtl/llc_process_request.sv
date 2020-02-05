@@ -134,7 +134,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip)) begin 
+        end else if ((state == DMA_RECALL_S || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -336,7 +336,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     
                 end
                 REQ_GETM_S_FWD : begin 
-                    if (l2_cnt == `MAX_N_L2 - 1 && llc_fwd_out_ready_int) begin 
+                    if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
                         next_state = REQ_GETM_S_RSP;
                     end
                 end

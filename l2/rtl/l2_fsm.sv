@@ -566,6 +566,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 if (l2_rd_rsp_ready_int) begin 
                     wr_req_invack_cnt = 1'b1;
                     invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt + l2_rsp_in.invack_cnt; 
+                    wr_req_state = 1'b1;
                 end
                 
                 if (invack_cnt_wr_data_req == `MAX_N_L2) begin 
@@ -574,7 +575,6 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end else begin 
                     state_wr_data_req = reqs[reqs_i].state + 2;
                 end
-                wr_req_state = 1'b1;
             end
             RSP_INVACK : begin 
                 invack_cnt_wr_data_req = reqs[reqs_i].invack_cnt - 1; 
@@ -655,7 +655,11 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                         l2_rsp_out_o.addr = l2_fwd_in.addr;
                         l2_rsp_out_o.line = 0; 
                     end
-                    wr_req_state = 1'b1;
+                    
+                    if (l2_rsp_out_ready_int || l2_fwd_in.coh_msg != `FWD_INV) begin 
+                        wr_req_state = 1'b1;
+                    end
+
                     if (reqs[reqs_i].state == `SIA) begin 
                         state_wr_data_req  = `IIA; 
                     end else begin     

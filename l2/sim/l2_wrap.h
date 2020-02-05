@@ -9,7 +9,7 @@
 #include "cache_types.hpp"
 #include "cache_consts.hpp"
 
-class l2_wrapper : public ncsc_foreign_module 
+class l2_rtl_top : public ncsc_foreign_module 
 {
 public:
     sc_in<bool> clk;
@@ -71,7 +71,7 @@ public:
     sc_out<bool> l2_stats_data;
 #endif
      
-    l2_wrapper(sc_module_name name) 
+    l2_rtl_top(sc_module_name name) 
         : ncsc_foreign_module(name)
     , clk("clk")
     , rst("rst")
@@ -123,7 +123,7 @@ public:
 #endif
 {}
 
-        const char* hdl_name() const { return "l2_wrapper"; }
+        const char* hdl_name() const { return "l2_rtl_top"; }
 };
 
 class l2_wrapper_conv : public sc_module 
@@ -313,7 +313,7 @@ public:
 
 
 protected:
-    l2_wrapper cosim;
+    l2_rtl_top cosim;
 
 };
 
