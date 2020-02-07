@@ -9,17 +9,18 @@
 // Author: Joseph Zuckerman
 // processes available incoming signals with priority 
 
-module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle, req_in_stalled_addr, req_pending, is_req_to_resume); 
+module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int, recall_pending, recall_valid, dma_read_pending, dma_write_pending, flush_stall, rst_stall, req_stall, req_in_stalled_valid, decode_en, is_dma_read_to_resume, is_dma_write_to_resume, rsp_in_addr, req_in_addr, dma_req_in_addr, dma_addr, rst_flush_stalled_set, req_in_stalled_set, req_in_stalled_tag, update_req_in_from_stalled, clr_req_in_stalled_valid, look, is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_rst_to_get_next, is_rsp_to_get_next, do_get_req,  do_get_dma_req, set, set_next, clr_rst_stall, clr_flush_stall, clr_req_stall_decoder, update_dma_addr_from_req, line_br, idle, req_in_stalled_addr, req_pending, is_req_to_resume, req_in_recall_addr); 
    
     input logic clk, rst; 
     input logic llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int; 
-    input logic recall_pending, recall_valid;
-    input logic dma_read_pending, dma_write_pending, req_pending; 
+    nput logic recall_pending, recall_valid;
+    input logic dma_read_pending, dma_write_pending;
+    input logic req_pending; 
     input logic flush_stall, rst_stall, req_stall; 
     input logic req_in_stalled_valid;
     input logic decode_en; 
     input logic is_dma_read_to_resume, is_dma_write_to_resume;
-    input line_addr_t rsp_in_addr, req_in_addr, dma_req_in_addr, req_in_stalled_addr; 
+    input line_addr_t rsp_in_addr, req_in_addr, dma_req_in_addr, req_in_stalled_addr, req_in_recall_addr; 
     input llc_set_t rst_flush_stalled_set, req_in_stalled_set; 
     input llc_tag_t req_in_stalled_tag;
     input addr_t dma_addr; 
@@ -27,7 +28,8 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
     output logic update_req_in_from_stalled, clr_req_in_stalled_valid;  
     output logic look;
     output logic is_rst_to_resume, is_flush_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_write_to_resume_decoder, clr_is_dma_read_to_resume, clr_is_dma_write_to_resume;
-    output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_req_to_resume; 
+    output logic is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get;
+    output logic is_req_to_resume; 
     output logic is_rst_to_get_next, is_rsp_to_get_next;
     output logic do_get_req, do_get_dma_req;
     output llc_set_t set, set_next; 
@@ -129,13 +131,15 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
             
             if (is_rsp_to_get_next) begin 
                 addr_for_set = rsp_in_addr; 
-            end else if (is_req_to_get_next || is_req_to_resume_next) begin 
+            end else if (is_req_to_get_next) begin 
                 addr_for_set = update_req_in_from_stalled ? req_in_stalled_addr : req_in_addr;
             end else if (is_dma_req_to_get_next  || set_is_dma_read_to_resume_decoder || set_is_dma_write_to_resume_decoder) begin 
                 addr_for_set = is_dma_req_to_get_next ? dma_req_in_addr : dma_addr; 
                 if (is_dma_req_to_get_next) begin 
                     update_dma_addr_from_req = 1'b1;
                 end
+            end else if (is_req_to_resume_next) begin 
+                addr_for_set = req_in_recall_addr;         
             end
 
             line_br_next.tag = addr_for_set[(`ADDR_BITS - `OFFSET_BITS -1): `LLC_SET_BITS];

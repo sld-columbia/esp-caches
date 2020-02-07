@@ -147,7 +147,8 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     llc_tag_t req_in_stalled_tag;
     logic update_req_in_stalled; 
     logic update_evict_way, set_update_evict_way;
-    line_addr_t addr_evict;
+    logic set_recall_evict_addr; 
+    line_addr_t addr_evict, recall_evict_addr;
     
     //instance
     llc_req_in_t llc_dma_req_in_next(); 
@@ -157,7 +158,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
 
     //wires
     logic is_rst_to_get, is_req_to_get, is_req_to_resume, is_dma_req_to_get, is_rsp_to_get, do_get_req, do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
-    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr; 
+    line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr, req_in_recall_addr; 
     llc_set_t set, set_next, set_in;     
  
     //instance
@@ -245,7 +246,7 @@ module llc_core(clk, rst, llc_req_in_i, llc_req_in_valid, llc_req_in_ready, llc_
     //LOOKUP 
 
     //wires
-    logic evict;
+    logic evict, evict_next;
     llc_tag_t tag; 
     assign tag = line_br.tag;
  

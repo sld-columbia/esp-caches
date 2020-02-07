@@ -9,7 +9,7 @@
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict); 
+module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict, evict_next); 
     
     input logic clk, rst; 
     input llc_tag_t tag; 
@@ -19,7 +19,7 @@ module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, looku
     input logic lookup_en; 
 
     output llc_way_t way, way_next;
-    output logic evict;  
+    output logic evict, evict_next;  
 
     
     //LOOKUP
@@ -69,7 +69,6 @@ module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, looku
     assign evict_valid = |evict_valid_tmp; 
     assign evict_not_sd = |evict_not_sd_tmp;
 
-    logic evict_next; 
     always_comb begin 
         if (tag_hit) begin 
             way_next = hit_way;

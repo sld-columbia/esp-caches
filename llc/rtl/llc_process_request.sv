@@ -9,7 +9,7 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid_int, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o, is_req_to_resume, set_req_pending, clr_req_pending
+module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid_int, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, evict_next, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o, is_req_to_resume, set_req_pending, clr_req_pending, set_recall_evict_addr, recall_evict_addr
 `ifdef STATS_ENABLE 
     , llc_stats_ready_int, llc_stats_valid_int, llc_stats_o
 `endif
@@ -36,8 +36,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     input logic llc_rst_tb_done_ready_int;
     input logic llc_fwd_out_ready_int; 
     input logic llc_rsp_out_ready_int; 
-    input line_addr_t addr_evict;
-    input logic evict; 
+    input line_addr_t addr_evict, recall_evict_addr;
+    input logic evict, evict_next; 
     input logic llc_mem_rsp_valid_int; 
     input addr_t dma_addr;
     input logic llc_dma_rsp_out_ready_int; 
@@ -85,6 +85,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     output logic clr_recall_pending, clr_recall_valid; 
     output logic clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr; 
     output logic set_req_pending, clr_req_pending; 
+    output logic set_recall_evict_addr;
+
 `ifdef STATS_ENABLE
     input logic llc_stats_ready_int;
     output logic llc_stats_valid_int;
@@ -136,7 +138,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == REQ_RECALL_SSD || state == DMA_RECALL_SSD || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip)) begin 
+        end else if ((state == REQ_RECALL_SSD || state == DMA_RECALL_SSD || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -170,7 +172,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end else if (is_rsp_to_get) begin 
                         next_state = PROCESS_RSP; 
                     end else if (is_req_to_get || is_req_to_resume) begin 
-                        if (evict && !recall_pending && !recall_valid && states_buf[way_next] != `VALID) begin 
+                        if (evict_next && !recall_pending && !recall_valid && states_buf[way_next] != `VALID) begin 
                             case (states_buf[way_next]) 
                                 `EXCLUSIVE : next_state = REQ_RECALL_EM;
                                 `MODIFIED : next_state = REQ_RECALL_EM;
@@ -179,7 +181,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                                 default : next_state = IDLE; 
                             endcase
                         end else if (!recall_pending || recall_valid) begin 
-                            if (evict) begin 
+                            if (evict_next) begin 
                                 next_state = EVICT; 
                             end else begin 
                                 case(llc_req_in.coh_msg) 
@@ -744,6 +746,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
             
         words_to_write = 0;
         words_to_write_sum = 0; 
+        set_recall_evict_addr = 1'b0;
+
         case (state)
             IDLE : begin  
                 dma_write_woffset = llc_dma_req_in.word_offset;
@@ -772,7 +776,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 end
             end 
             PROCESS_RSP : begin 
-                if (recall_pending && (llc_rsp_in.addr == addr_evict)) begin 
+                if (recall_pending && (llc_rsp_in.addr == recall_evict_addr)) begin 
                     if (llc_rsp_in.coh_msg == `RSP_DATA) begin 
                         wr_en_lines_buf = 1'b1;
                         lines_buf_wr_data = llc_rsp_in.line;
@@ -791,7 +795,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     clr_req_stall_process = 1'b1;
                 end
                 
-                if (states_buf[way] == `SD && recall_pending) begin 
+                if (states_buf[way] == `SD && set_recall_valid) begin 
                     wr_en_states_buf = 1'b1; 
                     states_buf_wr_data = `VALID;
                 end else if (sharers_buf[way] != 0) begin 
@@ -805,6 +809,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
             REQ_RECALL_EM : begin 
                 set_req_pending = 1'b1;
                 set_recall_pending = 1'b1;
+                set_recall_evict_addr = 1'b1;
                 llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
                 llc_fwd_out_o.addr = addr_evict; 
                 llc_fwd_out_o.req_id = owners_buf[way]; 
@@ -812,6 +817,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                 llc_fwd_out_valid_int = 1'b1; 
             end
             REQ_RECALL_SSD : begin 
+                set_recall_evict_addr = 1'b1;
                 if (states_buf[way] == `SD) begin 
                     set_recall_pending = 1'b1; 
                     set_req_pending = 1'b1; 
@@ -1020,6 +1026,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
             DMA_RECALL_EM : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                set_recall_evict_addr = 1'b1;
                 set_recall_pending = 1'b1;
                 llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
                 llc_fwd_out_o.addr = addr_evict; 
@@ -1030,6 +1037,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
             DMA_RECALL_SSD : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                set_recall_evict_addr = 1'b1;
                 if (states_buf[way] == `SD) begin 
                     set_recall_pending = 1'b1;
                 end
