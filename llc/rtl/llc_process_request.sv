@@ -1095,22 +1095,33 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         end
     end
 
+    logic stats_new; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            stats_new <= 1'b1;
+        end else if (next_state == IDLE) begin 
+            stats_new <= 1'b1;
+        end else if (llc_stats_valid_int && llc_stats_ready_int) begin 
+            stats_new <= 1'b0; 
+        end
+    end
+
     always_comb begin 
         next_state_stats = state_stats; 
         llc_stats_o = 1'b0; 
         llc_stats_valid_int = 1'b0; 
         case (state_stats) 
             STATS_IDLE : begin 
-                if (next_state == DMA_RECALL_S || next_state == DMA_RECALL_EMSD || (next_state >= EVICT && next_state <= REQ_PUTM)) begin
+                if (stats_new && (next_state == DMA_RECALL_S || next_state == DMA_RECALL_EMSD || (next_state >= EVICT && next_state <= REQ_PUTM))) begin
                     next_state_stats = STATS_SEND;
                 end
             end 
             STATS_SEND : begin 
                 if (llc_stats_ready_int) begin 
-                    next_state_stats = IDLE;
+                    next_state_stats = STATS_IDLE;
                 end
-                llc_stats_valid_int = 1'b1; 
                 llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                llc_stats_valid_int = 1'b1; 
             end
             default : next_state_stats = STATS_IDLE; 
         endcase
