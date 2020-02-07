@@ -13,7 +13,7 @@ module llc_input_decoder (clk, rst, llc_rst_tb_valid_int, llc_rsp_in_valid_int, 
    
     input logic clk, rst; 
     input logic llc_rst_tb_valid_int, llc_rsp_in_valid_int, llc_req_in_valid_int, llc_dma_req_in_valid_int; 
-    nput logic recall_pending, recall_valid;
+    input logic recall_pending, recall_valid;
     input logic dma_read_pending, dma_write_pending;
     input logic req_pending; 
     input logic flush_stall, rst_stall, req_stall; 
