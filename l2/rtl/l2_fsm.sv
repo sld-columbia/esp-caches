@@ -78,29 +78,28 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
     localparam RSP_DATA_XMAD = 5'b00100;
     localparam RSP_DATA_XMADW = 5'b00101;
     localparam RSP_INVACK = 5'b00110; 
-    localparam FWD_LOOKUP = 5'b00111;
-    localparam FWD_RD_MEM = 5'b01000;
+    localparam FWD_REQS_LOOKUP = 5'b00111;
+    localparam FWD_TAG_LOOKUP = 5'b01000;
     localparam FWD_PUTACK = 5'b01001;
     localparam FWD_STALL = 5'b01010; 
     localparam FWD_HIT = 5'b01011; 
     localparam FWD_HIT_2 = 5'b01100;
-    localparam FWD_NO_HIT_INVAL = 5'b01101; 
-    localparam FWD_NO_HIT_RSP = 5'b01110; 
-    localparam FWD_NO_HIT_RSP_2 = 5'b01111; 
-    localparam ONGOING_FLUSH_RD_MEM = 5'b10000; 
-    localparam ONGOING_FLUSH_LOOKUP = 5'b10001; 
-    localparam ONGOING_FLUSH_PROCESS = 5'b10010;
-    localparam CPU_REQ_REQS_LOOKUP = 5'b10011;
-    localparam CPU_REQ_ATOMIC_OVERRIDE = 5'b10100;
-    localparam CPU_REQ_ATOMIC_CONTINUE_READ = 5'b10101;
-    localparam CPU_REQ_ATOMIC_CONTINUE_WRITE = 5'b10110;
-    localparam CPU_REQ_SET_CONFLICT = 5'b10111; 
-    localparam CPU_REQ_TAG_LOOKUP = 5'b11000;
-    localparam CPU_REQ_READ_READ_ATOMIC_EM  =  5'b11001;
-    localparam CPU_REQ_READ_ATOMIC_WRITE_S = 5'b11010; 
-    localparam CPU_REQ_WRITE_EM = 5'b11011; 
-    localparam CPU_REQ_EMPTY_WAY = 5'b11100; 
-    localparam CPU_REQ_EVICT = 5'b11101; 
+    localparam FWD_NO_HIT = 5'b01101; 
+    localparam FWD_NO_HIT_2 = 5'b01110; 
+    localparam ONGOING_FLUSH_RD_MEM = 5'b01111; 
+    localparam ONGOING_FLUSH_LOOKUP = 5'b10000; 
+    localparam ONGOING_FLUSH_PROCESS = 5'b10001;
+    localparam CPU_REQ_REQS_LOOKUP = 5'b10010;
+    localparam CPU_REQ_ATOMIC_OVERRIDE = 5'b10011;
+    localparam CPU_REQ_ATOMIC_CONTINUE_READ = 5'b10100;
+    localparam CPU_REQ_ATOMIC_CONTINUE_WRITE = 5'b10101;
+    localparam CPU_REQ_SET_CONFLICT = 5'b10110; 
+    localparam CPU_REQ_TAG_LOOKUP = 5'b10111;
+    localparam CPU_REQ_READ_READ_ATOMIC_EM  =  5'b11000;
+    localparam CPU_REQ_READ_ATOMIC_WRITE_S = 5'b11001; 
+    localparam CPU_REQ_WRITE_EM = 5'b11010; 
+    localparam CPU_REQ_EMPTY_WAY = 5'b11011; 
+    localparam CPU_REQ_EVICT = 5'b11100; 
 
     logic [4:0] state, next_state;
     always_ff @(posedge clk or negedge rst) begin 
@@ -149,9 +148,9 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             ready_bits <= 0; 
         end else if (state == DECODE) begin 
             ready_bits <= 0; 
-        end else if (state == CPU_REQ_EVICT && l2_inval_ready_int) begin 
+        end else if ((state == CPU_REQ_EVICT || state == FWD_NO_HIT) && l2_inval_ready_int) begin 
             ready_bits[0] <= 1'b1; 
-        end else if (state == CPU_REQ_EVICT && l2_req_out_ready_int) begin 
+        end else if ((state == CPU_REQ_EVICT && l2_req_out_ready_int) || (state == FWD_NO_HIT && l2_rsp_out_ready_int)) begin 
             ready_bits[1] <= 1'b1; 
         end
     end
@@ -170,7 +169,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end else if (do_rsp_next) begin 
                     next_state = RSP_LOOKUP; 
                 end else if (do_fwd_next) begin 
-                    next_state = FWD_RD_MEM;
+                    next_state = FWD_REQS_LOOKUP;
                 end else if (do_ongoing_flush_next) begin 
                     next_state = ONGOING_FLUSH_RD_MEM;
                 end else if (do_cpu_req_next) begin 
@@ -228,10 +227,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
             RSP_INVACK : begin 
                 next_state = DECODE;
             end
-            FWD_RD_MEM : begin 
-                next_state = FWD_LOOKUP;
-            end
-            FWD_LOOKUP : begin 
+            FWD_REQS_LOOKUP : begin 
                 if (l2_fwd_in.coh_msg == `FWD_PUTACK) begin 
                     next_state = FWD_PUTACK;
                 end else if ((fwd_stall || set_fwd_stall) & !clr_fwd_stall) begin 
@@ -239,14 +235,11 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 end else if (reqs_hit_next) begin 
                     next_state = FWD_HIT;
                 end else begin 
-                    if (l2_fwd_in.coh_msg == `FWD_GETS) begin 
-                        next_state = FWD_NO_HIT_RSP;
-                    end else if (!ongoing_flush || l2_fwd_in.coh_msg == `FWD_INV_LLC) begin 
-                        next_state = FWD_NO_HIT_INVAL; 
-                    end else begin 
-                        next_state = FWD_NO_HIT_RSP; 
-                    end
+                    next_state = FWD_TAG_LOOKUP;
                 end
+            end
+            FWD_TAG_LOOKUP : begin 
+                next_state = FWD_NO_HIT;    
             end
             FWD_PUTACK : begin 
                 if (l2_req_out_ready_int || !evict_stall) begin 
@@ -284,25 +277,20 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     next_state = DECODE; 
                 end
             end
-            FWD_NO_HIT_INVAL : begin 
-                if (l2_inval_ready_int) begin 
-                    if (l2_fwd_in.coh_msg == `FWD_INV_LLC) begin 
-                        next_state = DECODE;
+            FWD_NO_HIT : begin 
+                if ((l2_inval_ready_int && l2_rsp_out_ready_int) ||
+                    (l2_inval_ready_int && ready_bits[1]) || 
+                    (ready_bits[0] && l2_rsp_out_ready_int) ||
+                    (l2_inval_ready_int && l2_fwd_in.coh_msg == `FWD_INV_LLC) ||
+                    (l2_rsp_out_ready_int && l2_fwd_in.coh_msg == `FWD_GETS)) begin
+                    if (l2_fwd_in.coh_msg == `FWD_GETS) begin 
+                        next_state = FWD_NO_HIT_2;
                     end else begin 
-                        next_state = FWD_NO_HIT_RSP; 
+                        next_state = DECODE;
                     end
                 end
             end
-            FWD_NO_HIT_RSP : begin 
-                if (l2_rsp_out_ready_int) begin 
-                    if (l2_fwd_in.coh_msg == `FWD_GETS) begin 
-                        next_state = FWD_NO_HIT_RSP_2;
-                    end else begin 
-                        next_state = DECODE;
-                    end
-                end
-            end 
-            FWD_NO_HIT_RSP_2 : begin 
+            FWD_NO_HIT_2 : begin 
                 if (l2_rsp_out_ready_int) begin 
                     next_state = DECODE; 
                 end
@@ -598,15 +586,15 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     end
                 end
             end
-            FWD_RD_MEM : begin 
+            FWD_REQS_LOOKUP : begin 
                 rd_mem_en = 1'b1; 
                 set_in = line_br.set; 
-            end
-            FWD_LOOKUP : begin 
                 reqs_op_code = `L2_REQS_PEEK_FWD;
+                clr_fwd_stall_ended = 1'b1;
+            end
+            FWD_TAG_LOOKUP : begin 
                 lookup_en = 1'b1; 
                 lookup_mode = `L2_LOOKUP_FWD;
-                clr_fwd_stall_ended = 1'b1;
             end
             FWD_PUTACK : begin 
                 if (evict_stall) begin 
@@ -694,40 +682,41 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                 l2_rsp_out_o.addr = l2_fwd_in.addr; 
                 l2_rsp_out_o.line = reqs[reqs_i].line; 
             end
-            FWD_NO_HIT_INVAL : begin 
-                if (!ongoing_flush) begin 
-                    l2_inval_valid_int = 1'b1; 
+            FWD_NO_HIT : begin 
+                if (!ongoing_flush && l2_fwd_in.coh_msg != `FWD_GETS) begin 
+                    if (!ready_bits[0]) begin 
+                        l2_inval_valid_int = 1'b1;
+                    end
                     l2_inval_o = l2_fwd_in.addr;
                 end
-                wr_en_state = 1'b1; 
-                wr_data_state = `INVALID; 
-                way = way_hit;
-                set_in = line_br.set; 
-            end
-            FWD_NO_HIT_RSP : begin 
-                l2_rsp_out_valid_int = 1'b1;
-                if (l2_fwd_in.coh_msg == `FWD_GETS || l2_fwd_in.coh_msg == `FWD_GETM) begin 
-                    l2_rsp_out_o.coh_msg = `RSP_DATA;
-                    l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
-                    l2_rsp_out_o.to_req = 1'b1; 
-                    l2_rsp_out_o.addr = l2_fwd_in.addr; 
-                    l2_rsp_out_o.line = lines_buf[way_hit]; 
-                end else if (l2_fwd_in.coh_msg == `FWD_INV) begin 
-                    l2_rsp_out_o.coh_msg = `RSP_INVACK;
-                    l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
-                    l2_rsp_out_o.to_req = 1'b1; 
-                    l2_rsp_out_o.addr = l2_fwd_in.addr; 
-                    l2_rsp_out_o.line = 0;
-                end else if (l2_fwd_in.coh_msg == `FWD_GETM_LLC) begin 
-                    l2_rsp_out_o.req_id = 0; 
-                    l2_rsp_out_o.to_req = 1'b0; 
-                    l2_rsp_out_o.addr = l2_fwd_in.addr; 
-                    if (states_buf[way_hit] == `EXCLUSIVE) begin 
-                        l2_rsp_out_o.coh_msg = `RSP_INVACK;
-                        l2_rsp_out_o.line = 0;
-                    end else begin 
+                
+                if (l2_fwd_in.coh_msg != `FWD_INV_LLC) begin  
+                    if (!ready_bits[1]) begin 
+                        l2_rsp_out_valid_int = 1'b1;
+                    end
+                    if (l2_fwd_in.coh_msg == `FWD_GETS || l2_fwd_in.coh_msg == `FWD_GETM) begin 
                         l2_rsp_out_o.coh_msg = `RSP_DATA;
-                        l2_rsp_out_o.line = lines_buf[way_hit];
+                        l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
+                        l2_rsp_out_o.to_req = 1'b1; 
+                        l2_rsp_out_o.addr = l2_fwd_in.addr; 
+                        l2_rsp_out_o.line = lines_buf[way_hit]; 
+                    end else if (l2_fwd_in.coh_msg == `FWD_INV) begin 
+                        l2_rsp_out_o.coh_msg = `RSP_INVACK;
+                        l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
+                        l2_rsp_out_o.to_req = 1'b1; 
+                        l2_rsp_out_o.addr = l2_fwd_in.addr; 
+                        l2_rsp_out_o.line = 0;
+                    end else if (l2_fwd_in.coh_msg == `FWD_GETM_LLC) begin 
+                        l2_rsp_out_o.req_id = 0; 
+                        l2_rsp_out_o.to_req = 1'b0; 
+                        l2_rsp_out_o.addr = l2_fwd_in.addr; 
+                        if (states_buf[way_hit] == `EXCLUSIVE) begin 
+                            l2_rsp_out_o.coh_msg = `RSP_INVACK;
+                            l2_rsp_out_o.line = 0;
+                        end else begin 
+                            l2_rsp_out_o.coh_msg = `RSP_DATA;
+                            l2_rsp_out_o.line = lines_buf[way_hit];
+                        end
                     end
                 end
                 
@@ -738,7 +727,7 @@ module l2_fsm(clk, rst, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flus
                     set_in = line_br.set; 
                 end
             end
-            FWD_NO_HIT_RSP_2 : begin 
+            FWD_NO_HIT_2 : begin 
                 l2_rsp_out_valid_int = 1'b1;
                 l2_rsp_out_o.coh_msg = `RSP_DATA;
                 l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
