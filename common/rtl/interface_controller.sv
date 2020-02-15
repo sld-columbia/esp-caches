@@ -5,12 +5,16 @@
 `include "cache_types.svh"
 `include "cache_consts.svh"
 
-module interface_controller(clk, rst, ready_in, valid_in, ready_out, valid_out, valid_tmp);
+module interface_controller(
 
-    input logic clk, rst; 
-    
-    input logic ready_in, valid_in; 
-    output logic ready_out, valid_out, valid_tmp; 
+    input logic clk, 
+    input logic rst, 
+    input logic ready_in, 
+    input logic valid_in,
+    output logic ready_out, 
+    output logic valid_out, 
+    output logic valid_tmp
+    );
 
     localparam NOT_READY = 1'b0; 
     localparam READY = 1'b1; 

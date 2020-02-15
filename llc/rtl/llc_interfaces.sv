@@ -9,26 +9,108 @@
 // Author: Joseph Zuckerman
 // bypassable-queue implementation for input channels
 
-module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_in_ready, llc_req_in_valid_int, llc_req_in_i, llc_req_in, llc_dma_req_in_valid, llc_dma_req_in_ready_int, llc_dma_req_in_ready, llc_dma_req_in_valid_int, llc_dma_req_in_i, llc_dma_req_in, llc_rsp_in_valid, llc_rsp_in_ready_int, llc_rsp_in_ready, llc_rsp_in_valid_int, llc_rsp_in_i, llc_rsp_in, llc_mem_rsp_valid, llc_mem_rsp_ready_int, llc_mem_rsp_ready, llc_mem_rsp_valid_int, llc_mem_rsp_i, llc_mem_rsp, llc_rst_tb_valid, llc_rst_tb_ready_int, llc_rst_tb_ready, llc_rst_tb_valid_int, llc_rst_tb_i, llc_rst_tb, llc_rsp_out_valid, llc_rsp_out_ready, llc_rsp_out_valid_int, llc_rsp_out_ready_int, llc_rsp_out, llc_rsp_out_o, llc_dma_rsp_out_valid, llc_dma_rsp_out_ready, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_o, llc_dma_rsp_out, llc_fwd_out_valid, llc_fwd_out_ready, llc_fwd_out_valid_int, llc_fwd_out_ready_int, llc_fwd_out_o, llc_fwd_out, llc_mem_req_valid, llc_mem_req_ready, llc_mem_req_valid_int, llc_mem_req_ready_int, llc_mem_req_o, llc_mem_req, llc_rst_tb_done_valid, llc_rst_tb_done_ready, llc_rst_tb_done_valid_int, llc_rst_tb_done_ready_int, llc_rst_tb_done_o, llc_rst_tb_done, set_req_in_stalled, update_req_in_from_stalled,req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr, rst_in, llc_mem_rsp_next, llc_dma_req_in_next, req_in_recall_addr 
-`ifdef STATS_ENABLE
-    ,llc_stats_valid, llc_stats_ready, llc_stats_valid_int, llc_stats_ready_int, llc_stats_o, llc_stats
-`endif
-); 
+module llc_interfaces( 
+    input logic clk, 
+    input logic rst,
+    input logic llc_req_in_valid, 
+    input logic llc_req_in_ready_int, 
+    input logic llc_dma_req_in_valid, 
+    input logic llc_dma_req_in_ready_int, 
+    input logic llc_rsp_in_valid, 
+    input logic llc_rsp_in_ready_int, 
+    input logic llc_mem_rsp_valid, 
+    input logic llc_mem_rsp_ready_int, 
+    input logic llc_rst_tb_valid, 
+    input logic llc_rst_tb_ready_int,
+    input logic llc_rst_tb_i,
+    input logic llc_rsp_out_ready, 
+    input logic llc_rsp_out_valid_int,
+    input logic llc_dma_rsp_out_ready, 
+    input logic llc_dma_rsp_out_valid_int,
+    input logic llc_fwd_out_ready, 
+    input logic llc_fwd_out_valid_int,
+    input logic llc_mem_req_ready, 
+    input logic llc_mem_req_valid_int,
+    input logic llc_rst_tb_done_ready, 
+    input logic llc_rst_tb_done_valid_int,
+    input logic llc_rst_tb_done_o,
     
-    input logic clk, rst;
+    input logic update_req_in_from_stalled,
+    input logic set_req_in_stalled,
+ 
+    llc_req_in_t.in llc_req_in_i,
+    llc_req_in_t.in llc_dma_req_in_i,
+    llc_rsp_in_t.in llc_rsp_in_i,
+    llc_mem_rsp_t.in llc_mem_rsp_i,
+    llc_rsp_out_t.in llc_rsp_out_o,
+    llc_rsp_out_t.in llc_dma_rsp_out_o,
+    llc_fwd_out_t.in llc_fwd_out_o,
+    llc_mem_req_t.in llc_mem_req_o,
     
-    //logic for bypassable depth-1 queues implementing flex channels
+    output logic llc_req_in_ready, 
+    output logic llc_req_in_valid_int,
+    output logic llc_dma_req_in_ready, 
+    output logic llc_dma_req_in_valid_int,
+    output logic llc_rsp_in_ready, 
+    output logic llc_rsp_in_valid_int,
+    output logic llc_mem_rsp_ready, 
+    output logic llc_mem_rsp_valid_int,
+    output logic llc_rst_tb_ready, 
+    output logic llc_rst_tb_valid_int,
+    output logic llc_rsp_out_valid, 
+    output logic llc_rsp_out_ready_int,
+    output logic llc_dma_rsp_out_valid, 
+    output logic llc_dma_rsp_out_ready_int,
+    output logic llc_fwd_out_valid, 
+    output logic llc_fwd_out_ready_int,
+    output logic llc_mem_req_valid, 
+    output logic llc_mem_req_ready_int,
+    output logic llc_rst_tb_done_valid, 
+    output logic llc_rst_tb_done_ready_int,
+    output logic llc_rst_tb_done,
+    output logic llc_rst_tb, 
+    output logic rst_in,
+    output line_addr_t req_in_addr, 
+    output line_addr_t rsp_in_addr, 
+    output line_addr_t dma_req_in_addr, 
+    output line_addr_t req_in_stalled_addr, 
+    output line_addr_t req_in_recall_addr, 
+    
+    llc_req_in_t.out llc_req_in,
+    llc_rsp_out_t.out llc_rsp_out, 
+    llc_rsp_out_t.out llc_dma_rsp_out, 
+    llc_fwd_out_t.out llc_fwd_out,
+    llc_mem_req_t.out llc_mem_req, 
+    llc_req_in_t.out llc_dma_req_in, 
+    llc_rsp_in_t.out llc_rsp_in,
+    llc_mem_rsp_t.out llc_mem_rsp,
+    llc_req_in_t.out llc_dma_req_in_next, 
+    llc_mem_rsp_t.out llc_mem_rsp_next 
 
-    //REQ IN 
-    input logic llc_req_in_valid, llc_req_in_ready_int; 
-    output logic llc_req_in_ready, llc_req_in_valid_int;
-    logic llc_req_in_valid_tmp;
+    `ifdef STATS_ENABLE
+    , input logic llc_stats_ready, llc_stats_valid_int,
+    input logic llc_stats_o,
     
-    llc_req_in_t.in llc_req_in_i;
+    output logic llc_stats_valid, 
+    output logic llc_stats_ready_int,
+    output logic llc_stats
+`endif
+    ); 
+   
+    //REQ IN 
+    logic llc_req_in_valid_tmp;
     llc_req_in_t llc_req_in_tmp(); 
     llc_req_in_t llc_req_in_next(); 
     
-    interface_controller llc_req_in_intf(.clk(clk), .rst(rst), .ready_in(llc_req_in_ready_int), .valid_in(llc_req_in_valid), .ready_out(llc_req_in_ready), .valid_out(llc_req_in_valid_int), .valid_tmp(llc_req_in_valid_tmp)); 
+    interface_controller llc_req_in_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_req_in_ready_int), 
+        .valid_in(llc_req_in_valid), 
+        .ready_out(llc_req_in_ready), 
+        .valid_out(llc_req_in_valid_int), 
+        .valid_tmp(llc_req_in_valid_tmp)
+    ); 
    
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -59,15 +141,18 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_req_in_next.valid_words = (!llc_req_in_valid_tmp) ? llc_req_in_i.valid_words : llc_req_in_tmp.valid_words; 
 
     //DMA REQ IN 
-    input logic llc_dma_req_in_valid, llc_dma_req_in_ready_int; 
-    output logic llc_dma_req_in_ready, llc_dma_req_in_valid_int;
     logic llc_dma_req_in_valid_tmp;
-    
-    llc_req_in_t.in llc_dma_req_in_i;
     llc_req_in_t llc_dma_req_in_tmp(); 
-    llc_req_in_t.out llc_dma_req_in_next; 
     
-    interface_controller llc_dma_req_in_intf(.clk(clk), .rst(rst), .ready_in(llc_dma_req_in_ready_int), .valid_in(llc_dma_req_in_valid), .ready_out(llc_dma_req_in_ready), .valid_out(llc_dma_req_in_valid_int), .valid_tmp(llc_dma_req_in_valid_tmp)); 
+    interface_controller llc_dma_req_in_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_dma_req_in_ready_int), 
+        .valid_in(llc_dma_req_in_valid), 
+        .ready_out(llc_dma_req_in_ready), 
+        .valid_out(llc_dma_req_in_valid_int), 
+        .valid_tmp(llc_dma_req_in_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -98,15 +183,19 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_dma_req_in_next.valid_words = (!llc_dma_req_in_valid_tmp) ? llc_dma_req_in_i.valid_words : llc_dma_req_in_tmp.valid_words; 
     
     //RSP IN 
-    input logic llc_rsp_in_valid, llc_rsp_in_ready_int; 
-    output logic llc_rsp_in_ready, llc_rsp_in_valid_int;
     logic llc_rsp_in_valid_tmp;
-    
-    llc_rsp_in_t.in llc_rsp_in_i;
     llc_rsp_in_t llc_rsp_in_tmp(); 
     llc_rsp_in_t llc_rsp_in_next(); 
     
-    interface_controller llc_rsp_in_intf(.clk(clk), .rst(rst), .ready_in(llc_rsp_in_ready_int), .valid_in(llc_rsp_in_valid), .ready_out(llc_rsp_in_ready), .valid_out(llc_rsp_in_valid_int), .valid_tmp(llc_rsp_in_valid_tmp)); 
+    interface_controller llc_rsp_in_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_rsp_in_ready_int), 
+        .valid_in(llc_rsp_in_valid), 
+        .ready_out(llc_rsp_in_ready), 
+        .valid_out(llc_rsp_in_valid_int), 
+        .valid_tmp(llc_rsp_in_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -128,15 +217,18 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_rsp_in_next.req_id = (!llc_rsp_in_valid_tmp) ? llc_rsp_in_i.req_id : llc_rsp_in_tmp.req_id; 
     
     //MEM RSP IN 
-    input logic llc_mem_rsp_valid, llc_mem_rsp_ready_int; 
-    output logic llc_mem_rsp_ready, llc_mem_rsp_valid_int;
     logic llc_mem_rsp_valid_tmp; 
-
-    llc_mem_rsp_t.in llc_mem_rsp_i;
     llc_mem_rsp_t llc_mem_rsp_tmp(); 
-    llc_mem_rsp_t.out llc_mem_rsp_next; 
     
-    interface_controller llc_mem_rsp_intf(.clk(clk), .rst(rst), .ready_in(llc_mem_rsp_ready_int), .valid_in(llc_mem_rsp_valid), .ready_out(llc_mem_rsp_ready), .valid_out(llc_mem_rsp_valid_int), .valid_tmp(llc_mem_rsp_valid_tmp)); 
+    interface_controller llc_mem_rsp_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_mem_rsp_ready_int), 
+        .valid_in(llc_mem_rsp_valid), 
+        .ready_out(llc_mem_rsp_ready), 
+        .valid_out(llc_mem_rsp_valid_int), 
+        .valid_tmp(llc_mem_rsp_valid_tmp)
+    ); 
    
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -149,15 +241,19 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_mem_rsp_next.line = (!llc_mem_rsp_valid_tmp) ? llc_mem_rsp_i.line : llc_mem_rsp_tmp.line; 
     
     //RST TB IN 
-    input logic llc_rst_tb_valid, llc_rst_tb_ready_int; 
-    output logic llc_rst_tb_ready, llc_rst_tb_valid_int;
-    
-    input logic llc_rst_tb_i;
     logic llc_rst_tb_tmp; 
     logic llc_rst_tb_next; 
     logic llc_rst_tb_valid_tmp; 
 
-    interface_controller llc_rst_tb_intf(.clk(clk), .rst(rst), .ready_in(llc_rst_tb_ready_int), .valid_in(llc_rst_tb_valid), .ready_out(llc_rst_tb_ready), .valid_out(llc_rst_tb_valid_int), .valid_tmp(llc_rst_tb_valid_tmp)); 
+    interface_controller llc_rst_tb_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_rst_tb_ready_int), 
+        .valid_in(llc_rst_tb_valid), 
+        .ready_out(llc_rst_tb_ready), 
+        .valid_out(llc_rst_tb_valid_int), 
+        .valid_tmp(llc_rst_tb_valid_tmp)
+    ); 
    
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -170,14 +266,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_rst_tb_next = (!llc_rst_tb_valid_tmp) ? llc_rst_tb_i : llc_rst_tb_tmp; 
 
     //LLC RSP OUT
-    input logic llc_rsp_out_ready, llc_rsp_out_valid_int;
-    output logic llc_rsp_out_valid, llc_rsp_out_ready_int;
-    
-    interface_controller llc_rsp_out_intf(.clk(clk), .rst(rst), .ready_in(llc_rsp_out_ready), .valid_in(llc_rsp_out_valid_int), .ready_out(llc_rsp_out_ready_int), .valid_out(llc_rsp_out_valid), .valid_tmp(llc_rsp_out_valid_tmp)); 
-    
-    llc_rsp_out_t.in llc_rsp_out_o;
     llc_rsp_out_t llc_rsp_out_tmp(); 
-    llc_rsp_out_t.out llc_rsp_out; 
+    
+    interface_controller llc_rsp_out_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_rsp_out_ready), 
+        .valid_in(llc_rsp_out_valid_int), 
+        .ready_out(llc_rsp_out_ready_int), 
+        .valid_out(llc_rsp_out_valid), 
+        .valid_tmp(llc_rsp_out_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -208,14 +307,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_rsp_out.word_offset = (!llc_rsp_out_valid_tmp) ? llc_rsp_out_o.word_offset : llc_rsp_out_tmp.word_offset; 
     
     //LLC DMA RSP OUT
-    input logic llc_dma_rsp_out_ready, llc_dma_rsp_out_valid_int;
-    output logic llc_dma_rsp_out_valid, llc_dma_rsp_out_ready_int;
-    
-    llc_rsp_out_t.in llc_dma_rsp_out_o;
     llc_rsp_out_t llc_dma_rsp_out_tmp(); 
-    llc_rsp_out_t.out llc_dma_rsp_out; 
     
-    interface_controller llc_dma_rsp_out_intf(.clk(clk), .rst(rst), .ready_in(llc_dma_rsp_out_ready), .valid_in(llc_dma_rsp_out_valid_int), .ready_out(llc_dma_rsp_out_ready_int), .valid_out(llc_dma_rsp_out_valid), .valid_tmp(llc_dma_rsp_out_valid_tmp)); 
+    interface_controller llc_dma_rsp_out_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_dma_rsp_out_ready), 
+        .valid_in(llc_dma_rsp_out_valid_int), 
+        .ready_out(llc_dma_rsp_out_ready_int), 
+        .valid_out(llc_dma_rsp_out_valid), 
+        .valid_tmp(llc_dma_rsp_out_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -246,14 +348,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_dma_rsp_out.word_offset = (!llc_dma_rsp_out_valid_tmp) ? llc_dma_rsp_out_o.word_offset : llc_dma_rsp_out_tmp.word_offset; 
 
     //LLC FWD OUT
-    input logic llc_fwd_out_ready, llc_fwd_out_valid_int;
-    output logic llc_fwd_out_valid, llc_fwd_out_ready_int;
-    
-    llc_fwd_out_t.in llc_fwd_out_o;
     llc_fwd_out_t llc_fwd_out_tmp(); 
-    llc_fwd_out_t.out llc_fwd_out; 
     
-    interface_controller llc_fwd_out_intf(.clk(clk), .rst(rst), .ready_in(llc_fwd_out_ready), .valid_in(llc_fwd_out_valid_int), .ready_out(llc_fwd_out_ready_int), .valid_out(llc_fwd_out_valid), .valid_tmp(llc_fwd_out_valid_tmp)); 
+    interface_controller llc_fwd_out_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_fwd_out_ready), 
+        .valid_in(llc_fwd_out_valid_int), 
+        .ready_out(llc_fwd_out_ready_int), 
+        .valid_out(llc_fwd_out_valid), 
+        .valid_tmp(llc_fwd_out_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -275,14 +380,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_fwd_out.dest_id = (!llc_fwd_out_valid_tmp) ? llc_fwd_out_o.dest_id : llc_fwd_out_tmp.dest_id; 
     
     //LLC MEM REQ
-    input logic llc_mem_req_ready, llc_mem_req_valid_int;
-    output logic llc_mem_req_valid, llc_mem_req_ready_int;
-    
-    llc_mem_req_t.in llc_mem_req_o;
     llc_mem_req_t llc_mem_req_tmp(); 
-    llc_mem_req_t.out llc_mem_req; 
     
-    interface_controller llc_mem_req_intf(.clk(clk), .rst(rst), .ready_in(llc_mem_req_ready), .valid_in(llc_mem_req_valid_int), .ready_out(llc_mem_req_ready_int), .valid_out(llc_mem_req_valid), .valid_tmp(llc_mem_req_valid_tmp)); 
+    interface_controller llc_mem_req_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_mem_req_ready), 
+        .valid_in(llc_mem_req_valid_int), 
+        .ready_out(llc_mem_req_ready_int), 
+        .valid_out(llc_mem_req_valid), 
+        .valid_tmp(llc_mem_req_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -307,14 +415,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     assign llc_mem_req.line = (!llc_mem_req_valid_tmp) ? llc_mem_req_o.line : llc_mem_req_tmp.line; 
    
     //LLC RST TB DONE
-    input logic llc_rst_tb_done_ready, llc_rst_tb_done_valid_int;
-    output logic llc_rst_tb_done_valid, llc_rst_tb_done_ready_int;
-    
-    input logic llc_rst_tb_done_o;
     logic llc_rst_tb_done_tmp; 
-    output logic llc_rst_tb_done; 
     
-    interface_controller llc_rst_tb_done_intf(.clk(clk), .rst(rst), .ready_in(llc_rst_tb_done_ready), .valid_in(llc_rst_tb_done_valid_int), .ready_out(llc_rst_tb_done_ready_int), .valid_out(llc_rst_tb_done_valid), .valid_tmp(llc_rst_tb_done_valid_tmp)); 
+    interface_controller llc_rst_tb_done_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_rst_tb_done_ready), 
+        .valid_in(llc_rst_tb_done_valid_int), 
+        .ready_out(llc_rst_tb_done_ready_int), 
+        .valid_out(llc_rst_tb_done_valid), 
+        .valid_tmp(llc_rst_tb_done_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -328,14 +439,17 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
 
     //LLC RST TB DONE
 `ifdef STATS_ENABLE
-    input logic llc_stats_ready, llc_stats_valid_int;
-    output logic llc_stats_valid, llc_stats_ready_int;
-    
-    input logic llc_stats_o;
     logic llc_stats_tmp; 
-    output logic llc_stats; 
     
-    interface_controller llc_stats_intf(.clk(clk), .rst(rst), .ready_in(llc_stats_ready), .valid_in(llc_stats_valid_int), .ready_out(llc_stats_ready_int), .valid_out(llc_stats_valid), .valid_tmp(llc_stats_valid_tmp)); 
+    interface_controller llc_stats_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(llc_stats_ready), 
+        .valid_in(llc_stats_valid_int), 
+        .ready_out(llc_stats_ready_int), 
+        .valid_out(llc_stats_valid), 
+        .valid_tmp(llc_stats_valid_tmp)
+    ); 
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -351,8 +465,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     //read from interfaces 
 
    //llc req in
-    input logic update_req_in_from_stalled;
-    llc_req_in_t.out llc_req_in;
     llc_req_in_t req_in_stalled();
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
@@ -383,7 +495,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     end
 
     //req in stalled
-    input logic set_req_in_stalled; 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             req_in_stalled.coh_msg <= 0; 
@@ -405,7 +516,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     end
 
     //dma req in 
-    llc_req_in_t.out llc_dma_req_in; 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_dma_req_in.coh_msg <= 0; 
@@ -427,7 +537,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     end
     
     //llc rsp in
-    llc_rsp_in_t.out llc_rsp_in; 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_rsp_in.coh_msg <= 0; 
@@ -443,7 +552,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     end
     
     //mem rsp
-    llc_mem_rsp_t.out llc_mem_rsp;
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_mem_rsp.line <= 0; 
@@ -453,7 +561,6 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
     end
 
     //rst tb 
-    output logic llc_rst_tb; 
     always_ff @(posedge clk or negedge rst) begin 
         if(!rst) begin 
             llc_rst_tb <= 0; 
@@ -461,16 +568,12 @@ module llc_interfaces(clk, rst, llc_req_in_valid, llc_req_in_ready_int, llc_req_
             llc_rst_tb <= llc_rst_tb_next; 
         end
     end
-
-    output line_addr_t req_in_addr, rsp_in_addr, dma_req_in_addr, req_in_stalled_addr, req_in_recall_addr; 
     
     assign req_in_addr = llc_req_in_valid_tmp ? llc_req_in_tmp.addr : llc_req_in_i.addr;
     assign rsp_in_addr = llc_rsp_in_valid_tmp ? llc_rsp_in_tmp.addr : llc_rsp_in_i.addr;
     assign dma_req_in_addr = llc_dma_req_in_valid_tmp ? llc_dma_req_in_tmp.addr : llc_dma_req_in_i.addr; 
     assign req_in_stalled_addr = req_in_stalled.addr;
     assign req_in_recall_addr = llc_req_in.addr; 
-
-    output logic rst_in;
     assign rst_in = llc_rst_tb; 
 
 endmodule

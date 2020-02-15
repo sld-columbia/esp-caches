@@ -9,67 +9,71 @@
 // Author: Joseph Zuckerman
 // llc registers 
 
-module llc_regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en, clr_rst_stall, rst_stall, clr_flush_stall, set_flush_stall, flush_stall, clr_req_stall_decoder, clr_req_stall_process, set_req_stall, req_stall, clr_req_in_stalled_valid, set_req_in_stalled_valid, req_in_stalled_valid, clr_rst_flush_stalled_set, incr_rst_flush_stalled_set, rst_flush_stalled_set, update_dma_addr_from_req, incr_dma_addr, dma_addr, clr_recall_pending, set_recall_pending, recall_pending, clr_dma_read_pending, set_dma_read_pending, dma_read_pending, clr_dma_write_pending, set_dma_write_pending, dma_write_pending, clr_recall_valid, set_recall_valid, recall_valid, clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process, is_dma_read_to_resume, clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process, is_dma_write_to_resume, update_req_in_stalled, req_in_stalled_set, req_in_stalled_tag, set_update_evict_way, update_evict_way, line_br, set, tags_buf, way_next, addr_evict, llc_dma_req_in_next, set_req_pending, clr_req_pending, req_pending, set_recall_evict_addr, recall_evict_addr);    
+module llc_regs(   
+    input logic clk, 
+    input logic rst, 
+    input logic rst_state, 
+    input logic decode_en, 
+    input logic rd_set_en, 
+    input logic lookup_en, 
+    input logic update_en, 
+    input logic clr_rst_stall,
+    input logic clr_flush_stall, 
+    input logic set_flush_stall, 
+    input logic clr_req_stall_decoder, 
+    input logic clr_req_stall_process, 
+    input logic set_req_stall, 
+    input logic clr_req_in_stalled_valid,
+    input logic set_req_in_stalled_valid,  
+    input logic clr_rst_flush_stalled_set, 
+    input logic incr_rst_flush_stalled_set,
+    input logic update_dma_addr_from_req, 
+    input logic incr_dma_addr, 
+    input logic clr_recall_pending, 
+    input logic set_recall_pending,    
+    input logic clr_dma_read_pending, 
+    input logic set_dma_read_pending,    
+    input logic clr_dma_write_pending, 
+    input logic set_dma_write_pending,    
+    input logic clr_recall_valid, 
+    input logic set_recall_valid,    
+    input logic clr_is_dma_read_to_resume, 
+    input logic set_is_dma_read_to_resume_decoder, 
+    input logic set_is_dma_read_to_resume_process, 
+    input logic clr_is_dma_write_to_resume, 
+    input logic set_is_dma_write_to_resume_decoder, 
+    input logic set_is_dma_write_to_resume_process, 
+    input logic update_req_in_stalled, 
+    input logic set_update_evict_way,
+    input logic set_req_pending, clr_req_pending, 
+    input logic set_recall_evict_addr,
+    input llc_way_t way_next,
+    input llc_set_t set, 
+    input llc_tag_t tags_buf[`LLC_WAYS], 
+        
+    line_breakdown_llc_t.in line_br, 
+    llc_req_in_t.in llc_dma_req_in_next,
     
-    input logic clk, rst, rst_state; 
-    input logic decode_en, rd_set_en, lookup_en, update_en; 
-
-    input logic clr_rst_stall;
-    output logic rst_stall;
+    output logic rst_stall,
+    output logic flush_stall,
+    output logic req_stall,
+    output logic req_in_stalled_valid,      
+    output logic recall_pending,   
+    output logic dma_read_pending,
+    output logic dma_write_pending, 
+    output logic recall_valid, 
+    output logic is_dma_read_to_resume,
+    output logic is_dma_write_to_resume, 
+    output logic update_evict_way,
+    output logic req_pending, 
+    output llc_set_t rst_flush_stalled_set,
+    output addr_t dma_addr,  
+    output llc_set_t req_in_stalled_set, 
+    output llc_tag_t req_in_stalled_tag,
+    output line_addr_t addr_evict,
+    output line_addr_t recall_evict_addr
+    );
     
-    input logic clr_flush_stall, set_flush_stall; 
-    output logic flush_stall;
-
-    input logic clr_req_stall_decoder, clr_req_stall_process, set_req_stall; 
-    output logic req_stall;
-
-    input logic clr_req_in_stalled_valid, set_req_in_stalled_valid;  
-    output logic req_in_stalled_valid;      
-
-    input logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
-    output llc_set_t rst_flush_stalled_set;
-  
-    input logic update_dma_addr_from_req, incr_dma_addr; 
-    output addr_t dma_addr;  
-  
-    input logic clr_recall_pending, set_recall_pending;    
-    output logic recall_pending;   
-    
-    input logic clr_dma_read_pending, set_dma_read_pending;    
-    output logic dma_read_pending;
-   
-    input logic clr_dma_write_pending, set_dma_write_pending;    
-    output logic dma_write_pending; 
-   
-    input logic clr_recall_valid, set_recall_valid;    
-    output logic recall_valid; 
-    
-    input logic clr_is_dma_read_to_resume, set_is_dma_read_to_resume_decoder, set_is_dma_read_to_resume_process; 
-    output logic is_dma_read_to_resume;
-    
-    input logic clr_is_dma_write_to_resume, set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process; 
-    output logic is_dma_write_to_resume; 
-    
-    input logic update_req_in_stalled; 
-    output llc_set_t req_in_stalled_set; 
-    output llc_tag_t req_in_stalled_tag;
-
-    input logic set_update_evict_way;
-    output logic update_evict_way;
-
-    input llc_way_t way_next;
-    input llc_set_t set; 
-    input llc_tag_t tags_buf[`LLC_WAYS]; 
-    output line_addr_t addr_evict;
-
-    input logic set_req_pending, clr_req_pending; 
-    output logic req_pending; 
-
-    input logic set_recall_evict_addr;
-    output line_addr_t recall_evict_addr; 
-
-    line_breakdown_llc_t.in line_br; 
-
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             rst_stall <= 1'b1;
@@ -122,7 +126,6 @@ module llc_regs(clk, rst, rst_state, decode_en, rd_set_en, lookup_en, update_en,
         end
     end
    
-    llc_req_in_t.in llc_dma_req_in_next;
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
             dma_addr <= 0;

@@ -9,92 +9,116 @@
 //Author: Joseph Zuckerman
 //takes action for next pending request 
 
-module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, set, llc_rsp_in, recall_pending, recall_valid, line_br, req_in_stalled_tag, req_in_stalled_set, flush_stall, rst_stall, req_stall, llc_mem_req_ready_int, llc_rst_tb_done_ready_int, addr_evict, lines_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, evict_way_buf, states_buf, llc_mem_req_valid_int, llc_rst_tb_done_valid_int, llc_rst_tb_done_o, clr_req_stall_process, clr_rst_flush_stalled_set, set_recall_valid, set_recall_pending, wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf, lines_buf_wr_data, tags_buf_wr_data, sharers_buf_wr_data, owners_buf_wr_data, hprots_buf_wr_data, dirty_bits_buf_wr_data, states_buf_wr_data, process_done, llc_fwd_out_o, llc_fwd_out_ready_int, llc_fwd_out_valid_int,  llc_rsp_out_o, llc_rsp_out_ready_int, llc_rsp_out_valid_int, llc_mem_req_o, llc_mem_rsp, llc_mem_rsp_valid_int, llc_mem_rsp_ready_int, llc_req_in, llc_dma_req_in, rst_in, rst_state, set_flush_stall, set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled, incr_evict_way_buf, set_update_evict_way, evict, evict_next, dma_addr, set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process, clr_recall_pending, clr_recall_valid, clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr, llc_dma_rsp_out_ready_int, llc_dma_rsp_out_valid_int, llc_dma_rsp_out_o, is_req_to_resume, set_req_pending, clr_req_pending, set_recall_evict_addr, recall_evict_addr
-`ifdef STATS_ENABLE 
-    , llc_stats_ready_int, llc_stats_valid_int, llc_stats_o
-`endif
-); 
-    
-    input logic clk, rst; 
-    input logic process_en; 
-    input logic rst_in;
-
-    input llc_way_t way, way_next;
-    input logic is_flush_to_resume, is_rst_to_resume, is_rst_to_get, is_rsp_to_get, is_req_to_get, is_dma_req_to_get, is_dma_read_to_resume, is_dma_write_to_resume, is_req_to_resume; 
-    input llc_set_t set;  
-    llc_req_in_t.in llc_req_in;     
-    llc_req_in_t.in llc_dma_req_in;
-    llc_rsp_in_t.in llc_rsp_in;
-    llc_mem_rsp_t.in llc_mem_rsp; 
-    input logic recall_pending, recall_valid; 
-    
-    line_breakdown_llc_t.in line_br; 
-    input llc_tag_t req_in_stalled_tag; 
-    input llc_set_t req_in_stalled_set; 
-    input flush_stall, rst_stall, req_stall; 
-    input logic llc_mem_req_ready_int;
-    input logic llc_rst_tb_done_ready_int;
-    input logic llc_fwd_out_ready_int; 
-    input logic llc_rsp_out_ready_int; 
-    input line_addr_t addr_evict, recall_evict_addr;
-    input logic evict, evict_next; 
-    input logic llc_mem_rsp_valid_int; 
-    input addr_t dma_addr;
-    input logic llc_dma_rsp_out_ready_int; 
-
-    input line_t lines_buf[`LLC_WAYS];
-    input llc_tag_t tags_buf[`LLC_WAYS];
-    input sharers_t sharers_buf[`LLC_WAYS];
-    input owner_t owners_buf[`LLC_WAYS];
-    input hprot_t hprots_buf[`LLC_WAYS];
-    input logic dirty_bits_buf[`LLC_WAYS];
-    input llc_way_t evict_way_buf;
-    input llc_state_t states_buf[`LLC_WAYS];
-    
-    llc_mem_req_t.out llc_mem_req_o; 
-    llc_fwd_out_t.out llc_fwd_out_o; 
-    llc_rsp_out_t.out llc_rsp_out_o; 
-    llc_rsp_out_t.out llc_dma_rsp_out_o; 
-
-    output logic llc_mem_req_valid_int; 
-    output logic llc_rst_tb_done_valid_int;
-    output logic llc_rst_tb_done_o; 
-    output logic llc_fwd_out_valid_int;
-    output logic llc_rsp_out_valid_int;
-    output logic llc_mem_rsp_ready_int; 
-    output logic llc_dma_rsp_out_valid_int; 
-
-    output logic rst_state; 
-    output logic clr_req_stall_process;
-    output logic clr_rst_flush_stalled_set; 
-    output logic set_recall_valid, set_recall_pending; 
-    output logic set_flush_stall;
-
-    output logic wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf;
-    output line_t lines_buf_wr_data; 
-    output llc_tag_t tags_buf_wr_data; 
-    output sharers_t sharers_buf_wr_data; 
-    output owner_t owners_buf_wr_data; 
-    output hprot_t hprots_buf_wr_data; 
-    output logic dirty_bits_buf_wr_data; 
-    output llc_state_t states_buf_wr_data;
-    output logic process_done; 
-    output logic set_req_stall, set_req_in_stalled_valid, set_req_in_stalled, update_req_in_stalled;
-    output logic incr_evict_way_buf, set_update_evict_way;
-    output logic set_dma_read_pending, set_is_dma_read_to_resume_process, set_dma_write_pending, set_is_dma_write_to_resume_process;
-    output logic clr_recall_pending, clr_recall_valid; 
-    output logic clr_dma_read_pending, clr_dma_write_pending, incr_dma_addr; 
-    output logic set_req_pending, clr_req_pending; 
-    output logic set_recall_evict_addr;
+module llc_process_request(    
+    input logic clk,
+    input logic rst, 
+    input logic process_en, 
+    input logic rst_in,
+    input logic is_flush_to_resume,
+    input logic is_rst_to_resume,
+    input logic is_rst_to_get,
+    input logic is_rsp_to_get,
+    input logic is_req_to_get, 
+    input logic is_dma_req_to_get,
+    input logic is_dma_read_to_resume,
+    input logic is_dma_write_to_resume,
+    input logic is_req_to_resume, 
+    input logic recall_pending,
+    input logic recall_valid, 
+    input logic flush_stall, 
+    input logic rst_stall, 
+    input logic req_stall, 
+    input logic llc_mem_req_ready_int,
+    input logic llc_rst_tb_done_ready_int,
+    input logic llc_fwd_out_ready_int, 
+    input logic llc_rsp_out_ready_int, 
+    input logic evict, 
+    input logic evict_next, 
+    input logic llc_mem_rsp_valid_int, 
+    input logic llc_dma_rsp_out_ready_int, 
+    input logic dirty_bits_buf[`LLC_WAYS],
+    input line_t lines_buf[`LLC_WAYS],
+    input llc_tag_t tags_buf[`LLC_WAYS],
+    input sharers_t sharers_buf[`LLC_WAYS],
+    input owner_t owners_buf[`LLC_WAYS],
+    input hprot_t hprots_buf[`LLC_WAYS],
+    input llc_state_t states_buf[`LLC_WAYS],
+    input llc_way_t evict_way_buf,
+    input llc_tag_t req_in_stalled_tag, 
+    input llc_set_t req_in_stalled_set, 
+    input llc_set_t set,  
+    input llc_way_t way,
+    input llc_way_t way_next,
+    input line_addr_t addr_evict, 
+    input line_addr_t recall_evict_addr,
+    input addr_t dma_addr,
+        
+    llc_req_in_t.in llc_req_in,     
+    llc_req_in_t.in llc_dma_req_in,
+    llc_rsp_in_t.in llc_rsp_in,
+    llc_mem_rsp_t.in llc_mem_rsp, 
+    line_breakdown_llc_t.in line_br, 
+  
+    output logic llc_mem_req_valid_int, 
+    output logic llc_rst_tb_done_valid_int,
+    output logic llc_rst_tb_done_o, 
+    output logic llc_fwd_out_valid_int,
+    output logic llc_rsp_out_valid_int,
+    output logic llc_mem_rsp_ready_int, 
+    output logic llc_dma_rsp_out_valid_int, 
+    output logic rst_state, 
+    output logic clr_req_stall_process,
+    output logic clr_rst_flush_stalled_set, 
+    output logic set_recall_valid, 
+    output logic set_recall_pending, 
+    output logic set_flush_stall,
+    output logic wr_en_lines_buf,
+    output logic wr_en_tags_buf,
+    output logic wr_en_sharers_buf, 
+    output logic wr_en_owners_buf, 
+    output logic wr_en_hprots_buf, 
+    output logic wr_en_dirty_bits_buf, 
+    output logic wr_en_states_buf,
+    output logic dirty_bits_buf_wr_data, 
+    output logic process_done, 
+    output logic set_req_stall, 
+    output logic set_req_in_stalled_valid, 
+    output logic set_req_in_stalled,
+    output logic update_req_in_stalled,
+    output logic incr_evict_way_buf, 
+    output logic set_update_evict_way,
+    output logic set_dma_read_pending, 
+    output logic set_is_dma_read_to_resume_process, 
+    output logic set_dma_write_pending, 
+    output logic set_is_dma_write_to_resume_process,
+    output logic clr_recall_pending, 
+    output logic clr_recall_valid, 
+    output logic clr_dma_read_pending, 
+    output logic clr_dma_write_pending, 
+    output logic incr_dma_addr, 
+    output logic set_req_pending, 
+    output logic clr_req_pending, 
+    output logic set_recall_evict_addr,
+    output line_t lines_buf_wr_data, 
+    output llc_tag_t tags_buf_wr_data, 
+    output sharers_t sharers_buf_wr_data, 
+    output owner_t owners_buf_wr_data, 
+    output hprot_t hprots_buf_wr_data, 
+    output llc_state_t states_buf_wr_data,
+        
+    llc_mem_req_t.out llc_mem_req_o, 
+    llc_fwd_out_t.out llc_fwd_out_o, 
+    llc_rsp_out_t.out llc_rsp_out_o, 
+    llc_rsp_out_t.out llc_dma_rsp_out_o 
 
 `ifdef STATS_ENABLE
-    input logic llc_stats_ready_int;
-    output logic llc_stats_valid_int;
-    output logic llc_stats_o;
+    , input logic llc_stats_ready_int,
+    output logic llc_stats_valid_int,
+    output logic llc_stats_o
 `endif 
+    ); 
 
-
-    //STATE LOGIC
+    //STATE ENCODING 
     localparam IDLE = 5'b00000; 
     localparam PROCESS_FLUSH_RESUME = 5'b00001; 
     localparam PROCESS_RST = 5'b00010;
@@ -138,7 +162,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst || (state == IDLE)) begin 
             l2_cnt <= 0;
-        end else if ((state == REQ_RECALL_SSD || state == DMA_RECALL_SSD || state == REQ_GETM_S_FWD) && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
+        end else if ((state == REQ_RECALL_SSD || state == DMA_RECALL_SSD || state == REQ_GETM_S_FWD) 
+                    && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
@@ -216,7 +241,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end else if (is_dma_req_to_get || is_dma_read_to_resume || is_dma_write_to_resume) begin 
                         if (is_dma_req_to_get) begin 
                             next_state = DMA_REQ_TO_GET; 
-                        end else if (!recall_valid && !recall_pending && states_buf[way_next] != `INVALID && states_buf[way_next] != `VALID) begin 
+                        end else if (!recall_valid && !recall_pending && states_buf[way_next] != `INVALID 
+                                    && states_buf[way_next] != `VALID) begin 
                             case (states_buf[way_next])
                                 `EXCLUSIVE : next_state = DMA_RECALL_EM;
                                 `MODIFIED : next_state = DMA_RECALL_EM;
@@ -354,7 +380,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                     end 
                 end
                 EVICT : begin
-                    if ((states_buf[way] == `VALID && dirty_bits_buf[way] && llc_mem_req_ready_int) || (states_buf[way] != `VALID || !dirty_bits_buf[way])) begin
+                    if ((states_buf[way] == `VALID && dirty_bits_buf[way] && llc_mem_req_ready_int) 
+                        || (states_buf[way] != `VALID || !dirty_bits_buf[way])) begin
                         case(llc_req_in.coh_msg) 
                             `REQ_GETS : begin 
                                 case(states_buf_wr_data) 
@@ -650,6 +677,7 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
     logic [`WORDS_PER_LINE-1:0] words_to_write;
     logic [`WORD_BITS-1:0] words_to_write_sum; 
     always_comb begin 
+        //imterfaces
         llc_mem_req_o.hwrite = 0; 
         llc_mem_req_o.hsize = 0; 
         llc_mem_req_o.hprot = 0;
@@ -683,56 +711,48 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
 
         llc_mem_rsp_ready_int = 1'b0; 
         
-        line_addr = 0; 
-        skip = 1'b0;
-
-        lines_buf_wr_data = 0; 
-        wr_en_lines_buf = 1'b0;
-        
-        dirty_bits_buf_wr_data = 1'b0;
-        wr_en_dirty_bits_buf = 1'b0;
-        
-        states_buf_wr_data = 0;
-        wr_en_states_buf = 1'b0; 
-        
-        sharers_buf_wr_data = 0;
-        wr_en_sharers_buf = 1'b0;
-
-        owners_buf_wr_data = 0; 
-        wr_en_owners_buf = 1'b0; 
-        
-        wr_en_hprots_buf = 1'b0; 
-        hprots_buf_wr_data = 0; 
-        
-        wr_en_tags_buf = 1'b0; 
-        tags_buf_wr_data = 0;
-
-        set_flush_stall = 1'b0; 
-        clr_rst_flush_stalled_set = 1'b0;  
-        set_recall_valid = 1'b0; 
-        clr_req_stall_process = 1'b0; 
         llc_rst_tb_done_valid_int = 1'b0; 
         llc_rst_tb_done_o = 1'b0;
-        rst_state = 1'b0; 
-        
+       
+        //write to buffers 
+        lines_buf_wr_data = 0; 
+        wr_en_lines_buf = 1'b0;
+        dirty_bits_buf_wr_data = 1'b0;
+        wr_en_dirty_bits_buf = 1'b0;
+        states_buf_wr_data = 0;
+        wr_en_states_buf = 1'b0; 
+        sharers_buf_wr_data = 0;
+        wr_en_sharers_buf = 1'b0;
+        owners_buf_wr_data = 0; 
+        wr_en_owners_buf = 1'b0; 
+        wr_en_hprots_buf = 1'b0; 
+        hprots_buf_wr_data = 0; 
+        wr_en_tags_buf = 1'b0; 
+        tags_buf_wr_data = 0;
+        incr_evict_way_buf = 1'b0;
+        set_update_evict_way = 1'b0;  
+
+        //stalls/recalls
+        set_flush_stall = 1'b0; 
+        clr_rst_flush_stalled_set = 1'b0;  
+        clr_req_stall_process = 1'b0; 
         set_req_stall = 1'b0; 
         set_req_in_stalled_valid = 1'b0; 
         set_req_in_stalled = 1'b0; 
         update_req_in_stalled = 1'b0;
-        set_update_evict_way = 1'b0;  
-        incr_evict_way_buf = 1'b0;
-        incr_invack_cnt = 1'b0; 
-        
-        set_dma_read_pending = 1'b0; 
-        set_is_dma_read_to_resume_process = 1'b0;
-        set_dma_write_pending = 1'b0; 
-        set_is_dma_write_to_resume_process = 1'b0;
         set_recall_pending = 1'b0; 
         clr_recall_pending = 1'b0;
         clr_recall_valid = 1'b0; 
         set_req_pending = 1'b0;
         clr_req_pending = 1'b0; 
-
+        set_recall_evict_addr = 1'b0;
+        set_recall_valid = 1'b0; 
+        
+        //DMA
+        set_dma_read_pending = 1'b0; 
+        set_is_dma_read_to_resume_process = 1'b0;
+        set_dma_write_pending = 1'b0; 
+        set_is_dma_write_to_resume_process = 1'b0;
         valid_words = `WORDS_PER_LINE;
         dma_read_woffset = 0;
         dma_write_woffset = 0; 
@@ -743,10 +763,15 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         incr_dma_addr = 1'b0; 
         clr_dma_read_pending = 1'b0; 
         clr_dma_write_pending = 1'b0; 
-            
         words_to_write = 0;
         words_to_write_sum = 0; 
-        set_recall_evict_addr = 1'b0;
+        
+        //misc 
+        line_addr = 0; 
+        skip = 1'b0;
+        incr_invack_cnt = 1'b0; 
+        rst_state = 1'b0;  
+      
 
         case (state)
             IDLE : begin  
@@ -1183,7 +1208,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
                             words_to_write_sum = words_to_write_sum + words_to_write[j];
                         end 
                         if (words_to_write[i] && (valid_words > words_to_write_sum)) begin 
-                            lines_buf_wr_data[(`BITS_PER_WORD*i + `BITS_PER_WORD -1) -: (`BITS_PER_WORD)] = llc_dma_req_in.line[(`BITS_PER_WORD*i + `BITS_PER_WORD - 1) -: (`BITS_PER_WORD)];
+                            lines_buf_wr_data[(`BITS_PER_WORD*i + `BITS_PER_WORD -1) -: (`BITS_PER_WORD)] 
+                                = llc_dma_req_in.line[(`BITS_PER_WORD*i + `BITS_PER_WORD - 1) -: (`BITS_PER_WORD)];
                         end
                     end
 
@@ -1254,7 +1280,8 @@ module llc_process_request(clk, rst, process_en, way, way_next, is_flush_to_resu
         llc_stats_valid_int = 1'b0; 
         case (state_stats) 
             STATS_IDLE : begin 
-                if (next_state == DMA_RECALL_SSD || next_state == DMA_RECALL_EM || (next_state >= EVICT && next_state <= REQ_PUTM)) begin
+                if (next_state == DMA_RECALL_SSD || next_state == DMA_RECALL_EM 
+                    || (next_state >= EVICT && next_state <= REQ_PUTM)) begin
                     next_state_stats = STATS_SEND;
                 end
             end 

@@ -9,39 +9,50 @@
 // Author: Joseph Zuckerman
 // stores one set of data from cache
 
-module llc_bufs(clk, rst, rst_state, rd_mem_en, look, incr_evict_way_buf, llc_mem_rsp_ready_int, llc_mem_rsp_valid_int, way, evict_way_buf, tags_buf, sharers_buf, owners_buf, hprots_buf, dirty_bits_buf, states_buf, lines_buf, wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_owners_buf, wr_en_sharers_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, lines_buf_wr_data, states_buf_wr_data, owners_buf_wr_data, tags_buf_wr_data, hprots_buf_wr_data, sharers_buf_wr_data, dirty_bits_buf_wr_data, rd_data_line, rd_data_tag, rd_data_sharers, rd_data_owner, rd_data_hprot, rd_data_dirty_bit, rd_data_evict_way, rd_data_state, llc_mem_rsp_next);
+module llc_bufs(    
+    input logic clk,
+    input logic rst,
+    input logic rst_state, 
+    input logic rd_mem_en, 
+    input logic look, 
+    input logic incr_evict_way_buf,
+    input logic llc_mem_rsp_ready_int, 
+    input logic llc_mem_rsp_valid_int,
+    input logic wr_en_lines_buf, 
+    input logic wr_en_tags_buf, 
+    input logic wr_en_states_buf, 
+    input logic wr_en_owners_buf, 
+    input logic wr_en_sharers_buf, 
+    input logic wr_en_hprots_buf, 
+    input logic wr_en_dirty_bits_buf, 
+    input logic dirty_bits_buf_wr_data,
+    input logic rd_data_dirty_bit[`LLC_WAYS],
+    input llc_way_t way,
+    input line_t lines_buf_wr_data,
+    input llc_state_t states_buf_wr_data,
+    input owner_t owners_buf_wr_data,
+    input llc_tag_t tags_buf_wr_data,
+    input hprot_t hprots_buf_wr_data,
+    input sharers_t sharers_buf_wr_data,
+    input line_t rd_data_line[`LLC_WAYS],
+    input llc_tag_t rd_data_tag[`LLC_WAYS],
+    input sharers_t rd_data_sharers[`LLC_WAYS],
+    input owner_t rd_data_owner[`LLC_WAYS],
+    input hprot_t rd_data_hprot[`LLC_WAYS],
+    input llc_way_t rd_data_evict_way, 
+    input llc_state_t rd_data_state[`LLC_WAYS],
+    
+    llc_mem_rsp_t.in llc_mem_rsp_next,
 
-    input logic clk, rst, rst_state; 
-    input logic rd_mem_en, look, incr_evict_way_buf;
-    input logic llc_mem_rsp_ready_int, llc_mem_rsp_valid_int; 
-    input llc_way_t way;
-    input logic wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_owners_buf, wr_en_sharers_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf; 
-    input line_t lines_buf_wr_data; 
-    input llc_state_t states_buf_wr_data;
-    input owner_t owners_buf_wr_data;
-    input llc_tag_t tags_buf_wr_data;
-    input hprot_t hprots_buf_wr_data;
-    input sharers_t sharers_buf_wr_data;
-    input logic dirty_bits_buf_wr_data;
-
-    input line_t rd_data_line[`LLC_WAYS];
-    input llc_tag_t rd_data_tag[`LLC_WAYS];
-    input sharers_t rd_data_sharers[`LLC_WAYS];
-    input owner_t rd_data_owner[`LLC_WAYS];
-    input hprot_t rd_data_hprot[`LLC_WAYS];
-    input logic rd_data_dirty_bit[`LLC_WAYS];
-    input llc_way_t rd_data_evict_way; 
-    input llc_state_t rd_data_state[`LLC_WAYS];
-    llc_mem_rsp_t.in llc_mem_rsp_next;
-
-    output llc_way_t evict_way_buf; 
-    output line_t lines_buf[`LLC_WAYS];
-    output llc_tag_t tags_buf[`LLC_WAYS];
-    output sharers_t sharers_buf[`LLC_WAYS];
-    output owner_t owners_buf[`LLC_WAYS];
-    output hprot_t hprots_buf[`LLC_WAYS];
-    output logic dirty_bits_buf[`LLC_WAYS];
-    output llc_state_t states_buf[`LLC_WAYS];
+    output logic dirty_bits_buf[`LLC_WAYS],
+    output llc_way_t evict_way_buf, 
+    output line_t lines_buf[`LLC_WAYS],
+    output llc_tag_t tags_buf[`LLC_WAYS],
+    output sharers_t sharers_buf[`LLC_WAYS],
+    output owner_t owners_buf[`LLC_WAYS],
+    output hprot_t hprots_buf[`LLC_WAYS],
+    output llc_state_t states_buf[`LLC_WAYS]
+    );
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -127,6 +138,5 @@ module llc_bufs(clk, rst, rst_state, rd_mem_en, look, incr_evict_way_buf, llc_me
             end
         end
     end
- 
       
 endmodule

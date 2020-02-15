@@ -9,18 +9,20 @@
 //Author: Joseph Zuckerman
 //looks up way for eviction/replacement 
 
-module llc_lookup_way (clk, rst, tag, tags_buf, states_buf, evict_way_buf, lookup_en, way, way_next, evict, evict_next); 
-    
-    input logic clk, rst; 
-    input llc_tag_t tag; 
-    input llc_tag_t tags_buf[`LLC_WAYS];
-    input llc_state_t states_buf[`LLC_WAYS];
-    input llc_way_t evict_way_buf;
-    input logic lookup_en; 
+module llc_lookup_way (
+    input logic clk, 
+    input logic rst, 
+    input logic lookup_en, 
+    input llc_tag_t tag, 
+    input llc_tag_t tags_buf[`LLC_WAYS],
+    input llc_state_t states_buf[`LLC_WAYS],
+    input llc_way_t evict_way_buf,
 
-    output llc_way_t way, way_next;
-    output logic evict, evict_next;  
-
+    output logic evict, 
+    output logic evict_next,
+    output llc_way_t way, 
+    output llc_way_t way_next
+    ); 
     
     //LOOKUP
     logic [`LLC_WAYS - 1:0] tag_hits_tmp, empty_ways_tmp, evict_valid_tmp, evict_not_sd_tmp; 
