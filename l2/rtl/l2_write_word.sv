@@ -5,16 +5,17 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_write_word(clk, rst, word_in, w_off_in, b_off_in, hsize_in, line_in, line_out);
-
-    input logic clk, rst;
-    input word_t word_in;
-    input word_offset_t w_off_in;
-    input byte_offset_t b_off_in;
-    input hsize_t hsize_in;
-    input line_t line_in;
+module l2_write_word(
+    input logic clk, 
+    input logic rst,
+    input word_t word_in,
+    input word_offset_t w_off_in,
+    input byte_offset_t b_off_in,
+    input hsize_t hsize_in,
+    input line_t line_in,
     
-    output line_t line_out; 
+    output line_t line_out 
+    );
 
     logic[6:0] size, b_off_tmp, w_off_bits, b_off_bits, off_bits, word_range_hi, line_range_hi;
 

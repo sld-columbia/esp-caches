@@ -5,41 +5,45 @@
 `include "cache_consts.svh" 
 `include "cache_types.svh" 
 
-module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, incr_flush_set, clr_flush_set, flush_set, incr_flush_way, clr_flush_way, flush_way, set_set_conflict, clr_set_conflict, set_conflict, set_fwd_stall, clr_fwd_stall, fwd_stall, set_fwd_stall_i, fwd_stall_i_wr_data, fwd_stall_i, fill_reqs, fill_reqs_flush, incr_reqs_cnt, reqs_cnt, clr_fwd_stall_ended, wr_en_put_reqs, reqs_i, fwd_stall_ended, clr_ongoing_atomic, set_ongoing_atomic, ongoing_atomic, clr_evict_stall, set_evict_stall, evict_stall, put_reqs_atomic, reqs_atomic_i); 
-    
-    input logic clk, rst;
+module l2_regs (
+    input logic clk, 
+    input logic rst,
+    input logic set_ongoing_flush,
+    input logic clr_ongoing_flush, 
+    input logic incr_flush_set,
+    input logic clr_flush_set, 
+    input logic incr_flush_way,
+    input logic clr_flush_way, 
+    input logic set_set_conflict,
+    input logic clr_set_conflict, 
+    input logic set_fwd_stall, 
+    input logic clr_fwd_stall,
+    input logic set_fwd_stall_i, 
+    input logic fill_reqs, 
+    input logic incr_reqs_cnt, 
+    input logic fill_reqs_flush, 
+    input logic clr_fwd_stall_ended, 
+    input logic wr_en_put_reqs, 
+    input logic put_reqs_atomic, 
+    input logic clr_ongoing_atomic, 
+    input logic set_ongoing_atomic, 
+    input logic clr_evict_stall, 
+    input logic set_evict_stall, 
+    input logic [`REQS_BITS-1:0] reqs_atomic_i, 
+    input logic [`REQS_BITS-1:0] reqs_i, 
+    input logic [`REQS_BITS-1:0] fwd_stall_i_wr_data,
 
-    input logic set_ongoing_flush, clr_ongoing_flush; 
-    output logic ongoing_flush;
-    
-    input logic incr_flush_set, clr_flush_set; 
-    output logic [`L2_SET_BITS:0] flush_set; 
-
-    input logic incr_flush_way, clr_flush_way; 
-    output logic [`L2_WAY_BITS:0] flush_way;
-
-    input logic set_set_conflict, clr_set_conflict; 
-    output logic set_conflict;
-
-    input logic set_fwd_stall, clr_fwd_stall;
-    output logic fwd_stall; 
-
-    input logic set_fwd_stall_i; 
-    input logic [`REQS_BITS-1:0] fwd_stall_i_wr_data;
-    output logic [`REQS_BITS-1:0] fwd_stall_i; 
-   
-    input logic fill_reqs, incr_reqs_cnt, fill_reqs_flush; 
-    output logic [`REQS_BITS_P1-1:0] reqs_cnt; 
-
-    input logic clr_fwd_stall_ended, wr_en_put_reqs, put_reqs_atomic; 
-    input logic [`REQS_BITS-1:0] reqs_i, reqs_atomic_i; 
-    output logic fwd_stall_ended; 
-
-    input logic clr_ongoing_atomic, set_ongoing_atomic; 
-    output logic ongoing_atomic; 
-
-    input logic clr_evict_stall, set_evict_stall; 
-    output logic evict_stall; 
+    output logic ongoing_flush,
+    output logic set_conflict,
+    output logic fwd_stall, 
+    output logic fwd_stall_ended, 
+    output logic ongoing_atomic, 
+    output logic evict_stall, 
+    output logic [`L2_SET_BITS:0] flush_set, 
+    output logic [`L2_WAY_BITS:0] flush_way,
+    output logic [`REQS_BITS-1:0] fwd_stall_i, 
+    output logic [`REQS_BITS_P1-1:0] reqs_cnt 
+    );
 
     always_ff @(posedge clk or negedge rst) begin 
         if (!rst) begin 
@@ -114,7 +118,8 @@ module l2_regs (clk, rst, set_ongoing_flush, clr_ongoing_flush, ongoing_flush, i
             fwd_stall_ended <= 1'b0;
         end else if (clr_fwd_stall_ended) begin
             fwd_stall_ended <= 1'b0;
-        end else if (wr_en_put_reqs && fwd_stall && (fwd_stall_i == reqs_i || (put_reqs_atomic && fwd_stall_i == reqs_atomic_i))) begin 
+        end else if (wr_en_put_reqs && fwd_stall && (fwd_stall_i == reqs_i 
+                    || (put_reqs_atomic && fwd_stall_i == reqs_atomic_i))) begin 
             fwd_stall_ended <= 1'b1; 
         end
     end

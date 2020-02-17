@@ -5,34 +5,57 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int, reqs_cnt, fwd_stall, fwd_stall_ended, ongoing_flush, flush_set, flush_way, set_conflict, evict_stall, ongoing_atomic, do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req, l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int, set_ongoing_flush, clr_ongoing_flush, set_cpu_req_from_conflict, set_fwd_in_from_stalled, incr_flush_set, clr_flush_set, clr_flush_way, flush_done, idle, line_br, addr_br, line_br_next, addr_br_next, rsp_in_addr, fwd_in_addr, cpu_req_addr, do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next);
+module l2_input_decoder (    
+    input logic clk, 
+    input logic rst, 
+    input decode_en, 
+    input logic l2_flush_valid_int, 
+    input logic l2_rsp_in_valid_int, 
+    input logic l2_fwd_in_valid_int, 
+    input logic l2_cpu_req_valid_int, 
+    input logic [`REQS_BITS_P1-1:0] reqs_cnt, 
+    input logic fwd_stall, 
+    input logic fwd_stall_ended,
+    input logic ongoing_flush, 
+    input logic [`L2_SET_BITS:0] flush_set, 
+    input logic [`L2_WAY_BITS:0] flush_way, 
+    input logic set_conflict, 
+    input logic evict_stall, 
+    input logic ongoing_atomic, 
+    input line_addr_t rsp_in_addr, 
+    input line_addr_t fwd_in_addr, 
+    input addr_t cpu_req_addr, 
+
+    output logic do_flush, 
+    output logic do_rsp, 
+    output logic do_fwd, 
+    output logic do_ongoing_flush, 
+    output logic do_cpu_req, 
+    output logic l2_flush_ready_int, 
+    output logic l2_rsp_in_ready_int, 
+    output logic l2_fwd_in_ready_int, 
+    output logic l2_cpu_req_ready_int,
+    output logic set_ongoing_flush, 
+    output logic clr_ongoing_flush,
+    output logic set_cpu_req_from_conflict, 
+    output logic set_fwd_in_from_stalled,
+    output logic incr_flush_set, 
+    output logic clr_flush_set, 
+    output logic clr_flush_way,
+    output logic flush_done, 
+    output logic idle, 
+    output logic do_flush_next, 
+    output logic do_rsp_next, 
+    output logic do_fwd_next, 
+    output logic do_ongoing_flush_next, 
+    output logic do_cpu_req_next,
     
-    input logic clk, rst; 
-    input decode_en; 
-    input logic l2_flush_valid_int, l2_rsp_in_valid_int, l2_fwd_in_valid_int, l2_cpu_req_valid_int; 
-    input logic [`REQS_BITS_P1-1:0] reqs_cnt; 
-    input logic fwd_stall, fwd_stall_ended;
-    input logic ongoing_flush; 
-    input logic [`L2_SET_BITS:0] flush_set; 
-    input logic [`L2_WAY_BITS:0] flush_way; 
-    input logic set_conflict, evict_stall, ongoing_atomic; 
-    input line_addr_t rsp_in_addr, fwd_in_addr; 
-    input addr_t cpu_req_addr; 
+    line_breakdown_l2_t.out line_br, 
+    addr_breakdown_t.out addr_br,
+    line_breakdown_l2_t.out line_br_next,
+    addr_breakdown_t.out addr_br_next 
+    ); 
 
-    output logic do_flush, do_rsp, do_fwd, do_ongoing_flush, do_cpu_req; 
-    output logic l2_flush_ready_int, l2_rsp_in_ready_int, l2_fwd_in_ready_int, l2_cpu_req_ready_int;
-    output logic set_ongoing_flush, clr_ongoing_flush;
-    output logic set_cpu_req_from_conflict, set_fwd_in_from_stalled;
-    output logic incr_flush_set, clr_flush_set, clr_flush_way;
-    output logic flush_done; 
-    output logic idle; 
-    line_breakdown_l2_t.out line_br; 
-    addr_breakdown_t.out addr_br;
-
-    line_breakdown_l2_t.out line_br_next;
-    addr_breakdown_t.out addr_br_next; 
-
-    output logic do_flush_next, do_rsp_next, do_fwd_next, do_ongoing_flush_next, do_cpu_req_next;
     always_comb begin 
         do_flush_next = 1'b0; 
         do_rsp_next = 1'b0; 
@@ -95,7 +118,8 @@ module l2_input_decoder (clk, rst, decode_en, l2_flush_valid_int, l2_rsp_in_vali
                     clr_ongoing_flush = 1'b1;
                     flush_done = 1'b1; 
                 end 
-            end else if ((l2_cpu_req_valid_int || set_conflict) && !evict_stall && (reqs_cnt != 0 || ongoing_atomic)) begin 
+            end else if ((l2_cpu_req_valid_int || set_conflict)  && !evict_stall 
+                                && (reqs_cnt != 0 || ongoing_atomic)) begin 
                 do_cpu_req_next = 1'b1;
                 if (!set_conflict) begin 
                     l2_cpu_req_ready_int = 1'b1; 

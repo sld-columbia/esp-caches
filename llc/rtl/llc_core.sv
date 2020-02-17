@@ -10,46 +10,46 @@
 // Top level LLC module 
 
 module llc_core(
-	input logic clk,
-	input logic rst, 
-	input logic llc_req_in_valid,
-	input logic llc_dma_req_in_valid,
-	input logic llc_rsp_in_valid,
-	input logic llc_mem_rsp_valid,
+    input logic clk,
+    input logic rst, 
+    input logic llc_req_in_valid,
+    input logic llc_dma_req_in_valid,
+    input logic llc_rsp_in_valid,
+    input logic llc_mem_rsp_valid,
     input logic llc_rst_tb_i,
-	input logic llc_rst_tb_valid,
-	input logic llc_rsp_out_ready,
-	input logic llc_dma_rsp_out_ready,
-	input logic llc_fwd_out_ready, 
-	input logic llc_mem_req_ready,
-	input logic llc_rst_tb_done_ready,
-	
+    input logic llc_rst_tb_valid,
+    input logic llc_rsp_out_ready,
+    input logic llc_dma_rsp_out_ready,
+    input logic llc_fwd_out_ready, 
+    input logic llc_mem_req_ready,
+    input logic llc_rst_tb_done_ready,
+    
     llc_req_in_t.in llc_req_in_i,
-	llc_req_in_t.in llc_dma_req_in_i,
-	llc_rsp_in_t.in llc_rsp_in_i, 
-	llc_mem_rsp_t.in llc_mem_rsp_i,
-	
+    llc_req_in_t.in llc_dma_req_in_i,
+    llc_rsp_in_t.in llc_rsp_in_i, 
+    llc_mem_rsp_t.in llc_mem_rsp_i,
+    
     output logic llc_dma_req_in_ready, 
-	output logic llc_req_in_ready,
-	output logic llc_rsp_in_ready,
-	output logic llc_mem_rsp_ready,
+    output logic llc_req_in_ready,
+    output logic llc_rsp_in_ready,
+    output logic llc_mem_rsp_ready,
     output logic llc_rst_tb_ready,
-	output logic llc_rsp_out_valid,
-	output logic llc_dma_rsp_out_valid,
-	output logic llc_fwd_out_valid,
-	output logic llc_mem_req_valid,
+    output logic llc_rsp_out_valid,
+    output logic llc_dma_rsp_out_valid,
+    output logic llc_fwd_out_valid,
+    output logic llc_mem_req_valid,
     output logic llc_rst_tb_done_valid,
     output logic llc_rst_tb_done,
  
     llc_rsp_out_t.out llc_dma_rsp_out,
-	llc_rsp_out_t.out  llc_rsp_out,
-	llc_fwd_out_t.out llc_fwd_out,   
-	llc_mem_req_t.out llc_mem_req
-	
+    llc_rsp_out_t.out  llc_rsp_out,
+    llc_fwd_out_t.out llc_fwd_out,   
+    llc_mem_req_t.out llc_mem_req
+    
 `ifdef STATS_ENABLE
-	, input  logic llc_stats_ready,
-	output logic llc_stats_valid,
-	output logic llc_stats
+    , input  logic llc_stats_ready,
+    output logic llc_stats_valid,
+    output logic llc_stats
 `endif
     );
 
