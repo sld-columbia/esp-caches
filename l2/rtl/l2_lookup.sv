@@ -13,8 +13,8 @@ module l2_lookup(
     input logic lookup_mode, 
     input logic lookup_en, 
     input l2_way_t evict_way_buf, 
-    input l2_tag_t tags_buf[`L2_WAYS],
-    input state_t states_buf[`L2_WAYS],
+    input var l2_tag_t tags_buf[`L2_WAYS],
+    input var state_t states_buf[`L2_WAYS],
     line_breakdown_l2_t.in line_br, 
     addr_breakdown_t.in addr_br, 
 

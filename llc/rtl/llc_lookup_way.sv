@@ -14,8 +14,8 @@ module llc_lookup_way (
     input logic rst, 
     input logic lookup_en, 
     input llc_tag_t tag, 
-    input llc_tag_t tags_buf[`LLC_WAYS],
-    input llc_state_t states_buf[`LLC_WAYS],
+    input var llc_tag_t tags_buf[`LLC_WAYS],
+    input var llc_state_t states_buf[`LLC_WAYS],
     input llc_way_t evict_way_buf,
 
     output logic evict, 
