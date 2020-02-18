@@ -53,6 +53,7 @@
 `define BYTES_PER_WORD		(1 << `BYTE_BITS)
 `define BITS_PER_WORD		(`BYTES_PER_WORD << 3)
 `define BITS_PER_HALFWORD	(`BITS_PER_WORD >> 1)
+`define BITS_PER_DOUBLEWORD (`BITS_PER_WORD << 1)
 `define BITS_PER_LINE		(`BITS_PER_WORD * `WORDS_PER_LINE)
 `define WORDS_PER_LINE		(1 << `WORD_BITS)
 
@@ -232,6 +233,7 @@
 `define BYTE		0
 `define HALFWORD	1
 `define WORD		2
+`define WORDS_2     3
 `define WORDS_4		4
 `define WORDS_8		5
 

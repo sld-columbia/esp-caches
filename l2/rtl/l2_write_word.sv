@@ -32,7 +32,10 @@ module l2_write_word(
         end else if (hsize_in == `WORD) begin 
             b_off_tmp = 0;
             size = `BITS_PER_WORD;
-        end
+       end else if (hsize_in == `WORD) begin 
+            b_off_tmp = 0;
+            size = `BITS_PER_DOUBLEWORD;
+        end 
         w_off_bits = `BITS_PER_WORD * w_off_in;
         b_off_bits = 8 * b_off_tmp;
         off_bits = w_off_bits + b_off_bits;
@@ -47,6 +50,8 @@ module l2_write_word(
             line_out[off_bits +: `BITS_PER_HALFWORD] = word_in[b_off_bits +: `BITS_PER_HALFWORD]; 
         end else if (hsize_in == `WORD) begin 
             line_out[off_bits +: `BITS_PER_WORD] = word_in[b_off_bits +: `BITS_PER_WORD]; 
+        end else if (hsize_in == `WORDS_2) begin 
+            line_out[off_bits +: `BITS_PER_DOUBLEWORD] = word_in[b_off_bits +: `BITS_PER_DOUBLEWORD]; 
         end
     end
 
