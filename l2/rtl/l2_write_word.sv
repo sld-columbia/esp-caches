@@ -32,7 +32,7 @@ module l2_write_word(
         end else if (hsize_in == `WORD) begin 
             b_off_tmp = 0;
             size = `BITS_PER_WORD;
-       end else if (hsize_in == `WORD) begin 
+       end else if (hsize_in == `WORDS_2) begin 
             b_off_tmp = 0;
             size = `BITS_PER_DOUBLEWORD;
         end 
