@@ -142,20 +142,19 @@ module l2_fsm(
     localparam FWD_HIT_2 = 5'b01100;
     localparam FWD_NO_HIT = 5'b01101; 
     localparam FWD_NO_HIT_2 = 5'b01110; 
-    localparam ONGOING_FLUSH_RD_MEM = 5'b01111; 
-    localparam ONGOING_FLUSH_LOOKUP = 5'b10000; 
-    localparam ONGOING_FLUSH_PROCESS = 5'b10001;
-    localparam CPU_REQ_REQS_LOOKUP = 5'b10010;
-    localparam CPU_REQ_ATOMIC_OVERRIDE = 5'b10011;
-    localparam CPU_REQ_ATOMIC_CONTINUE_READ = 5'b10100;
-    localparam CPU_REQ_ATOMIC_CONTINUE_WRITE = 5'b10101;
-    localparam CPU_REQ_SET_CONFLICT = 5'b10110; 
-    localparam CPU_REQ_TAG_LOOKUP = 5'b10111;
-    localparam CPU_REQ_READ_READ_ATOMIC_EM  =  5'b11000;
-    localparam CPU_REQ_READ_ATOMIC_WRITE_S = 5'b11001; 
-    localparam CPU_REQ_WRITE_EM = 5'b11010; 
-    localparam CPU_REQ_EMPTY_WAY = 5'b11011; 
-    localparam CPU_REQ_EVICT = 5'b11100; 
+    localparam ONGOING_FLUSH_LOOKUP = 5'b01111; 
+    localparam ONGOING_FLUSH_PROCESS = 5'b10000;
+    localparam CPU_REQ_REQS_LOOKUP = 5'b10001;
+    localparam CPU_REQ_ATOMIC_OVERRIDE = 5'b10010;
+    localparam CPU_REQ_ATOMIC_CONTINUE_READ = 5'b10011;
+    localparam CPU_REQ_ATOMIC_CONTINUE_WRITE = 5'b10100;
+    localparam CPU_REQ_SET_CONFLICT = 5'b10101; 
+    localparam CPU_REQ_TAG_LOOKUP = 5'b10110;
+    localparam CPU_REQ_READ_READ_ATOMIC_EM  =  5'b10111;
+    localparam CPU_REQ_READ_ATOMIC_WRITE_S = 5'b11000; 
+    localparam CPU_REQ_WRITE_EM = 5'b11001; 
+    localparam CPU_REQ_EMPTY_WAY = 5'b11010; 
+    localparam CPU_REQ_EVICT = 5'b11011; 
 
     logic [4:0] state, next_state;
     always_ff @(posedge clk or negedge rst) begin 
@@ -226,7 +225,7 @@ module l2_fsm(
                 end else if (do_fwd_next) begin 
                     next_state = FWD_REQS_LOOKUP;
                 end else if (do_ongoing_flush_next) begin 
-                    next_state = ONGOING_FLUSH_RD_MEM;
+                    next_state = ONGOING_FLUSH_LOOKUP;
                 end else if (do_cpu_req_next) begin 
                     next_state = CPU_REQ_REQS_LOOKUP; 
                 end
@@ -350,15 +349,12 @@ module l2_fsm(
                     next_state = DECODE; 
                 end
             end
-            ONGOING_FLUSH_RD_MEM : begin 
+            ONGOING_FLUSH_LOOKUP : begin 
                 if ((rd_data_state[flush_way] != `INVALID) && (is_flush_all || rd_data_hprot[flush_way])) begin 
-                    next_state = ONGOING_FLUSH_LOOKUP;
+                    next_state = ONGOING_FLUSH_PROCESS;
                 end else begin 
                     next_state = DECODE; 
                 end
-            end
-            ONGOING_FLUSH_LOOKUP : begin 
-                next_state = ONGOING_FLUSH_PROCESS;
             end
             ONGOING_FLUSH_PROCESS : begin 
                 if (l2_req_out_ready_int) begin
@@ -797,16 +793,14 @@ module l2_fsm(
                 set_in = line_br.set; 
                 way = way_hit; 
              end
-            ONGOING_FLUSH_RD_MEM : begin 
+            ONGOING_FLUSH_LOOKUP : begin 
                 set_in = flush_set; 
                 rd_mem_en = 1'b1;
                 if ((rd_data_state[flush_way] == `INVALID) || (~is_flush_all && ~rd_data_hprot[flush_way])) begin 
                     incr_flush_way = 1'b1;
                 end
-            end 
-            ONGOING_FLUSH_LOOKUP : begin 
                 reqs_op_code = `L2_REQS_PEEK_FLUSH;
-            end
+            end 
             ONGOING_FLUSH_PROCESS : begin 
                 addr_tmp = (tags_buf[flush_way] << `L2_TAG_RANGE_LO) | (flush_set << `SET_RANGE_LO);
                 addr_br_reqs.line = addr_tmp;
