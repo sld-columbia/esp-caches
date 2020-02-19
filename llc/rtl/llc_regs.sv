@@ -49,7 +49,7 @@ module llc_regs(
     input logic set_recall_evict_addr,
     input llc_way_t way_next,
     input llc_set_t set, 
-    input llc_tag_t tags_buf[`LLC_WAYS], 
+    input var llc_tag_t tags_buf[`LLC_WAYS], 
         
     line_breakdown_llc_t.in line_br, 
     llc_req_in_t.in llc_dma_req_in_next,

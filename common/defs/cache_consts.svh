@@ -22,14 +22,20 @@
 // Common
 //
 
+`ifndef BIG_ENDIAN
+`ifndef LITTLE_ENDIAN
+`define LITTLE_ENDIAN
+`endif
+`endif
+
 `ifndef ADDR_BITS
 `define ADDR_BITS	32 // defined in l2,llc/stratus/project.tcl
 `endif
 `ifndef BYTE_BITS
-`define BYTE_BITS	2 // defined in l2,llc/stratus/project.tcl
+`define BYTE_BITS	3 // defined in l2,llc/stratus/project.tcl
 `endif
 `ifndef WORD_BITS
-`define WORD_BITS	2 // defined in l2,llc/stratus/project.tcl
+`define WORD_BITS	1 // defined in l2,llc/stratus/project.tcl
 `endif
 
 `define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)
@@ -232,10 +238,15 @@
 // hsize
 `define BYTE		0
 `define HALFWORD	1
-`define WORD		2
-`define WORDS_2     3
-`define WORDS_4		4
-`define WORDS_8		5
+`define WORD_32		2
+`define WORD_64     3
+`define WORDS_128   4
+`define WORDS_256	5
+
+//this is used for requests from LLC to memory
+//the number of byte bits matches the hsize encoding
+//for a word for both LEON (2) and ARIANE (3) 
+`define WORD `BYTE_BITS
 
 // hprot
 `define INSTR 0

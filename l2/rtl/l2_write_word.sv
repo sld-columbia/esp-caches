@@ -22,20 +22,33 @@ module l2_write_word(
     always_comb begin 
         size = `BITS_PER_WORD;
         b_off_tmp = 0; 
-
+`ifdef BIG_ENDIAN
         if (hsize_in == `BYTE) begin 
             b_off_tmp = `BYTES_PER_WORD - 1 - b_off_in;
             size = 8;
         end else if (hsize_in == `HALFWORD) begin 
-            b_off_tmp = `BYTES_PER_WORD - `BYTES_PER_WORD/2 - b_off_in;
-            size = `BITS_PER_HALFWORD;
-        end else if (hsize_in == `WORD) begin 
-            b_off_tmp = 0;
-            size = `BITS_PER_WORD;
-       end else if (hsize_in == `WORDS_2) begin 
-            b_off_tmp = 0;
-            size = `BITS_PER_DOUBLEWORD;
-        end 
+            b_off_tmp = `BYTES_PER_WORD - 2 - b_off_in;
+            size = 16;
+        end else if (`BYTE_BITS == 2) begin 
+            size = 32;
+        end else if (hsize_in == `WORD_32) begin 
+            b_off_tmp = `BYTES_PER_WORD - 4 - b_off_in; 
+            size = 32; 
+        end else begin 
+            size = 64;
+        end
+`else     
+    b_off_tmp = b_off_in;
+    if (hsize_in == `BYTE) begin 
+        size = 8;
+    end else if (hsize_in == `HALFWORD) begin 
+        size = 16;
+    end else if (hsize_in == `WORD_32) begin 
+        size = 32;
+    end else begin 
+        size = 64; 
+    end
+`endif
         w_off_bits = `BITS_PER_WORD * w_off_in;
         b_off_bits = 8 * b_off_tmp;
         off_bits = w_off_bits + b_off_bits;
@@ -47,12 +60,13 @@ module l2_write_word(
         if (hsize_in == `BYTE) begin 
             line_out[off_bits +: 8] = word_in[b_off_bits +: 8]; 
         end else if (hsize_in == `HALFWORD) begin 
-            line_out[off_bits +: `BITS_PER_HALFWORD] = word_in[b_off_bits +: `BITS_PER_HALFWORD]; 
-        end else if (hsize_in == `WORD) begin 
-            line_out[off_bits +: `BITS_PER_WORD] = word_in[b_off_bits +: `BITS_PER_WORD]; 
-        end else if (hsize_in == `WORDS_2) begin 
-            line_out[off_bits +: `BITS_PER_DOUBLEWORD] = word_in[b_off_bits +: `BITS_PER_DOUBLEWORD]; 
+            line_out[off_bits +: 16] = word_in[b_off_bits +: 16]; 
+        end else if (hsize_in == `WORD_32) begin 
+            line_out[off_bits +: 32] = word_in[b_off_bits +: 32]; 
+        end else begin 
+            line_out[off_bits +: 64] = word_in[b_off_bits +: 64]; 
         end
-    end
+
+end
 
 endmodule
