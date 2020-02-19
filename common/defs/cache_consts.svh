@@ -4,7 +4,7 @@
 `ifndef __CACHES_CONSTS_SVH__
 `define __CACHES_CONSTS_SVH__
 
-//`include "cache_cfg.svh"
+`include "cache_cfg.svh"
 
 /*
  * System
