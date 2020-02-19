@@ -22,6 +22,12 @@
 // Common
 //
 
+`ifndef BIG_ENDIAN
+`ifndef LITTLE_ENDIAN
+`define LITTLE_ENDIAN
+`endif
+`endif
+
 `ifndef ADDR_BITS
 `define ADDR_BITS	32 // defined in l2,llc/stratus/project.tcl
 `endif
