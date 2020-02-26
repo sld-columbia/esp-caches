@@ -105,7 +105,7 @@ module llc_core(
     assign rd_set_en = decode_en;
     assign rd_mem_en = (state == READ_MEM);
     assign lookup_en = (state == LOOKUP); 
-    assign process_en = (state == PROCESS); 
+    assign process_en = (state == PROCESS) | (state == LOOKUP); 
     assign update_en = (state == UPDATE); 
     
     //wires
