@@ -63,10 +63,10 @@ module llc_core(
     
     localparam DECODE = 3'b000;
     localparam READ_SET = 3'b001;
-    localparam READ_MEM = 3'b011;
-    localparam LOOKUP = 3'b010; 
-    localparam PROCESS = 3'b110; 
-    localparam UPDATE = 3'b100; 
+    localparam READ_MEM = 3'b010;
+    localparam LOOKUP = 3'b011; 
+    localparam PROCESS = 3'b100; 
+    localparam UPDATE = 3'b101; 
 
     logic[2:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -83,8 +83,10 @@ module llc_core(
         case(state) 
             DECODE : 
                 if (!idle) begin 
-                    next_state = READ_MEM;
+                    next_state = READ_SET;
                 end 
+            READ_SET : 
+                next_state = READ_MEM; 
             READ_MEM : 
                 next_state = LOOKUP; 
             LOOKUP : 
@@ -102,7 +104,7 @@ module llc_core(
 
     logic decode_en, rd_set_en, rd_mem_en, update_en, process_en, lookup_en; 
     assign decode_en = (state == DECODE);
-    assign rd_set_en = decode_en;
+    assign rd_set_en = (state == READ_SET);
     assign rd_mem_en = (state == READ_MEM);
     assign lookup_en = (state == LOOKUP); 
     assign process_en = (state == PROCESS); 

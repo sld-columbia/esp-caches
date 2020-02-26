@@ -569,9 +569,9 @@ module llc_interfaces(
         end
     end
     
-    assign req_in_addr = llc_req_in_valid_tmp ? llc_req_in_tmp.addr : llc_req_in_i.addr;
-    assign rsp_in_addr = llc_rsp_in_valid_tmp ? llc_rsp_in_tmp.addr : llc_rsp_in_i.addr;
-    assign dma_req_in_addr = llc_dma_req_in_valid_tmp ? llc_dma_req_in_tmp.addr : llc_dma_req_in_i.addr; 
+    assign req_in_addr = llc_req_in.addr;
+    assign rsp_in_addr = llc_rsp_in.addr;
+    assign dma_req_in_addr = llc_dma_req_in.addr; 
     assign req_in_stalled_addr = req_in_stalled.addr;
     assign req_in_recall_addr = llc_req_in.addr; 
     assign rst_in = llc_rst_tb; 
