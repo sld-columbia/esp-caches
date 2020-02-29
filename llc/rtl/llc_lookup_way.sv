@@ -40,37 +40,32 @@ module llc_lookup_way (
 
     //way priority encoder
     llc_way_t hit_way, empty_way, evict_way_valid, evict_way_not_sd;
-    always_comb begin 
-        hit_way = 0;
-        empty_way = 0; 
-        evict_way_valid = 0;
-        evict_way_not_sd = 0; 
-        for (int j = `LLC_WAYS-1; j >= 0; j--) begin 
-            if (tag_hits_tmp[j]) begin 
-                hit_way = j; 
-            end 
-
-            if (empty_ways_tmp[j]) begin 
-                empty_way = j; 
-            end 
-        
-            if (evict_valid_tmp[j]) begin 
-                evict_way_valid = j + evict_way_buf; 
-            end 
-        
-            if (evict_not_sd_tmp[j]) begin 
-                evict_way_not_sd = j +  evict_way_buf; 
-            end 
-        end
-    end
-
-    //handle case for 0 bit
     logic tag_hit, empty_way_found, evict_valid, evict_not_sd; 
-    assign tag_hit = |tag_hits_tmp; 
-    assign empty_way_found = |empty_ways_tmp;
-    assign evict_valid = |evict_valid_tmp; 
-    assign evict_not_sd = |evict_not_sd_tmp;
-
+    
+    pri_enc #(`LLC_WAYS, `LLC_WAY_BITS) hit_way_enc (
+        .in(tag_hits_tmp), 
+        .out(hit_way), 
+        .out_valid(tag_hit)
+    );
+    
+    pri_enc #(`LLC_WAYS, `LLC_WAY_BITS) empty_way_enc (
+        .in(empty_ways_tmp), 
+        .out(empty_way), 
+        .out_valid(empty_way_found)
+    );
+    
+    pri_enc #(`LLC_WAYS, `LLC_WAY_BITS) evict_valid_enc (
+        .in(evict_valid_tmp), 
+        .out(evict_way_valid), 
+        .out_valid(evict_valid)
+    );
+    
+    pri_enc #(`LLC_WAYS, `LLC_WAY_BITS) evict_not_sd_enc (
+        .in(evict_not_sd_tmp), 
+        .out(evict_way_not_sd), 
+        .out_valid(evict_not_sd)
+    ); 
+    
     always_comb begin 
         if (tag_hit) begin 
             way_next = hit_way;
@@ -79,10 +74,10 @@ module llc_lookup_way (
             way_next = empty_way;
             evict_next = 1'b0; 
         end else if (evict_valid) begin 
-            way_next = evict_way_valid;
+            way_next = evict_way_valid  + evict_way_buf;
             evict_next = 1'b1;
         end else if (evict_not_sd) begin 
-            way_next = evict_way_not_sd;
+            way_next = evict_way_not_sd + evict_way_buf;
             evict_next = 1'b1;
         end else begin 
             way_next = evict_way_buf;
