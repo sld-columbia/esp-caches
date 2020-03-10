@@ -32,7 +32,6 @@ module llc_input_decoder(
     input line_addr_t rsp_in_addr, 
     input line_addr_t req_in_addr, 
     input line_addr_t dma_req_in_addr, 
-    input line_addr_t req_in_stalled_addr, 
     input line_addr_t req_in_recall_addr,
     input llc_set_t rst_flush_stalled_set,
     input llc_set_t req_in_stalled_set, 
@@ -62,6 +61,7 @@ module llc_input_decoder(
     output logic clr_req_stall_decoder,
     output logic update_dma_addr_from_req,
     output logic idle,
+    output logic idle_next,
     output llc_set_t set, 
     output llc_set_t set_next, 
         
@@ -96,7 +96,7 @@ module llc_input_decoder(
         clr_req_in_stalled_valid = 1'b0;
         do_get_req = 1'b0; 
         do_get_dma_req = 1'b0;  
-        idle = 1'b0; 
+        idle_next = 1'b0; 
         if (decode_en) begin 
             clr_is_dma_read_to_resume = 1'b1; 
             clr_is_dma_write_to_resume = 1'b1;
@@ -145,7 +145,7 @@ module llc_input_decoder(
                 is_dma_req_to_get_next = 1'b1; 
                 do_get_dma_req = 1'b1;
             end else begin 
-                idle = 1'b1; 
+                idle_next = 1'b1; 
             end
         end
     end 
@@ -153,6 +153,7 @@ module llc_input_decoder(
     //flop outputs 
     always_ff@(posedge clk or negedge rst) begin 
         if (!rst) begin 
+            idle <= 1'b0; 
             is_rst_to_resume <= 1'b0; 
             is_flush_to_resume <= 1'b0;
             is_req_to_resume <= 1'b0; 
@@ -161,6 +162,7 @@ module llc_input_decoder(
             is_rsp_to_get <= 1'b0; 
             is_dma_req_to_get <= 1'b0;
         end else if (decode_en) begin 
+            idle <= idle_next;
             is_rst_to_resume <= is_rst_to_resume_next; 
             is_flush_to_resume <= is_flush_to_resume_next;
             is_req_to_resume <= is_req_to_resume_next; 
@@ -183,7 +185,7 @@ module llc_input_decoder(
             if (is_rsp_to_get) begin 
                 addr_for_set = rsp_in_addr; 
             end else if (is_req_to_get) begin 
-                addr_for_set = update_req_in_from_stalled ? req_in_stalled_addr : req_in_addr;
+                addr_for_set = req_in_addr;
             end else if (is_dma_req_to_get  || is_dma_read_to_resume || is_dma_write_to_resume) begin 
                 addr_for_set = is_dma_req_to_get ? dma_req_in_addr : dma_addr; 
                 if (is_dma_req_to_get) begin 

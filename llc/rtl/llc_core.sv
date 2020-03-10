@@ -77,12 +77,12 @@ module llc_core(
         end
     end 
     
-    logic process_done, idle; 
+    logic process_done, idle, idle_next; 
     always_comb begin 
         next_state = state; 
         case(state) 
             DECODE : 
-                if (!idle) begin 
+                if (!idle_next) begin 
                     next_state = READ_SET;
                 end 
             READ_SET : 
@@ -107,7 +107,7 @@ module llc_core(
     assign rd_set_en = (state == READ_SET);
     assign rd_mem_en = (state == READ_MEM);
     assign lookup_en = (state == LOOKUP); 
-    assign process_en = (state == PROCESS) | (state == LOOKUP); 
+    assign process_en = (state == PROCESS); 
     assign update_en = (state == UPDATE); 
     
     //wires
