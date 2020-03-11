@@ -52,7 +52,7 @@ module llc_regs(
     input var llc_tag_t tags_buf[`LLC_WAYS], 
         
     line_breakdown_llc_t.in line_br, 
-    llc_req_in_t.in llc_dma_req_in_next,
+    llc_req_in_t.in llc_dma_req_in,
     
     output logic rst_stall,
     output logic flush_stall,
@@ -132,7 +132,7 @@ module llc_regs(
         end else if (rst_state) begin 
             dma_addr <= 0; 
         end else if (update_dma_addr_from_req && rd_set_en) begin 
-            dma_addr <= llc_dma_req_in_next.addr;
+            dma_addr <= llc_dma_req_in.addr;
         end else if (incr_dma_addr) begin 
             dma_addr <= dma_addr + 1; 
         end 
