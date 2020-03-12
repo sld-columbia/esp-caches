@@ -48,6 +48,7 @@ module llc_process_request(
     input llc_set_t req_in_stalled_set, 
     input llc_set_t set,  
     input llc_way_t way,
+    input llc_way_t way_next, 
     input line_addr_t addr_evict, 
     input line_addr_t recall_evict_addr,
     input addr_t dma_addr,
@@ -204,8 +205,8 @@ module llc_process_request(
                     end else if (is_rsp_to_get) begin 
                         next_state = PROCESS_RSP; 
                     end else if (is_req_to_get || is_req_to_resume) begin 
-                        if (evict_next && !recall_pending && !recall_valid && states_buf[way] != `VALID) begin 
-                            case (states_buf[way]) 
+                        if (evict_next && !recall_pending && !recall_valid && states_buf[way_next] != `VALID) begin 
+                            case (states_buf[way_next]) 
                                 `EXCLUSIVE : next_state = REQ_RECALL_EM;
                                 `MODIFIED : next_state = REQ_RECALL_EM;
                                 `SD : next_state = REQ_RECALL_SSD;
@@ -218,7 +219,7 @@ module llc_process_request(
                             end else begin 
                                 case(llc_req_in.coh_msg) 
                                     `REQ_GETS : begin 
-                                        case(states_buf[way]) 
+                                        case(states_buf[way_next]) 
                                             `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
                                             `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
                                             `SHARED : next_state = REQ_GETS_S;
@@ -229,7 +230,7 @@ module llc_process_request(
                                         endcase
                                     end
                                     `REQ_GETM : begin 
-                                        case(states_buf[way]) 
+                                        case(states_buf[way_next]) 
                                             `INVALID : next_state = REQ_GET_S_M_IV_MEM_REQ;
                                             `VALID : next_state = REQ_GET_S_M_IV_SEND_RSP;
                                             `SHARED : next_state = REQ_GETM_S_FWD;
@@ -248,9 +249,9 @@ module llc_process_request(
                     end else if (is_dma_req_to_get || is_dma_read_to_resume || is_dma_write_to_resume) begin 
                         if (is_dma_req_to_get) begin 
                             next_state = DMA_REQ_TO_GET; 
-                        end else if (!recall_valid && !recall_pending && states_buf[way] != `INVALID 
-                                    && states_buf[way] != `VALID) begin 
-                            case (states_buf[way])
+                        end else if (!recall_valid && !recall_pending && states_buf[way_next] != `INVALID 
+                                    && states_buf[way_next] != `VALID) begin 
+                            case (states_buf[way_next])
                                 `EXCLUSIVE : next_state = DMA_RECALL_EM;
                                 `MODIFIED : next_state = DMA_RECALL_EM;
                                 `SD : next_state = DMA_RECALL_SSD; 
@@ -261,13 +262,13 @@ module llc_process_request(
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
                             end else if (is_dma_read_to_resume) begin 
-                                if (states_buf[way] == `INVALID) begin 
+                                if (states_buf[way_next] == `INVALID) begin 
                                     next_state = DMA_READ_RESUME_MEM_REQ;
                                 end else begin 
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                if (states_buf[way] == `INVALID && misaligned_next) begin 
+                                if (states_buf[way_next] == `INVALID && misaligned_next) begin 
                                     next_state = DMA_WRITE_RESUME_MEM_REQ;
                                 end else begin 
                                     next_state = DMA_WRITE_RESUME_WRITE;
@@ -1285,8 +1286,7 @@ module llc_process_request(
         llc_stats_valid_int = 1'b0; 
         case (state_stats) 
             STATS_IDLE : begin 
-                if (next_state == DMA_RECALL_SSD || next_state == DMA_RECALL_EM 
-                    || (next_state >= EVICT && next_state <= REQ_PUTM)) begin
+                if ((((state == DMA_REQ_TO_GET || (state == IDLE && next_state >= DMA_RECALL_EM && next_state <= DMA_WRITE_RESUME_WRITE)) && !recall_valid && !recall_pending) || (next_state >= EVICT && next_state <= REQ_PUTM)) && stats_new) begin
                     next_state_stats = STATS_SEND;
                 end
             end 
