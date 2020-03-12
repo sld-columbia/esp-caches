@@ -20,6 +20,7 @@ INCDIR += -I$(ESPROOT)/systemc/common/caches
 INCDIR += -I$(ESPROOT)/systemc/llc/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
 INCDIR += +incdir+../common/defs
+INCDIR += +incdir+.
 
 LLC_TB ?=
 LLC_TB += $(ESPROOT)/systemc/llc/tb/llc_tb.cpp

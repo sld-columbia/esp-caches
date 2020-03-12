@@ -21,7 +21,7 @@ INCDIR += -I$(ESPROOT)/systemc/llc/tb
 INCDIR += -I$(ESPROOT)/systemc/l2/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
 INCDIR += +incdir+../common/defs
-
+INCDIR += +incdir+.
 
 L2_TB ?= 
 L2_TB +=$(ESPROOT)/systemc/l2/tb/l2_tb.cpp
