@@ -175,7 +175,7 @@ module llc_process_request(
     end
    
     line_addr_t line_addr;
-    ma_length_t valid_words;
+    dma_length_t valid_words;
     word_offset_t dma_read_woffset; 
     word_offset_t dma_write_woffset; 
     invack_cnt_t dma_info; 
@@ -1280,7 +1280,12 @@ module llc_process_request(
         llc_stats_valid_int = 1'b0; 
         case (state_stats) 
             STATS_IDLE : begin 
-                if ((((state == DMA_REQ_TO_GET || (state == IDLE && next_state >= DMA_RECALL_EM && next_state <= DMA_WRITE_RESUME_WRITE)) && !recall_valid && !recall_pending) || (next_state >= EVICT && next_state <= REQ_PUTM)) && stats_new) begin
+                if ((((state == DMA_REQ_TO_GET 
+                   || (state == IDLE && next_state >= DMA_RECALL_EM 
+                   && next_state <= DMA_WRITE_RESUME_WRITE)) 
+                   && !recall_valid && !recall_pending) 
+                   || (next_state >= EVICT && next_state <= REQ_PUTM)) 
+                   && stats_new) begin
                     next_state_stats = STATS_SEND;
                 end
             end 
