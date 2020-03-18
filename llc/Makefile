@@ -26,9 +26,6 @@ LLC_TB ?=
 LLC_TB += $(ESPROOT)/systemc/llc/tb/llc_tb.cpp
 LLC_TB += sim/sc_main.cpp
 
-#SC_SRC ?=
-#/SC_SRC += src/scc.cpp
-
 LLC_COSIM_SRC ?=
 LLC_COSIM_SRC += sim/llc_wrap.cpp
 
@@ -42,17 +39,17 @@ RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
 RTL_SRC += ../common/rtl/*.sv
 
-#sc-sim-gui: $(SC_TB) $(SC_SRC)
-#	ncsc_run  $(INCDIR) $(FLAGS) -GUI $^
-
-#sc-sim: $(SC_TB) $(SC_SRC)
-#	ncsc_run  $(INCDIR) $(FLAGS) $^
-
 llc-sim: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
+	cp cache_cfg.svh $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	sed -i 's/`/#/g' $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
+	rm $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
 
 llc-sim-gui: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
+	cp cache_cfg.svh $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	sed -i 's/`/#/g' $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^
+	rm $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
 
 clean:
 	rm -rf 			\
@@ -63,6 +60,6 @@ clean:
 		*.key		\
 		*.shm		\
 		*.err 		\
-        *.daig
+        *.diag
 
 .PHONY: sc-sim sc-sim-gui clean
