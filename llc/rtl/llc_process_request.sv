@@ -179,11 +179,9 @@ module llc_process_request(
     word_offset_t dma_read_woffset; 
     word_offset_t dma_write_woffset; 
     invack_cnt_t dma_info; 
- 
-    logic misaligned; 
-    assign misaligned = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE)); 
-    
     llc_way_t cur_way;
+    logic misaligned_next, misaligned; 
+    
     always_comb begin 
         next_state = state;
         process_done = 1'b0; 
@@ -260,7 +258,7 @@ module llc_process_request(
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                if (states_buf[way_next] == `INVALID && misaligned) begin 
+                                if (states_buf[way_next] == `INVALID && misaligned_next) begin 
                                     next_state = DMA_WRITE_RESUME_MEM_REQ;
                                 end else begin 
                                     next_state = DMA_WRITE_RESUME_WRITE;
@@ -514,7 +512,7 @@ module llc_process_request(
                                 next_state = DMA_READ_RESUME_DMA_RSP;
                             end
                         end else begin 
-                            if (states_buf[way] == `INVALID && misaligned) begin 
+                            if (states_buf[way] == `INVALID && misaligned_next) begin 
                                 next_state = DMA_WRITE_RESUME_MEM_REQ;
                             end else begin 
                                 next_state = DMA_WRITE_RESUME_WRITE;
@@ -539,7 +537,7 @@ module llc_process_request(
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                if (states_buf[way] == `INVALID && misaligned) begin 
+                                if (states_buf[way] == `INVALID && misaligned_next) begin 
                                     next_state = DMA_WRITE_RESUME_MEM_REQ;
                                 end else begin 
                                     next_state = DMA_WRITE_RESUME_WRITE;
@@ -565,7 +563,7 @@ module llc_process_request(
                                     next_state = DMA_READ_RESUME_DMA_RSP;
                                 end
                             end else begin 
-                                if (states_buf[way] == `INVALID && misaligned) begin 
+                                if (states_buf[way] == `INVALID && misaligned_next) begin 
                                     next_state = DMA_WRITE_RESUME_MEM_REQ;
                                 end else begin 
                                     next_state = DMA_WRITE_RESUME_WRITE;
@@ -588,7 +586,7 @@ module llc_process_request(
                                 next_state = DMA_READ_RESUME_DMA_RSP;
                             end
                         end else begin 
-                            if (states_buf_wr_data == `INVALID && misaligned) begin 
+                            if (states_buf_wr_data == `INVALID && misaligned_next) begin 
                                 next_state = DMA_WRITE_RESUME_MEM_REQ;
                             end else begin 
                                 next_state = DMA_WRITE_RESUME_WRITE;
@@ -673,7 +671,15 @@ module llc_process_request(
             dma_length <= dma_length_next; 
         end 
     end
-  
+ 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            misaligned <= 1'b0; 
+        end else begin 
+            misaligned <= misaligned_next;
+        end
+    end
+
     logic [`WORDS_PER_LINE-1:0] words_to_write;
     logic [`WORD_BITS-1:0] words_to_write_sum; 
     always_comb begin 
@@ -764,7 +770,8 @@ module llc_process_request(
         clr_dma_read_pending = 1'b0; 
         clr_dma_write_pending = 1'b0; 
         words_to_write = 0;
-        words_to_write_sum = 0; 
+        words_to_write_sum = 0;
+        misaligned_next = 1'b0;
         
         //misc 
         line_addr = 0; 
@@ -777,6 +784,7 @@ module llc_process_request(
             IDLE : begin  
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
             end
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
@@ -1040,6 +1048,7 @@ module llc_process_request(
             DMA_REQ_TO_GET : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
                 if (llc_dma_req_in.coh_msg == `REQ_DMA_READ_BURST) begin 
                     set_dma_read_pending = 1'b1; 
                     set_is_dma_read_to_resume_process = 1'b1; 
@@ -1051,6 +1060,7 @@ module llc_process_request(
             DMA_RECALL_EM : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
                 set_recall_evict_addr = 1'b1;
                 set_recall_pending = 1'b1;
                 llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
@@ -1062,6 +1072,7 @@ module llc_process_request(
             DMA_RECALL_SSD : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
                 set_recall_evict_addr = 1'b1;
                 if (states_buf[way] == `SD) begin 
                     set_recall_pending = 1'b1;
@@ -1086,6 +1097,7 @@ module llc_process_request(
                 sharers_buf_wr_data = 0; 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
  
                 if (evict) begin 
                     if (way == evict_way_buf) begin 
@@ -1188,6 +1200,9 @@ module llc_process_request(
                 llc_mem_req_valid_int = 1'b1;
             end
             DMA_WRITE_RESUME_MEM_RSP : begin 
+                dma_write_woffset = llc_dma_req_in.word_offset;
+                valid_words = llc_dma_req_in.valid_words + 1; 
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
                 llc_mem_rsp_ready_int = 1'b1;  
             end
             DMA_WRITE_RESUME_WRITE : begin 
