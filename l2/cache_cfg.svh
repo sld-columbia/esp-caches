@@ -3,8 +3,9 @@
 
 //set LITTLE_ENDIAN for Ariane, BIG_ENDIAN for Leon
 `define BIG_ENDIAN
-`define ADDR_BITS    32
+//3 for Ariane, 2 for Leon
 `define BYTE_BITS    2
+//1 for Ariane, 2 for Leon
 `define WORD_BITS    2
 `define L2_WAYS      8
 `define L2_SETS      256
