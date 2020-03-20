@@ -1,15 +1,15 @@
 # esp-caches
 
-##Overview
+## Overview
 This repository contains the SystemVerilog implementation of the cache hierarchy for [ESP](http://github.com/sld-columbia/esp), as well as SystemC wrappers for the caches that allow co-simulation with the existing SystemC testbenches in ESP.
 
-###Usage
+### Usage
 
 -**ESP** : To use the ESP SystemVerilog caches, clone the [ESP repository](http://github.com/sld-columbia/esp) follow the [ESP singlecore tutorial](https://esp.cs.columbia.edu/docs/singlecore/). Namely see the section *ESP Cache Hierarchy*. From the ESP GUI, you should check the `Use Caches` box and select  `SystemVerilog` from the `Implementation` dropdown. 
 
 -**Simulation** : The caches use the SystemC testbench located within ESP. After cloning ESP, navigate to the `L2` or `LLC` folders (ESPROOT/rtl/src/sld/caches/esp-caches/llc). First, modify the `cache_cfg.svh` to test the configuration you'd like to simulate (see the *Assumptions and Limitations*  section for the currently supported configuration). From this folder you can run `make llc-sim` to run a command line simulation or `make llc-sim-gui` to launch the GUI and view waveforms. The caches currently use Cadence's Incisive simulator.  
 
-###Structure
+### Structure
 ```
 project
 |   README.md    
@@ -36,15 +36,15 @@ project
 ```
 `common` contains code that is used in both the LLC and the L1: `rtl` contains common SystemVerilog modules and `defs` contain SystemVerilog header files with constants and datatypes defined. The `l2` and `llc` folders are structured the same. Each contains a `Makefile` with commands for running simulations of the caches, which can be configured in the `cache_cfg.svh` file. The subfolders `rtl` and `sim` contain SystemVerilog modules and SystemC wrappers for cosimulation, respectively.
 
-##Features
+## Features
 The caches implement the protocol described in [this paper](https://sld.cs.columbia.edu/pubs/giri_nocs18.pdf). In addition to enabling multi-processor SoCs in ESP, the caches allow accelerators to use one of three coherence models: non-coherent (DMA to main memory), LLC-coherent (DMA to the LLC), and fully coherent with the processors (only if the accelerator is equipped with an L2 cache). Aditionally, the integration of the caches in ESP allow for runtime selection of a coherence model. 
 
-##LLC
+## LLC
 
-###Functional Description
+### Functional Description
 In addition to serving as the last level of on-device memory, the LLC also contains the directory controller. The LLC operates in a 6-phase loop, consisting of the following phases: `DECODE`, `ADDRESS`, `MEMORY`, `LOOKUP`, `PROCESS`, and `UPDATE`. These phases are described in more detail in the list of files below. 
 
-###Files
+### Files
 `llc_rtl_top.sv` : Top-level verilog module, containing only the interface to the LLC wrapper. Takes incoming signals for each group and packs them into a SystemVerilog interface and unpacks outgoing interfaces into their respective signals.
 
 `llc_core.sv` : Instantiates and connects all lower-level  LLC modules. 
@@ -81,17 +81,17 @@ In addition to serving as the last level of on-device memory, the LLC also conta
 
 `llc_interfaces.sv` : manages the incoming and outgoing interfaces. The interface uses a valid-ready protocol with a 1-item queue for holding one request. The 1-item queue allows the cache to accept a request, even if the cache is not internally ready to process the signal, avoiding applying backpressure to the rest of the system. The cache then pulls from the queue when it is ready to process the request. A similar process happens for outgoing the request. The controller for this interface is a simple 2-state FSM located in `interface_controller.sv` inside `common/rtl`.
 
-###Assumptions and Limitations
+### Assumptions and Limitations
 - Currently only handles 32-bit addresses. 
 - Supports 4, 8, or 16 ways.
 - Testbench currently only works for 16 ways.
 
-##L2
+## L2
 
-###Functional Description
+### Functional Description
 The L2 cache is the last level of local storage for CPUs and, optionally, for accelerators in ESP. Accelerators can be equipped with an L2 cache from the ESP GUI. The L2 is largely similar to the LLC, with a few exceptions. First, the L2 does not need to track directory information as the LLC does, and thus does not need to store as many fields. Next, the L2 contains a small buffer for outstanding requests and has many more transient states than the LLC. In contrast with the LLC, which updates the memory at every iteration of processing, the L2 only updates its memory once a request is retired into a stable state. Finally, the L2 handles atomic requests from the CPU, whereas the LLC has no concept of whether a CPU is completing an atomic transaction or not; in contrast, the LLC handles DMA transactions for LLC-coherent DMA, whereas the L2 is not involved in these transactions. The states for the L2 can be broadly classified as follows: `DECODE`, `REQS_LOOKUP`, `TAG_LOOKUP`, and `ACTION`. However, not all states are used for all of CPU requests, forwards, responses, and flushes. For instance, responses are guaranteed to be addressing an outstanding request, so there is no need to do tag lookup from the local memory. In contrast, flushes do not act on outstanding requests and do not perform a lookup of the tags in the local memory.  
 
-###Files
+### Files
 `l2_rtl_top.sv` : Top-level verilog module, containing only the interface to the L2 wrapper. Takes incoming signals for each group and packs them into a SystemVerilog interface and unpacks outgoing interfaces into their respective signals.
 
 `l2_core.sv` : Instantiates and connects all lower-level  L2 modules. 
@@ -140,7 +140,7 @@ The L2 cache is the last level of local storage for CPUs and, optionally, for ac
 
 `l2_interfaces.sv` : manages the incoming and outgoing interfaces. The interface uses a valid-ready protocol with a 1-item queue for holding one request. The 1-item queue allows the cache to accept a request, even if the cache is not internally ready to process the signal, avoiding applying backpressure to the rest of the system. The cache then pulls from the queue when it is ready to process the request. A similar process happens for outgoing the request. The controller for this interface is a simple 2-state FSM located in `interface_controller.sv` inside `common/rtl`.  
 
-###Assumptions and Limitations
+### Assumptions and Limitations
 - Currently only handles 32-bit addresses. 
 - Supports 2, 4, or 8
 - Testbench currently only works for 16 ways.
