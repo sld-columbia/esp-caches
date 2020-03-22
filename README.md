@@ -5,9 +5,9 @@ This repository contains the SystemVerilog implementation of the cache hierarchy
 
 ### Usage
 
--**ESP** : To use the ESP SystemVerilog caches, clone the [ESP repository](http://github.com/sld-columbia/esp) follow the [ESP singlecore tutorial](https://esp.cs.columbia.edu/docs/singlecore/). Namely see the section *ESP Cache Hierarchy*. From the ESP GUI, you should check the `Use Caches` box and select  `SystemVerilog` from the `Implementation` dropdown. 
+- **ESP** : To use the ESP SystemVerilog caches, clone the [ESP repository](http://github.com/sld-columbia/esp) follow the [ESP singlecore tutorial](https://esp.cs.columbia.edu/docs/singlecore/). Namely see the section *ESP Cache Hierarchy*. From the ESP GUI, you should check the `Use Caches` box and select  `SystemVerilog` from the `Implementation` dropdown. 
 
--**Simulation** : The caches use the SystemC testbench located within ESP. After cloning ESP, navigate to the `L2` or `LLC` folders (ESPROOT/rtl/src/sld/caches/esp-caches/llc). First, modify the `cache_cfg.svh` to test the configuration you'd like to simulate (see the *Assumptions and Limitations*  section for the currently supported configuration). From this folder you can run `make llc-sim` to run a command line simulation or `make llc-sim-gui` to launch the GUI and view waveforms. The caches currently use Cadence's Incisive simulator.  
+- **Simulation** : The caches use the SystemC testbench located within ESP. After cloning ESP, navigate to the `L2` or `LLC` folders (ESPROOT/rtl/src/sld/caches/esp-caches/llc). First, modify the `cache_cfg.svh` to test the configuration you'd like to simulate (see the *Assumptions and Limitations*  section for the currently supported configuration). From this folder you can run `make llc-sim` to run a command line simulation or `make llc-sim-gui` to launch the GUI and view waveforms. The caches currently use Cadence's Incisive simulator.  
 
 ### Structure
 ```
@@ -53,21 +53,21 @@ In addition to serving as the last level of on-device memory, the LLC also conta
 
 `llc_localmem.sv` : Local memory that stores all of the data in the LLC as well as the information kept in the directory. All data is read in the `MEMORY` phase.  Uses dual-ported BRAMs, with one port per way to ensure that an entire set can be read in one cycle. If an entire way cannot fit in a single BRAM, BRAMs are replicated "horizontally" and the most significant address bits are used to multiplex from the correct BRAM. If the data is too wide to fit in a BRAM, BRAMs are replicated "vertically" and concatenated to form the full data (i.e. 128 bit lines in 32 bit BRAMs). The fields that are stored are as follows: 
 
--*line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
+- *line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
 
--*state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
+- *state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
 
--*tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
+- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
 
--*dirty bit* : Indicates if the cache line has been modified and must be written back to memory. 1 bit. Stored in 1-bit BRAMs. 
+- *dirty bit* : Indicates if the cache line has been modified and must be written back to memory. 1 bit. Stored in 1-bit BRAMs. 
 
--*hprot*  : Write protections - 0 for instructions, 1 for data. 1-bit. Stored in 1-bit BRAMs.  
+- *hprot*  : Write protections - 0 for instructions, 1 for data. 1-bit. Stored in 1-bit BRAMs.  
 
--*owner* : The current owner of the cache line. 4-bits due to current limitation of 16 coherent devices. Stored in 4-bit wide BRAMs. 
+- *owner* : The current owner of the cache line. 4-bits due to current limitation of 16 coherent devices. Stored in 4-bit wide BRAMs. 
 
--*sharers* : Tracks all sharers of the current cache line - 1 bit for each possible sharer. 16 bits. Stored in 16-bit wide BRAMs. 
+- *sharers* : Tracks all sharers of the current cache line - 1 bit for each possible sharer. 16 bits. Stored in 16-bit wide BRAMs. 
 
--*evict way* : Keeps track of the next way for each set to start the eviction search from. 2-4 bits depending on number of ways -  LLC is capped at 16 ways. Stored in 4-bit wide BRAMs. 
+- *evict way* : Keeps track of the next way for each set to start the eviction search from. 2-4 bits depending on number of ways -  LLC is capped at 16 ways. Stored in 4-bit wide BRAMs. 
 
 `llc_lookup.sv` : Active in the `LOOKUP` state. Checks each set for a tag hit. If no hit, checks for an empty-way. If no empty way, performs an eviction. First evicts a line in the `VALID` state, if none picks the first line that is not awaiting data, otherwise evicts from the *evict way*.  FIFO-like. Uses priority encoders (`pri_enc.sv`) to find the first way  that meets above criteria. Priority encoders are split into 4 smaller encoders (`pri_enc_quarter.sv`) for better timing. 
 
@@ -84,7 +84,7 @@ In addition to serving as the last level of on-device memory, the LLC also conta
 ### Assumptions and Limitations
 - Currently only handles 32-bit addresses. 
 - Supports 4, 8, or 16 ways.
-- Testbench currently only works for 16 ways.
+- Testbench currently works for 4, 8, and 16 ways.
 
 ## L2
 
@@ -100,33 +100,33 @@ The L2 cache is the last level of local storage for CPUs and, optionally, for ac
 
 `l2_localmem.sv` : Local memory that stores all of the data in the L2 as well as necessary information about the state of the line. Uses dual-ported BRAMs, with one port per way to ensure that an entire set can be read in one cycle. If an entire way cannot fit in a single BRAM, BRAMs are replicated "horizontally" and the most significant address bits are used to multiplex from the correct BRAM. If the data is too wide to fit in a BRAM, BRAMs are replicated "vertically" and concatenated to form the full data (i.e. 128 bit lines in 32 bit BRAMs). Not every request requires an access to the localmemory (i.e responses are always resolved from the outstanding request buffer). The fields that are stored are as follows: 
 
--*line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
+- *line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
 
--*state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
+- *state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
 
--*tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
+- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
 
--*hprot*  : Write protections - 0 for instructions, 1 for data. 1-bit. Stored in 1-bit BRAMs.  
+- *hprot*  : Write protections - 0 for instructions, 1 for data. 1-bit. Stored in 1-bit BRAMs.  
 
--*evict way* : Keeps track of the next way for each set to start the eviction search from. 1-3 bits depending on number of ways -  L2 is capped at 8 ways. Stored in 4-bit wide BRAMs. 
+- *evict way* : Keeps track of the next way for each set to start the eviction search from. 1-3 bits depending on number of ways -  L2 is capped at 8 ways. Stored in 4-bit wide BRAMs. 
 
 `l2_reqs.sv` : Buffers that store a small finite set (default is 4) of outstanding requests. Also includes the logic to perform a lookup in the buffer for each type of action. Stores several fields including the following: 
 
--*cpu_msg* : `READ`, `READ_ATOMIC`, `WRITE`, or `WRITE_ATOMIC`
+- *cpu_msg* : `READ`, `READ_ATOMIC`, `WRITE`, or `WRITE_ATOMIC`
 
--*tag*, *set*, *way* : corresponding to the address of the request.
+- *tag*, *set*, *way* : corresponding to the address of the request.
 
--*size* : size of the request - byte, halfword, or word
+- *size* : size of the request - byte, halfword, or word
 
--*word_offset*, *byte_offset* : position in the cacheline of the desired data
+- *word_offset*, *byte_offset* : position in the cacheline of the desired data
 
--*state* : one of 13 unstable states
+- *state* : one of 13 unstable states
 
--*invack_cnt* : number of invalidate acknowledgements pending
+- *invack_cnt* : number of invalidate acknowledgements pending
 
--*word* : word to be written to the cache line
+- *word* : word to be written to the cache line
 
--*line* : cache line
+- *line* : cache line
 
 `l2_lookup.sv` : Used in the event of a miss in the outstanding request buffer. Checks a given set for a tag hit. If no hit, checks for an empty-way. If there is no empty-way, the L2 evicts from the *evict_way*. 
 
@@ -142,6 +142,6 @@ The L2 cache is the last level of local storage for CPUs and, optionally, for ac
 
 ### Assumptions and Limitations
 - Currently only handles 32-bit addresses. 
-- Supports 2, 4, or 8
-- Testbench currently only works for 16 ways.
+- Supports 2, 4, or 8 ways. 
+- Testbench works for 4 or 8 ways.
 
