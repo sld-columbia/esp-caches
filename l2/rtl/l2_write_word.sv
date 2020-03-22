@@ -63,7 +63,7 @@ module l2_write_word(
             line_out[off_bits +: 16] = word_in[b_off_bits +: 16]; 
         end else if (hsize_in == `WORD_32) begin 
             line_out[off_bits +: 32] = word_in[b_off_bits +: 32]; 
-        end else begin 
+        end else if (`BYTE_BITS != 2) begin 
             line_out[off_bits +: 64] = word_in[b_off_bits +: 64]; 
         end
 

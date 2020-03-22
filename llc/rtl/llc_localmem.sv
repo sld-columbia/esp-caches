@@ -78,7 +78,15 @@ module llc_localmem (
     assign wr_data_state_extended = {{(4-`LLC_STATE_BITS){1'b0}}, wr_data_state};
     logic [31:0] wr_data_tag_extended;
     assign wr_data_tag_extended = {{(32-`LLC_TAG_BITS){1'b0}}, wr_data_tag};
+    logic [3:0] wr_data_evict_way_extended; 
 
+    always_comb begin 
+        if (`LLC_WAYS == 16) begin 
+            wr_data_evict_way_extended = wr_data_evict_way;
+        end else begin 
+            wr_data_evict_way_extended = {{(4-`LLC_WAY_BITS){1'b0}}, wr_data_evict_way};
+        end 
+    end
     generate 
         if (`LLC_OWNER_BRAMS_PER_WAY == 1) begin 
             always_comb begin 
@@ -474,7 +482,7 @@ module llc_localmem (
                     .CLK(clk), 
                     .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}},
                             set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
-                    .D0(wr_data_evict_way), 
+                    .D0(wr_data_evict_way_extended), 
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
                     .CE0(rd_en),
@@ -489,7 +497,7 @@ module llc_localmem (
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
                     .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
-                    .D0(wr_data_evict_way), 
+                    .D0(wr_data_evict_way_extended), 
                     .Q0(rd_data_evict_way_tmp[j]),
                     .WE0(wr_en_evict_way_bank[j]),
                     .CE0(rd_en),
