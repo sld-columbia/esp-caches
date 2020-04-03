@@ -34,7 +34,7 @@ project
     +---sim
             ...
 ```
-`common` contains code that is used in both the LLC and the L1: `rtl` contains common SystemVerilog modules and `defs` contain SystemVerilog header files with constants and datatypes defined. The `l2` and `llc` folders are structured the same. Each contains a `Makefile` with commands for running simulations of the caches, which can be configured in the `cache_cfg.svh` file. The subfolders `rtl` and `sim` contain SystemVerilog modules and SystemC wrappers for cosimulation, respectively.
+`common` contains code that is used in both the LLC and the L2: `rtl` contains common SystemVerilog modules and `defs` contain SystemVerilog header files with constants and datatypes defined. The `l2` and `llc` folders are structured the same. Each contains a `Makefile` with commands for running simulations of the caches, which can be configured in the `cache_cfg.svh` file. The subfolders `rtl` and `sim` contain SystemVerilog modules and SystemC wrappers for cosimulation, respectively.
 
 ## Features
 The caches implement the protocol described in [this paper](https://sld.cs.columbia.edu/pubs/giri_nocs18.pdf). In addition to enabling multi-processor SoCs in ESP, the caches allow accelerators to use one of three coherence models: non-coherent (DMA to main memory), LLC-coherent (DMA to the LLC), and fully coherent with the processors (only if the accelerator is equipped with an L2 cache). Aditionally, the integration of the caches in ESP allow for runtime selection of a coherence model. 
@@ -53,11 +53,11 @@ In addition to serving as the last level of on-device memory, the LLC also conta
 
 `llc_localmem.sv` : Local memory that stores all of the data in the LLC as well as the information kept in the directory. All data is read in the `MEMORY` phase.  Uses dual-ported BRAMs, with one port per way to ensure that an entire set can be read in one cycle. If an entire way cannot fit in a single BRAM, BRAMs are replicated "horizontally" and the most significant address bits are used to multiplex from the correct BRAM. If the data is too wide to fit in a BRAM, BRAMs are replicated "vertically" and concatenated to form the full data (i.e. 128 bit lines in 32 bit BRAMs). The fields that are stored are as follows: 
 
-- *line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
+- *line* : One cache line of data. 128 bits. Each line is spread over 8 8-bit wide BRAMs.
 
 - *state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
 
-- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
+- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 3 8-bit wide BRAMs.
 
 - *dirty bit* : Indicates if the cache line has been modified and must be written back to memory. 1 bit. Stored in 1-bit BRAMs. 
 
@@ -89,7 +89,7 @@ In addition to serving as the last level of on-device memory, the LLC also conta
 ## L2
 
 ### Functional Description
-The L2 cache is the last level of local storage for CPUs and, optionally, for accelerators in ESP. Accelerators can be equipped with an L2 cache from the ESP GUI. The L2 is largely similar to the LLC, with a few exceptions. First, the L2 does not need to track directory information as the LLC does, and thus does not need to store as many fields. Next, the L2 contains a small buffer for outstanding requests and has many more transient states than the LLC. In contrast with the LLC, which updates the memory at every iteration of processing, the L2 only updates its memory once a request is retired into a stable state. Finally, the L2 handles atomic requests from the CPU, whereas the LLC has no concept of whether a CPU is completing an atomic transaction or not; in contrast, the LLC handles DMA transactions for LLC-coherent DMA, whereas the L2 is not involved in these transactions. The states for the L2 can be broadly classified as follows: `DECODE`, `REQS_LOOKUP`, `TAG_LOOKUP`, and `ACTION`. However, not all states are used for all of CPU requests, forwards, responses, and flushes. For instance, responses are guaranteed to be addressing an outstanding request, so there is no need to do tag lookup from the local memory. In contrast, flushes do not act on outstanding requests and do not perform a lookup of the tags in the local memory.  
+The L2 cache is the last level of local storage for CPUs and, optionally, for accelerators in ESP. Accelerators can be equipped with an L2 cache from the ESP GUI. The L2 is largely similar to the LLC, with a few exceptions. First, the L2 does not need to track directory information as the LLC does, and thus does not need to store as many fields. Next, the L2 contains a small buffer for outstanding requests and has many more transient states than the LLC. In contrast with the LLC, which updates the memory at every iteration of processing, the L2 only updates its memory once a request is retired into a stable state. Finally, the L2 handles atomic requests from the CPU, whereas the LLC has no concept of whether a CPU is completing an atomic transaction or not; in contrast, the LLC handles DMA transactions for LLC-coherent DMA, whereas the L2 is not involved in these transactions. The states for the L2 can be broadly classified as follows: `DECODE`, `REQS_LOOKUP`, `TAG_LOOKUP`, and `ACTION`. However, not all states are used for all of CPU requests, forwards, responses, and flushes. For instance, responses are guaranteed to be addressing an outstanding request, so there is no need to do tag lookup from the local memory. In contrast, flushes do not act on outstanding requests and do not perform a lookup of the tags in the outstanding requests buffer.
 
 ### Files
 `l2_rtl_top.sv` : Top-level verilog module, containing only the interface to the L2 wrapper. Takes incoming signals for each group and packs them into a SystemVerilog interface and unpacks outgoing interfaces into their respective signals.
@@ -100,11 +100,11 @@ The L2 cache is the last level of local storage for CPUs and, optionally, for ac
 
 `l2_localmem.sv` : Local memory that stores all of the data in the L2 as well as necessary information about the state of the line. Uses dual-ported BRAMs, with one port per way to ensure that an entire set can be read in one cycle. If an entire way cannot fit in a single BRAM, BRAMs are replicated "horizontally" and the most significant address bits are used to multiplex from the correct BRAM. If the data is too wide to fit in a BRAM, BRAMs are replicated "vertically" and concatenated to form the full data (i.e. 128 bit lines in 32 bit BRAMs). Not every request requires an access to the localmemory (i.e responses are always resolved from the outstanding request buffer). The fields that are stored are as follows: 
 
-- *line* : One cache line of data. 128 bits. Each line is spread over 4 32-bit wide BRAMs.
+- *line* : One cache line of data. 128 bits. Each line is spread over 8 32-bit wide BRAMs.
 
 - *state* : The state of each cache line. 3 bits. Stored in 4-bit wide BRAMs. 
 
-- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 32-bit wide BRAMs.
+- *tag*: The tag bits for each cached address. 16-21 bits depending on number of sets. Stored in 3 8-bit wide BRAMs.
 
 - *hprot*  : Write protections - 0 for instructions, 1 for data. 1-bit. Stored in 1-bit BRAMs.  
 

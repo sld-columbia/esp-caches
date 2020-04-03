@@ -34,7 +34,7 @@ module l2_localmem (
     );
     
     //for following 2 use BRAM data width to aviod warnings, only copy relevant bits to output data 
-    logic [31:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
+    logic [23:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
     logic [3:0] rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
     state_t rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
     line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY]; 
@@ -60,8 +60,8 @@ module l2_localmem (
     logic wr_en_line_bank[`L2_LINE_BRAMS_PER_WAY];
 
     //extend to the appropriate BRAM width 
-    logic [31:0] wr_data_tag_extended;
-    assign wr_data_tag_extended = {{(32-`L2_TAG_BITS){1'b0}}, wr_data_tag};
+    logic [23:0] wr_data_tag_extended;
+    assign wr_data_tag_extended = {{(24-`L2_TAG_BITS){1'b0}}, wr_data_tag};
     logic [3:0] wr_data_evict_way_extended;
     assign wr_data_evict_way_extended = {{(4-`L2_WAY_BITS){1'b0}}, wr_data_evict_way};
 
@@ -220,74 +220,76 @@ module l2_localmem (
                 end 
             end
             //tag memory 
-            //need ~15-20 bits for tag - 512x32 BRAM
-            for (j = 0; j < `L2_TAG_BRAMS_PER_WAY; j++) begin
-                if (`BRAM_512_ADDR_WIDTH > (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) + 1) begin 
-                    BRAM_512x32 tag_bram( 
-                        .CLK(clk), 
-                        .A0({{(`BRAM_512_ADDR_WIDTH - (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) - 1){1'b0}}, 
-                                1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
-                        .D0(wr_data_tag_extended), 
-                        .Q0(rd_data_tag_tmp[2*i][j]),
-                        .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
-                        .CE0(rd_en),
-                        .A1({{(`BRAM_512_ADDR_WIDTH - (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) - 1){1'b0}}, 
-                                 1'b1, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
-                        .D1(wr_data_tag_extended), 
-                        .Q1(rd_data_tag_tmp[2*i+1][j]), 
-                        .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
-                        .CE1(rd_en),
-                        .WEM0(),
-                        .WEM1());
-                end else begin 
-                    BRAM_512x32 tag_bram( 
-                        .CLK(clk), 
-                        .A0({1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
-                        .D0(wr_data_tag_extended), 
-                        .Q0(rd_data_tag_tmp[2*i][j]),
-                        .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
-                        .CE0(rd_en),
-                        .A1({1'b1, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
-                        .D1(wr_data_tag_extended), 
-                        .Q1(rd_data_tag_tmp[2*i+1][j]), 
-                        .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
-                        .CE1(rd_en),
-                        .WEM0(),
-                        .WEM1());
-                end  
+            //need ~15-20 bits for tag - 2048x8 BRAM
+            for (j = 0; j < `L2_TAG_BRAMS_PER_WAY; j++) begin 
+                for (k = 0; k < `L2_BRAMS_PER_TAG; k++) begin 
+                    if (`BRAM_2048_ADDR_WIDTH > (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) + 1) begin 
+                        BRAM_2048x8 tag_bram( 
+                            .CLK(clk), 
+                            .A0({{(`BRAM_2048_ADDR_WIDTH - (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) - 1){1'b0}}, 
+                                    1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_tag_extended[(8*(k+1)-1):(8*k)]), 
+                            .Q0(rd_data_tag_tmp[2*i][j][(8*(k+1)-1):(8*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
+                            .CE0(rd_en),
+                            .A1({{(`BRAM_2048_ADDR_WIDTH - (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) - 1){1'b0}} , 
+                                    1'b1, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_tag_extended[(8*(k+1)-1):(8*k)]), 
+                            .Q1(rd_data_tag_tmp[2*i+1][j][(8*(k+1)-1):(8*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end else begin 
+                        BRAM_2048x8 tag_bram( 
+                            .CLK(clk), 
+                            .A0({1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_tag[(8*(k+1)-1):(8*k)]), 
+                            .Q0(rd_data_tag_tmp[2*i][j][(8*(k+1)-1):(8*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
+                            .CE0(rd_en),
+                            .A1({1'b1, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_tag_extended[(8*(k+1)-1):(8*k)]), 
+                            .Q1(rd_data_tag_tmp[2*i+1][j][(8*(k+1)-1):(8*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_tag_bank[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end
+                end 
             end
             //line memory 
-            //128 bits - using 512x32 BRAM, need 4 BRAMs per line 
+            //128 bits - using 1024x16 BRAM, need 4 BRAMs per line 
             for (j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `L2_BRAMS_PER_LINE; k++) begin 
-                    if (`BRAM_512_ADDR_WIDTH > (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) + 1) begin 
-                        BRAM_512x32 line_bram( 
+                    if (`BRAM_1024_ADDR_WIDTH > (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) + 1) begin 
+                        BRAM_1024x16 line_bram( 
                             .CLK(clk), 
-                            .A0({{(`BRAM_512_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
+                            .A0({{(`BRAM_1024_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                     1'b0, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
-                            .D0(wr_data_line[(32*(k+1)-1):(32*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(32*(k+1)-1):(32*k)]),
+                            .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
+                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
-                            .A1({{(`BRAM_512_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 
+                            .A1({{(`BRAM_1024_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 
                                     1'b1, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
-                            .D1(wr_data_line[(32*(k+1)-1):(32*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)-1):(32*k)]),
+                            .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
+                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
                             .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
                             .CE1(rd_en),
                             .WEM0(),
                             .WEM1());
                     end else begin 
-                        BRAM_512x32 line_bram( 
+                        BRAM_1024x16 line_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
-                            .D0(wr_data_line[(32*(k+1)-1):(32*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(32*(k+1)-1):(32*k)]),
+                            .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
+                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
                             .A1({1'b1, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
-                            .D1(wr_data_line[(32*(k+1)-1):(32*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(32*(k+1)-1):(32*k)]),
+                            .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
+                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
                             .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
                             .CE1(rd_en),
                             .WEM0(),
