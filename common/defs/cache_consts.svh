@@ -22,6 +22,7 @@
 // Common
 //
 
+
 `ifndef BIG_ENDIAN
 `ifndef LITTLE_ENDIAN
 `define LITTLE_ENDIAN
@@ -109,7 +110,7 @@
 `endif
 
 `ifndef LLC_SETS
-`define LLC_SETS      1024  // defined in l2/stratus/project.tcl
+`define LLC_SETS      2048  // defined in l2/stratus/project.tcl
 `endif
 
 `define LLC_WAY_BITS		$clog2(`LLC_WAYS)
@@ -292,7 +293,7 @@
 `define LLC_DIRTY_BIT_BRAM_INDEX_BITS $clog2(`LLC_DIRTY_BIT_BRAMS_PER_WAY)
 `define LLC_STATE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
 `define LLC_STATE_BRAM_INDEX_BITS $clog2(`LLC_STATE_BRAMS_PER_WAY)
-`define LLC_TAG_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define LLC_TAG_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_8_BITS /2) -1)  / (`BRAM_SIZE_8_BITS / 2))
 `define LLC_TAG_BRAM_INDEX_BITS $clog2(`LLC_TAG_BRAMS_PER_WAY)
 
 //assuming 16 or fewer ways - need to change this
@@ -300,14 +301,15 @@
 `define LLC_EVICT_WAY_BRAMS ((`LLC_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
 `define LLC_EVICT_WAY_BRAM_INDEX_BITS $clog2(`LLC_EVICT_WAY_BRAMS)
 
-`define LLC_LINE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define LLC_LINE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define LLC_LINE_BRAM_INDEX_BITS $clog2(`LLC_LINE_BRAMS_PER_WAY)
 
 //each line is 128 bits, so need to split data across multiple BRAMs
-`define LLC_BRAMS_PER_LINE (`BITS_PER_LINE / 32)
+`define LLC_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
+`define LLC_BRAMS_PER_TAG  ((`LLC_TAG_BITS + 8 - 1) / 8)
 
 //assuming sets <= 4096, so tag > 16
-`define LLC_TAG_BRAM_WIDTH 32
+`define LLC_TAG_BRAM_WIDTH (`LLC_BRAMS_PER_TAG * 8)
 `define LLC_EVICT_WAY_BRAM_WIDTH 4 
 `define LLC_STATE_BRAM_WIDTH 4
 
@@ -321,7 +323,7 @@
 `define L2_HPROT_BRAM_INDEX_BITS $clog2(`L2_HPROT_BRAMS_PER_WAY)
 `define L2_STATE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_2_BITS /2) -1)  / (`BRAM_SIZE_2_BITS / 2))
 `define L2_STATE_BRAM_INDEX_BITS $clog2(`L2_STATE_BRAMS_PER_WAY)
-`define L2_TAG_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define L2_TAG_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_8_BITS /2) -1)  / (`BRAM_SIZE_8_BITS / 2))
 `define L2_TAG_BRAM_INDEX_BITS $clog2(`L2_TAG_BRAMS_PER_WAY)
 
 //assuming 16 or fewer ways - need to change this
@@ -329,11 +331,12 @@
 `define L2_EVICT_WAY_BRAMS ((`L2_SETS + (`BRAM_SIZE_4_BITS /2) -1)  / (`BRAM_SIZE_4_BITS / 2))
 `define L2_EVICT_WAY_BRAM_INDEX_BITS $clog2(`L2_EVICT_WAY_BRAMS)
 
-`define L2_LINE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_32_BITS /2) -1)  / (`BRAM_SIZE_32_BITS / 2))
+`define L2_LINE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define L2_LINE_BRAM_INDEX_BITS $clog2(`L2_LINE_BRAMS_PER_WAY)
 
 //each line is 128 bits, so need to split data across multiple BRAMs
-`define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 32)
+`define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
+`define L2_BRAMS_PER_TAG ((`L2_TAG_BITS + 8 - 1) / 8)
 
 //L2 REQ DEFINES
 `define L2_REQS_LOOKUP 3'b000
