@@ -202,9 +202,9 @@ module l2_fsm(
             ready_bits <= 0; 
         end else if (state == DECODE) begin 
             ready_bits <= 0; 
-        end else if ((state == CPU_REQ_EVICT || state == FWD_NO_HIT) && l2_inval_ready_int) begin 
+        end else if ((state == CPU_REQ_EVICT || state == FWD_NO_HIT || state == FWD_HIT) && l2_inval_ready_int) begin 
             ready_bits[0] <= 1'b1; 
-        end else if ((state == CPU_REQ_EVICT && l2_req_out_ready_int) || (state == FWD_NO_HIT && l2_rsp_out_ready_int)) begin 
+        end else if ((state == CPU_REQ_EVICT && l2_req_out_ready_int) || ((state == FWD_NO_HIT || state == FWD_HIT) && l2_rsp_out_ready_int)) begin 
             ready_bits[1] <= 1'b1; 
         end
     end
@@ -305,10 +305,18 @@ module l2_fsm(
             end
             FWD_HIT : begin 
                 if (reqs[reqs_i].state == `SMAD || reqs[reqs_i].state == `SMADW) begin 
-                    if (l2_fwd_in.coh_msg == `FWD_INV && l2_rsp_out_ready_int) begin 
-                        next_state = DECODE;
-                    end else if (l2_fwd_in.coh_msg != `FWD_INV) begin 
-                        next_state = DECODE;
+                    if (l2_fwd_in.coh_msg == `FWD_INV) begin 
+                        if (l2_rsp_out_ready_int && l2_inval_ready_int) begin 
+                            next_state = DECODE;
+                        end else if (ready_bits[0] && l2_rsp_out_ready_int) begin 
+                            next_state = DECODE;
+                        end else if (ready_bits[1] && l2_inval_ready_int) begin 
+                            next_state = DECODE;
+                        end 
+                    end else begin 
+                        if (l2_inval_ready_int) begin
+                            next_state = DECODE;
+                        end
                     end 
                 end else if (reqs[reqs_i].state == `MIA) begin 
                     if (l2_fwd_in.coh_msg == `FWD_GETS && l2_rsp_out_ready_int) begin 
@@ -689,7 +697,7 @@ module l2_fsm(
             end
             FWD_HIT : begin 
                 if (reqs[reqs_i].state == `SMAD || reqs[reqs_i].state == `SMADW || reqs[reqs_i].state == `SIA) begin  
-                    if (l2_fwd_in.coh_msg == `FWD_INV) begin 
+                    if (l2_fwd_in.coh_msg == `FWD_INV && !ready_bits[1]) begin 
                         l2_rsp_out_valid_int = 1'b1;
                         l2_rsp_out_o.coh_msg = `RSP_INVACK; 
                         l2_rsp_out_o.req_id = l2_fwd_in.req_id; 
@@ -698,9 +706,29 @@ module l2_fsm(
                         l2_rsp_out_o.line = 0; 
                     end
                     
-                    if (l2_rsp_out_ready_int || l2_fwd_in.coh_msg != `FWD_INV) begin 
-                        wr_req_state = 1'b1;
+                    if (!ready_bits[0] && reqs[reqs_i].state != `SIA) begin
+                        l2_inval_o = l2_fwd_in.addr;
+                        l2_inval_valid_int = 1'b1;
                     end
+                    
+                    if (reqs[reqs_i] != `SIA) begin  
+                        if (l2_fwd_in.coh_msg == `FWD_INV) begin 
+                            if (l2_rsp_out_ready_int && l2_inval_ready_int) begin 
+                                wr_req_state = 1'b1;
+                            end else if (ready_bits[0] && l2_rsp_out_ready_int) begin 
+                                wr_req_state = 1'b1;
+                            end else if (ready_bits[1] && l2_inval_ready_int) begin 
+                                wr_req_state = 1'b1;
+                            end 
+                        end else begin 
+                            if (l2_inval_ready_int) begin
+                                wr_req_state = 1'b1;
+                            end
+                        end  
+                    end else if (l2_rsp_out_ready_int || l2_fwd_in.coh_msg != `FWD_INV) begin
+                        wr_req_state = 1'b1; 
+                    end
+
 
                     if (reqs[reqs_i].state == `SIA) begin 
                         state_wr_data_req  = `IIA; 
