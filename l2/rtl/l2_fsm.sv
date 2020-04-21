@@ -546,6 +546,7 @@ module l2_fsm(
             RESET : begin 
                 wr_rst = 1'b1;
                 wr_data_state = `INVALID;
+                set_in = rst_set; 
             end
             DECODE : begin 
                 if (do_ongoing_flush_next) begin 
