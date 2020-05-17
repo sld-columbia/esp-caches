@@ -553,7 +553,9 @@ module llc_process_request(
                 end
                 DMA_RECALL_SSD : begin 
                     if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
-                        if (!recall_pending || recall_valid) begin 
+                        if (states_buf[way] == `SHARED) begin 
+                            next_state = DMA_EVICT;
+                        end else if (!recall_pending || recall_valid) begin 
                             if (evict || recall_valid) begin 
                                 next_state = DMA_EVICT;
                             end else if (is_dma_read_to_resume) begin 
@@ -1074,6 +1076,9 @@ module llc_process_request(
                 valid_words = llc_dma_req_in.valid_words + 1; 
                 misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
                 set_recall_evict_addr = 1'b1;
+                if (states_buf[way] == `SHARED) begin 
+                    set_recall_valid = 1'b1;
+                end
                 if (states_buf[way] == `SD) begin 
                     set_recall_pending = 1'b1;
                 end
