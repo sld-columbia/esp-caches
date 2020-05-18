@@ -244,7 +244,7 @@ module l2_localmem (
                         BRAM_2048x8 tag_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
-                            .D0(wr_data_tag[(8*(k+1)-1):(8*k)]), 
+                            .D0(wr_data_tag_extended[(8*(k+1)-1):(8*k)]), 
                             .Q0(rd_data_tag_tmp[2*i][j][(8*(k+1)-1):(8*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
                             .CE0(rd_en),
