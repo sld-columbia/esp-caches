@@ -524,7 +524,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_OWNER_BRAMS_PER_WAY; j++) begin 
+                    rd_data_owner[i] = rd_data_owner_tmp[i][0];
+                    for (int j = 1; j < `LLC_OWNER_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS)]) begin 
                             rd_data_owner[i] = rd_data_owner_tmp[i][j]; 
                         end
@@ -542,7 +543,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_SHARERS_BRAMS_PER_WAY; j++) begin 
+                    rd_data_sharers[i] = rd_data_sharers_tmp[i][0]; 
+                    for (int j = 1; j < `LLC_SHARERS_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_SHARERS_BRAM_INDEX_BITS)]) begin 
                             rd_data_sharers[i] = rd_data_sharers_tmp[i][j]; 
                         end
@@ -560,7 +562,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_HPROT_BRAMS_PER_WAY; j++) begin 
+                    rd_data_hprot[i] = rd_data_hprot_tmp[i][0];
+                    for (int j = 1; j < `LLC_HPROT_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_HPROT_BRAM_INDEX_BITS)]) begin 
                             rd_data_hprot[i] = rd_data_hprot_tmp[i][j];
                         end
@@ -578,7 +581,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
+                    rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][0];
+                    for (int j = 1; j < `LLC_DIRTY_BIT_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_DIRTY_BIT_BRAM_INDEX_BITS)]) begin 
                             rd_data_dirty_bit[i] = rd_data_dirty_bit_tmp[i][j];
                         end
@@ -596,7 +600,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_STATE_BRAMS_PER_WAY; j++) begin 
+                    rd_data_state[i] = rd_data_state_tmp[i][0];
+                    for (int j = 1; j < `LLC_STATE_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS)]) begin 
                             rd_data_state[i] = rd_data_state_tmp[i][j];
                         end
@@ -614,7 +619,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_TAG_BRAMS_PER_WAY; j++) begin 
+                    rd_data_tag[i] = rd_data_tag_tmp[i][0];
+                    for (int j = 1; j < `LLC_TAG_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_TAG_BRAM_INDEX_BITS)]) begin 
                             rd_data_tag[i] = rd_data_tag_tmp[i][j];
                         end
@@ -632,7 +638,8 @@ module llc_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
+                    rd_data_line[i] = rd_data_line_tmp[i][0];
+                    for (int j = 1; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS)]) begin 
                             rd_data_line[i] = rd_data_line_tmp[i][j];
                         end
@@ -647,7 +654,8 @@ module llc_localmem (
             end
         end else begin 
             always_comb begin
-                for (int j = 0; j < `LLC_EVICT_WAY_BRAMS; j++) begin 
+                rd_data_evict_way = rd_data_evict_way_tmp[0];
+                for (int j = 1; j < `LLC_EVICT_WAY_BRAMS; j++) begin 
                     if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)]) begin 
                         rd_data_evict_way = rd_data_evict_way_tmp[j];
                     end

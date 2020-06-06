@@ -347,7 +347,8 @@ module l2_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `L2_HPROT_BRAMS_PER_WAY; j++) begin 
+                    rd_data_hprot[i] = rd_data_hprot_tmp[i][0];
+                    for (int j = 1; j < `L2_HPROT_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_HPROT_BRAM_INDEX_BITS)]) begin 
                             rd_data_hprot[i] = rd_data_hprot_tmp[i][j];
                         end
@@ -365,7 +366,8 @@ module l2_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `L2_STATE_BRAMS_PER_WAY; j++) begin 
+                    rd_data_state[i] = rd_data_state_tmp[i][0];
+                    for (int j = 1; j < `L2_STATE_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS)]) begin 
                             rd_data_state[i] = rd_data_state_tmp[i][j];
                         end
@@ -383,7 +385,8 @@ module l2_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `L2_TAG_BRAMS_PER_WAY; j++) begin 
+                    rd_data_tag[i] = rd_data_tag_tmp[i][0];
+                    for (int j = 1; j < `L2_TAG_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS)]) begin 
                             rd_data_tag[i] = rd_data_tag_tmp[i][j];
                         end
@@ -401,7 +404,8 @@ module l2_localmem (
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    for (int j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
+                    rd_data_line[i] = rd_data_line_tmp[i][0];
+                    for (int j = 1; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
                             rd_data_line[i] = rd_data_line_tmp[i][j];
                         end
@@ -416,7 +420,8 @@ module l2_localmem (
             end
         end else begin 
             always_comb begin
-                for (int j = 0; j < `L2_EVICT_WAY_BRAMS; j++) begin 
+                rd_data_evict_way = rd_data_evict_way_tmp[0];
+                for (int j = 1; j < `L2_EVICT_WAY_BRAMS; j++) begin 
                     if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)]) begin 
                         rd_data_evict_way = rd_data_evict_way_tmp[j];
                     end
