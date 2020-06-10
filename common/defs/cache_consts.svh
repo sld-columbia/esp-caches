@@ -13,6 +13,8 @@
 // System configuration
 `define MAX_N_L2 16
 `define MAX_N_L2_BITS $clog2(`MAX_N_L2)
+`define MAX_N_LLC 64
+`define MAX_N_LLC_BITS $clog2(`MAX_N_LLC)
 
 /*
  * Caches
@@ -74,6 +76,7 @@
 `define INVACK_CNT_WIDTH	`MAX_N_L2_BITS
 `define INVACK_CNT_CALC_WIDTH   (`INVACK_CNT_WIDTH + 1)
 `define CACHE_ID_WIDTH          `MAX_N_L2_BITS
+`define LLC_COH_DEV_ID_WIDTH    `MAX_N_LLC_BITS
 
 //
 // L2

@@ -31,7 +31,7 @@ public:
     sc_in<hprot_t> llc_dma_req_in_data_hprot;
     sc_in<line_addr_t> llc_dma_req_in_data_addr;
     sc_in<line_t> llc_dma_req_in_data_line;
-    sc_in<cache_id_t> llc_dma_req_in_data_req_id;
+    sc_in<llc_coh_dev_id_t> llc_dma_req_in_data_req_id;
     sc_in<word_offset_t> llc_dma_req_in_data_word_offset;
     sc_in<word_offset_t> llc_dma_req_in_data_valid_words;
     sc_in<bool> llc_dma_req_in_valid;
@@ -73,7 +73,7 @@ public:
     sc_out<line_addr_t > llc_dma_rsp_out_data_addr;
     sc_out<line_t> llc_dma_rsp_out_data_line;
     sc_out<invack_cnt_t> llc_dma_rsp_out_data_invack_cnt;
-    sc_out<cache_id_t> llc_dma_rsp_out_data_req_id;
+    sc_out<llc_coh_dev_id_t> llc_dma_rsp_out_data_req_id;
     sc_out<cache_id_t> llc_dma_rsp_out_data_dest_id;
     sc_out<word_offset_t> llc_dma_rsp_out_data_word_offset;
 
@@ -189,14 +189,14 @@ public:
     sc_in<bool> clk;
     sc_in<bool> rst;
 
-    cynw::cynw_get_port_base<llc_req_in_t> llc_req_in;
-    cynw::cynw_get_port_base<llc_req_in_t> llc_dma_req_in;
+    cynw::cynw_get_port_base<llc_req_in_t<CACHE_ID_WIDTH> > llc_req_in;
+    cynw::cynw_get_port_base<llc_req_in_t<LLC_COH_DEV_ID_WIDTH> > llc_dma_req_in;
     cynw::cynw_get_port_base<llc_rsp_in_t> llc_rsp_in;
     cynw::cynw_get_port_base<llc_mem_rsp_t> llc_mem_rsp;
     cynw::cynw_get_port_base<bool> llc_rst_tb;
     
-    cynw::cynw_put_port_base<llc_rsp_out_t> llc_rsp_out;
-    cynw::cynw_put_port_base<llc_rsp_out_t> llc_dma_rsp_out;
+    cynw::cynw_put_port_base<llc_rsp_out_t<CACHE_ID_WIDTH> > llc_rsp_out;
+    cynw::cynw_put_port_base<llc_rsp_out_t<LLC_COH_DEV_ID_WIDTH> > llc_dma_rsp_out;
     cynw::cynw_put_port_base<llc_fwd_out_t> llc_fwd_out;
     cynw::cynw_put_port_base<llc_mem_req_t> llc_mem_req;
     cynw::cynw_put_port_base<bool> llc_rst_tb_done;
@@ -383,7 +383,7 @@ public:
     sc_signal<hprot_t> llc_dma_req_in_data_conv_hprot;
     sc_signal<line_addr_t> llc_dma_req_in_data_conv_addr;
     sc_signal<line_t> llc_dma_req_in_data_conv_line;
-    sc_signal<cache_id_t> llc_dma_req_in_data_conv_req_id;
+    sc_signal<llc_coh_dev_id_t> llc_dma_req_in_data_conv_req_id;
     sc_signal<word_offset_t> llc_dma_req_in_data_conv_word_offset;
     sc_signal<word_offset_t> llc_dma_req_in_data_conv_valid_words;
     
@@ -413,7 +413,7 @@ public:
     sc_signal<line_addr_t > llc_dma_rsp_out_data_conv_addr;
     sc_signal<line_t> llc_dma_rsp_out_data_conv_line;
     sc_signal<invack_cnt_t> llc_dma_rsp_out_data_conv_invack_cnt;
-    sc_signal<cache_id_t> llc_dma_rsp_out_data_conv_req_id;
+    sc_signal<llc_coh_dev_id_t> llc_dma_rsp_out_data_conv_req_id;
     sc_signal<cache_id_t> llc_dma_rsp_out_data_conv_dest_id;
     sc_signal<word_offset_t> llc_dma_rsp_out_data_conv_word_offset;
 

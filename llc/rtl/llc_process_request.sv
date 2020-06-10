@@ -54,7 +54,7 @@ module llc_process_request(
     input addr_t dma_addr,
         
     llc_req_in_t.in llc_req_in,     
-    llc_req_in_t.in llc_dma_req_in,
+    llc_dma_req_in_t.in llc_dma_req_in,
     llc_rsp_in_t.in llc_rsp_in,
     llc_mem_rsp_t.in llc_mem_rsp, 
     line_breakdown_llc_t.in line_br, 
@@ -109,7 +109,7 @@ module llc_process_request(
     llc_mem_req_t.out llc_mem_req_o, 
     llc_fwd_out_t.out llc_fwd_out_o, 
     llc_rsp_out_t.out llc_rsp_out_o, 
-    llc_rsp_out_t.out llc_dma_rsp_out_o 
+    llc_dma_rsp_out_t.out llc_dma_rsp_out_o 
 
 `ifdef STATS_ENABLE
     , input logic llc_stats_ready_int,

@@ -24,7 +24,7 @@ module llc_rtl_top(
         input logic[1:0] llc_dma_req_in_data_hprot,
         input line_addr_t llc_dma_req_in_data_addr,
         input line_t llc_dma_req_in_data_line,
-        input cache_id_t llc_dma_req_in_data_req_id,
+        input llc_coh_dev_id_t llc_dma_req_in_data_req_id,
         input word_offset_t llc_dma_req_in_data_word_offset,
         input word_offset_t llc_dma_req_in_data_valid_words,
         input logic llc_dma_req_in_valid,
@@ -61,7 +61,7 @@ module llc_rtl_top(
         output line_addr_t  llc_dma_rsp_out_data_addr,
         output line_t llc_dma_rsp_out_data_line,
         output invack_cnt_t llc_dma_rsp_out_data_invack_cnt,
-        output cache_id_t llc_dma_rsp_out_data_req_id,
+        output llc_coh_dev_id_t llc_dma_rsp_out_data_req_id,
         output cache_id_t llc_dma_rsp_out_data_dest_id,
         output word_offset_t llc_dma_rsp_out_data_word_offset,
         output logic llc_fwd_out_valid,
@@ -95,7 +95,7 @@ module llc_rtl_top(
       assign llc_req_in_i.valid_words = llc_req_in_data_valid_words;
 
       //llc dma req in 
-      llc_req_in_t llc_dma_req_in_i();
+      llc_dma_req_in_t llc_dma_req_in_i();
       assign llc_dma_req_in_i.coh_msg     = llc_dma_req_in_data_coh_msg;
       assign llc_dma_req_in_i.hprot       = llc_dma_req_in_data_hprot[0];
       assign llc_dma_req_in_i.addr        = llc_dma_req_in_data_addr;
@@ -130,7 +130,7 @@ module llc_rtl_top(
       assign llc_rsp_out_data_word_offset = llc_rsp_out.word_offset;
         
       //llc dma rsp out
-      llc_rsp_out_t llc_dma_rsp_out();
+      llc_dma_rsp_out_t llc_dma_rsp_out();
       assign llc_dma_rsp_out_data_coh_msg = llc_dma_rsp_out.coh_msg;
       assign llc_dma_rsp_out_data_addr = llc_dma_rsp_out.addr;
       assign llc_dma_rsp_out_data_line = llc_dma_rsp_out.line;

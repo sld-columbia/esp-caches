@@ -25,7 +25,7 @@ module llc_core(
     input logic llc_rst_tb_done_ready,
     
     llc_req_in_t.in llc_req_in_i,
-    llc_req_in_t.in llc_dma_req_in_i,
+    llc_dma_req_in_t.in llc_dma_req_in_i,
     llc_rsp_in_t.in llc_rsp_in_i, 
     llc_mem_rsp_t.in llc_mem_rsp_i,
     
@@ -41,7 +41,7 @@ module llc_core(
     output logic llc_rst_tb_done_valid,
     output logic llc_rst_tb_done,
  
-    llc_rsp_out_t.out llc_dma_rsp_out,
+    llc_dma_rsp_out_t.out llc_dma_rsp_out,
     llc_rsp_out_t.out  llc_rsp_out,
     llc_fwd_out_t.out llc_fwd_out,   
     llc_mem_req_t.out llc_mem_req
@@ -54,7 +54,7 @@ module llc_core(
     );
 
     llc_req_in_t llc_req_in(); 
-    llc_req_in_t llc_dma_req_in(); 
+    llc_dma_req_in_t llc_dma_req_in(); 
     llc_rsp_in_t llc_rsp_in(); 
     llc_mem_rsp_t llc_mem_rsp();
     logic llc_rst_tb; 
@@ -193,9 +193,9 @@ module llc_core(
  
     //interfaces
     line_breakdown_llc_t line_br();
-    llc_req_in_t llc_dma_req_in_next(); 
+    llc_dma_req_in_t llc_dma_req_in_next(); 
     llc_rsp_out_t llc_rsp_out_o();
-    llc_rsp_out_t llc_dma_rsp_out_o(); 
+    llc_dma_rsp_out_t llc_dma_rsp_out_o(); 
     llc_fwd_out_t llc_fwd_out_o(); 
     llc_mem_req_t llc_mem_req_o();
     llc_mem_rsp_t llc_mem_rsp_next();
