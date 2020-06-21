@@ -173,7 +173,20 @@ module llc_process_request(
             invack_cnt <= invack_cnt + 1; 
         end
     end
-   
+
+`ifdef STATS_ENABLE
+    logic stats_new; 
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            stats_new <= 1'b1;
+        end else if (state == IDLE) begin 
+            stats_new <= 1'b1;
+        end else if (llc_stats_valid_int) begin 
+            stats_new <= 1'b0; 
+        end
+    end 
+`endif
+
     line_addr_t line_addr;
     dma_length_t valid_words;
     word_offset_t dma_read_woffset; 
@@ -494,11 +507,11 @@ module llc_process_request(
                     end
                 end
                 DMA_REQ_TO_GET : begin 
-                        if (!recall_valid && !recall_pending && states_buf[way] != `INVALID && states_buf[way] != `VALID) begin 
+                    if (!recall_valid && !recall_pending && states_buf[way] != `INVALID && states_buf[way] != `VALID) begin 
                         case (states_buf[way])
                             `EXCLUSIVE : next_state = DMA_RECALL_EM;
                             `MODIFIED : next_state = DMA_RECALL_EM;
-                            `SD : next_state = DMA_RECALL_EM; 
+                            `SD : next_state = DMA_RECALL_SSD; 
                             `SHARED : next_state = DMA_RECALL_SSD;
                             default : next_state = IDLE; 
                         endcase
@@ -780,7 +793,11 @@ module llc_process_request(
         skip = 1'b0;
         incr_invack_cnt = 1'b0; 
         rst_state = 1'b0;  
-      
+
+`ifdef STATS_ENABLE
+        llc_stats_o = 1'b0; 
+        llc_stats_valid_int = 1'b0; 
+`endif
 
         case (state)
             IDLE : begin  
@@ -890,6 +907,12 @@ module llc_process_request(
                 sharers_buf_wr_data = 0; 
                 wr_en_owners_buf = 1'b1; 
                 owners_buf_wr_data = 0; 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GET_S_M_IV_MEM_REQ : begin 
                 llc_mem_req_valid_int = 1'b1; 
@@ -898,6 +921,12 @@ module llc_process_request(
                 llc_mem_req_o.hsize = `WORD; 
                 llc_mem_req_o.hprot = llc_req_in.hprot; 
                 llc_mem_req_o.line = 0; 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GET_S_M_IV_MEM_RSP : begin 
                 wr_en_hprots_buf = 1'b1; 
@@ -933,6 +962,12 @@ module llc_process_request(
                 llc_rsp_out_o.invack_cnt = 0; 
                 llc_rsp_out_o.word_offset = 0;
                 llc_rsp_out_valid_int = 1'b1; 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GETS_S : begin 
                 wr_en_sharers_buf = 1'b1; 
@@ -946,6 +981,12 @@ module llc_process_request(
                 llc_rsp_out_o.invack_cnt = 0; 
                 llc_rsp_out_o.word_offset = 0;
                 llc_rsp_out_valid_int = 1'b1; 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GET_S_M_EM : begin 
                 if (llc_req_in.coh_msg == `REQ_GETS) begin 
@@ -967,12 +1008,24 @@ module llc_process_request(
                 llc_fwd_out_o.req_id = llc_req_in.req_id; 
                 llc_fwd_out_o.dest_id = owners_buf[way];
                 llc_fwd_out_valid_int = 1'b1;
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GET_S_M_SD : begin 
                 set_req_stall = 1'b1; 
                 set_req_in_stalled_valid = 1'b1; 
                 set_req_in_stalled = 1'b1; 
                 update_req_in_stalled = 1'b1;
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GETM_S_FWD : begin 
                 if (((sharers_buf[way] & (1 << l2_cnt)) != 0) && (l2_cnt != llc_req_in.req_id)) begin 
@@ -987,6 +1040,12 @@ module llc_process_request(
                 end else begin 
                     skip = 1'b1;
                 end
+`ifdef STATS_ENABLE
+                if (stats_new) begin 
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_GETM_S_RSP : begin 
                 llc_rsp_out_o.coh_msg = `RSP_DATA;
@@ -1022,6 +1081,12 @@ module llc_process_request(
                     wr_en_states_buf = 1'b1; 
                     states_buf_wr_data = `VALID; 
                 end 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             REQ_PUTM : begin 
                 llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
@@ -1046,6 +1111,12 @@ module llc_process_request(
                         dirty_bits_buf_wr_data = 1'b1;
                     end
                 end
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_REQ_TO_GET : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
@@ -1070,6 +1141,12 @@ module llc_process_request(
                 llc_fwd_out_o.req_id = owners_buf[way]; 
                 llc_fwd_out_o.dest_id = owners_buf[way];;
                 llc_fwd_out_valid_int = 1'b1; 
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_RECALL_SSD : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
@@ -1091,6 +1168,12 @@ module llc_process_request(
                 end else begin 
                     skip = 1'b1;
                 end
+`ifdef STATS_ENABLE
+                if (stats_new) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_EVICT : begin 
                 clr_recall_pending = 1'b1;
@@ -1123,6 +1206,12 @@ module llc_process_request(
                     states_buf_wr_data = `VALID;
                     wr_en_states_buf = 1'b1;
                 end
+`ifdef STATS_ENABLE
+                if (stats_new && !recall_valid && !recall_pending) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_READ_RESUME_MEM_REQ : begin 
                 llc_mem_req_o.hwrite = `READ;
@@ -1131,6 +1220,12 @@ module llc_process_request(
                 llc_mem_req_o.hprot = llc_dma_req_in.hprot; 
                 llc_mem_req_o.line = 0;
                 llc_mem_req_valid_int = 1'b1;
+`ifdef STATS_ENABLE
+                if (stats_new && !recall_valid && !recall_pending) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_READ_RESUME_MEM_RSP : begin 
                 llc_mem_rsp_ready_int = 1'b1; 
@@ -1195,6 +1290,12 @@ module llc_process_request(
                         clr_dma_write_pending = 1'b1;
                     end 
                 end
+`ifdef STATS_ENABLE
+                if (stats_new && !recall_valid && !recall_pending) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_WRITE_RESUME_MEM_REQ : begin 
                 llc_mem_req_o.hwrite = `READ;
@@ -1203,6 +1304,12 @@ module llc_process_request(
                 llc_mem_req_o.hprot = llc_dma_req_in.hprot; 
                 llc_mem_req_o.line = 0;
                 llc_mem_req_valid_int = 1'b1;
+`ifdef STATS_ENABLE
+                if (stats_new && !recall_valid && !recall_pending) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end
             DMA_WRITE_RESUME_MEM_RSP : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
@@ -1261,6 +1368,12 @@ module llc_process_request(
                     clr_dma_read_pending = 1'b1; 
                     clr_dma_write_pending = 1'b1;
                 end  
+`ifdef STATS_ENABLE
+                if (stats_new && !recall_valid && !recall_pending) begin
+                    llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
+                    llc_stats_valid_int = 1'b1; 
+                end
+`endif
             end 
             FINISH_RST_FLUSH : begin 
                 llc_rst_tb_done_valid_int = 1'b1; 
@@ -1269,57 +1382,4 @@ module llc_process_request(
             default : skip = 1'b0;  
         endcase
     end
-
-`ifdef STATS_ENABLE
-    localparam STATS_IDLE = 1'b0; 
-    localparam STATS_SEND = 1'b1;
-    
-    logic state_stats, next_state_stats; 
-    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || rst_state) begin 
-            state_stats <= STATS_IDLE;
-        end else begin 
-            state_stats <= next_state_stats; 
-        end
-    end
-
-    logic stats_new; 
-    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
-            stats_new <= 1'b1;
-        end else if (next_state == IDLE) begin 
-            stats_new <= 1'b1;
-        end else if (llc_stats_valid_int && llc_stats_ready_int) begin 
-            stats_new <= 1'b0; 
-        end
-    end
-
-    always_comb begin 
-        next_state_stats = state_stats; 
-        llc_stats_o = 1'b0; 
-        llc_stats_valid_int = 1'b0; 
-        case (state_stats) 
-            STATS_IDLE : begin 
-                if ((((state == DMA_REQ_TO_GET 
-                   || (state == IDLE && next_state >= DMA_RECALL_EM 
-                   && next_state <= DMA_WRITE_RESUME_WRITE)) 
-                   && !recall_valid && !recall_pending) 
-                   || (next_state >= EVICT && next_state <= REQ_PUTM)) 
-                   && stats_new) begin
-                    next_state_stats = STATS_SEND;
-                end
-            end 
-            STATS_SEND : begin 
-                if (llc_stats_ready_int) begin 
-                    next_state_stats = STATS_IDLE;
-                end
-                llc_stats_o = ~((states_buf[way] == `INVALID) || evict);
-                llc_stats_valid_int = 1'b1; 
-            end
-            default : next_state_stats = STATS_IDLE; 
-        endcase
-    end 
-
-`endif
-
 endmodule
