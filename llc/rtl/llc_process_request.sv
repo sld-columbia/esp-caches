@@ -25,11 +25,8 @@ module llc_process_request(
     input logic is_req_to_resume, 
     input logic recall_pending,
     input logic recall_valid, 
-    input logic flush_stall, 
-    input logic rst_stall, 
     input logic req_stall, 
     input logic llc_mem_req_ready_int,
-    input logic llc_rst_tb_done_ready_int,
     input logic llc_fwd_out_ready_int, 
     input logic llc_rsp_out_ready_int, 
     input logic evict, 
@@ -60,8 +57,6 @@ module llc_process_request(
     line_breakdown_llc_t.in line_br, 
   
     output logic llc_mem_req_valid_int, 
-    output logic llc_rst_tb_done_valid_int,
-    output logic llc_rst_tb_done_o, 
     output logic llc_fwd_out_valid_int,
     output logic llc_rsp_out_valid_int,
     output logic llc_mem_rsp_ready_int, 
@@ -146,7 +141,6 @@ module llc_process_request(
     localparam DMA_WRITE_RESUME_MEM_REQ = 5'b11000;
     localparam DMA_WRITE_RESUME_MEM_RSP = 5'b11001; 
     localparam DMA_WRITE_RESUME_WRITE = 5'b11010;
-    localparam FINISH_RST_FLUSH = 5'b11011;
     
     logic [4:0] state, next_state; 
     always_ff @(posedge clk or negedge rst) begin 
@@ -278,29 +272,19 @@ module llc_process_request(
                                 end
                             end
                         end 
-                    end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                        next_state = FINISH_RST_FLUSH;
                     end else begin 
                         process_done = 1'b1; 
                     end
                 end 
                 PROCESS_FLUSH_RESUME : begin 
                     if (cur_way == `LLC_WAYS - 1 && (llc_mem_req_ready_int || skip)) begin 
-                        if (!flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                         end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1; 
-                         end
+                        next_state = IDLE;
+                        process_done = 1'b1; 
                     end
                 end
                 PROCESS_RST : begin 
-                    if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                         next_state = FINISH_RST_FLUSH;
-                     end else begin 
-                         next_state = IDLE;
-                         process_done = 1'b1;
-                     end
+                     next_state = IDLE;
+                     process_done = 1'b1;
                 end
                 PROCESS_RSP : begin 
                     next_state = IDLE; 
@@ -340,8 +324,6 @@ module llc_process_request(
                                     default : next_state = IDLE; 
                                 endcase
                             end
-                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
                         end else begin 
                             next_state = IDLE;
                             process_done = 1'b1;
@@ -382,8 +364,6 @@ module llc_process_request(
                                     default : next_state = IDLE; 
                                 endcase
                             end
-                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
                         end else begin 
                             next_state = IDLE;
                             process_done = 1'b1;
@@ -434,42 +414,25 @@ module llc_process_request(
                 end
                 REQ_GET_S_M_IV_SEND_RSP : begin 
                     if (llc_rsp_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 REQ_GETS_S:  begin 
                     if (llc_rsp_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 REQ_GET_S_M_EM: begin 
                     if (llc_fwd_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
-                    end
-                end
-                REQ_GET_S_M_SD : begin 
-                    if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                        next_state = FINISH_RST_FLUSH;
-                    end else begin 
                         next_state = IDLE;
                         process_done = 1'b1;
                     end
-    
+                end
+                REQ_GET_S_M_SD : begin 
+                    next_state = IDLE;
+                    process_done = 1'b1;
                 end
                 REQ_GETM_S_FWD : begin 
                     if (l2_cnt == `MAX_N_L2 - 1 && (llc_fwd_out_ready_int || skip)) begin 
@@ -478,32 +441,20 @@ module llc_process_request(
                 end
                 REQ_GETM_S_RSP : begin 
                     if (llc_rsp_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 REQ_PUTS : begin 
                     if (llc_fwd_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 REQ_PUTM : begin 
                     if (llc_fwd_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 DMA_REQ_TO_GET : begin 
@@ -531,8 +482,6 @@ module llc_process_request(
                                 next_state = DMA_WRITE_RESUME_WRITE;
                             end
                         end
-                    end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                        next_state = FINISH_RST_FLUSH;
                     end else begin 
                         next_state = IDLE;
                         process_done = 1'b1;
@@ -556,8 +505,6 @@ module llc_process_request(
                                     next_state = DMA_WRITE_RESUME_WRITE;
                                 end
                             end
-                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
                         end else begin 
                             next_state = IDLE;
                             process_done = 1'b1;
@@ -584,8 +531,6 @@ module llc_process_request(
                                     next_state = DMA_WRITE_RESUME_WRITE;
                                 end
                             end
-                        end else if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
                         end else begin 
                             next_state = IDLE;
                             process_done = 1'b1;
@@ -621,12 +566,8 @@ module llc_process_request(
                 end
                 DMA_READ_RESUME_DMA_RSP: begin 
                     if (llc_dma_rsp_out_ready_int) begin 
-                        if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                            next_state = FINISH_RST_FLUSH;
-                        end else begin 
-                            next_state = IDLE;
-                            process_done = 1'b1;
-                        end
+                        next_state = IDLE;
+                        process_done = 1'b1;
                     end
                 end
                 DMA_WRITE_RESUME_MEM_REQ : begin 
@@ -640,18 +581,8 @@ module llc_process_request(
                     end
                 end
                 DMA_WRITE_RESUME_WRITE : begin 
-                    if (is_rst_to_resume && !flush_stall && !rst_stall) begin 
-                        next_state = FINISH_RST_FLUSH;
-                    end else begin 
-                        next_state = IDLE;
-                        process_done = 1'b1;
-                    end
-                end
-                FINISH_RST_FLUSH : begin  
-                    if (llc_rst_tb_done_ready_int) begin 
-                        next_state = IDLE;
-                        process_done = 1'b1;
-                    end
+                    next_state = IDLE;
+                    process_done = 1'b1;
                 end
                 default : next_state = IDLE; 
             endcase
@@ -731,10 +662,7 @@ module llc_process_request(
         llc_dma_rsp_out_valid_int = 1'b0;
 
         llc_mem_rsp_ready_int = 1'b0; 
-        
-        llc_rst_tb_done_valid_int = 1'b0; 
-        llc_rst_tb_done_o = 1'b0;
-       
+              
         //write to buffers 
         lines_buf_wr_data = 0; 
         wr_en_lines_buf = 1'b0;
@@ -1375,10 +1303,6 @@ module llc_process_request(
                 end
 `endif
             end 
-            FINISH_RST_FLUSH : begin 
-                llc_rst_tb_done_valid_int = 1'b1; 
-                llc_rst_tb_done_o = 1'b1;
-            end
             default : skip = 1'b0;  
         endcase
     end
