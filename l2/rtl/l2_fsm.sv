@@ -542,6 +542,11 @@ module l2_fsm(
         hsize_in = 0; 
         line_in = 0;
 
+`ifdef STATS_ENABLE
+        l2_stats_o = 1'b0; 
+        l2_stats_valid_int = 1'b0; 
+`endif
+
         case (state)
             RESET : begin 
                 wr_rst = 1'b1;
@@ -981,6 +986,12 @@ module l2_fsm(
                 end
                 l2_rd_rsp_valid_int = 1'b1; 
                 l2_rd_rsp_o.line = lines_buf[way_hit];
+`ifdef STATS_ENABLE
+                if (l2_rd_rsp_ready_int) begin     
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b1;
+                end
+`endif
             end
             CPU_REQ_READ_ATOMIC_WRITE_S : begin 
                 if (l2_cpu_req.cpu_msg == `READ_ATOMIC) begin 
@@ -1005,6 +1016,12 @@ module l2_fsm(
                 l2_req_out_o.hprot = l2_cpu_req.hprot;
                 l2_req_out_o.addr = addr_br.line_addr;
                 l2_req_out_o.line = 0; 
+`ifdef STATS_ENABLE
+                if (l2_req_out_ready_int) begin     
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b1;
+                end
+`endif
             end
             CPU_REQ_WRITE_EM : begin 
                 set_in = addr_br.set;
@@ -1022,6 +1039,10 @@ module l2_fsm(
                 hsize_in = l2_cpu_req.hsize;
                 wr_data_line = line_out; 
                 wr_en_line = 1'b1;
+`ifdef STATS_ENABLE
+                l2_stats_valid_int = 1'b1; 
+                l2_stats_o = 1'b1;
+`endif
             end
             CPU_REQ_EMPTY_WAY : begin 
                 l2_req_out_valid_int = 1'b1; 
@@ -1053,6 +1074,12 @@ module l2_fsm(
                 hprot_wr_data_req = l2_cpu_req.hprot;
                 word_wr_data_req = l2_cpu_req.word;
                 line_wr_data_req = 0;
+`ifdef STATS_ENABLE
+                if (l2_req_out_ready_int) begin     
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b0;
+                end
+`endif
             end
             CPU_REQ_EVICT : begin 
                 set_evict_stall = 1'b1;
@@ -1061,7 +1088,7 @@ module l2_fsm(
                 end
                 l2_inval_o = (tags_buf[evict_way_buf] << `L2_SET_BITS) | addr_br.set;
                 if (!ready_bits[1]) begin 
-                l2_req_out_valid_int = 1'b1;
+                    l2_req_out_valid_int = 1'b1;
                 end
                 case (states_buf[evict_way_buf]) 
                     `SHARED : begin 
@@ -1084,10 +1111,22 @@ module l2_fsm(
               
                 if (l2_inval_ready_int && l2_req_out_ready_int) begin 
                     fill_reqs = 1'b1;
+`ifdef STATS_ENABLE
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b0;
+`endif
                 end else if (ready_bits[0] && l2_req_out_ready_int) begin 
                     fill_reqs = 1'b1;
+`ifdef STATS_ENABLE
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b0;
+`endif
                 end else if (l2_inval_ready_int && ready_bits[1]) begin 
                     fill_reqs = 1'b1;
+`ifdef STATS_ENABLE
+                    l2_stats_valid_int = 1'b1; 
+                    l2_stats_o = 1'b0;
+`endif
                 end
  
                 cpu_msg_wr_data_req = l2_cpu_req.cpu_msg;
@@ -1105,39 +1144,4 @@ module l2_fsm(
         endcase
     end 
 
-`ifdef STATS_ENABLE
-    localparam STATS_IDLE = 1'b0; 
-    localparam STATS_SEND = 1'b1;
-    
-    logic state_stats, next_state_stats; 
-    always_ff @(posedge clk or negedge rst) begin 
-        if (!rst) begin 
-            state_stats <= STATS_IDLE;
-        end else begin 
-            state_stats <= next_state_stats; 
-        end
-    end
-
-    always_comb begin 
-        next_state_stats = state_stats; 
-        l2_stats_o = 1'b0; 
-        l2_stats_valid_int = 1'b0; 
-        case (state_stats) 
-            STATS_IDLE : begin 
-                if (state == CPU_REQ_TAG_LOOKUP) begin
-                    next_state_stats = STATS_SEND;
-                end
-            end 
-            STATS_SEND : begin 
-                if (l2_stats_ready_int) begin 
-                    next_state_stats = STATS_IDLE;
-                end
-                l2_stats_valid_int = 1'b1; 
-                l2_stats_o = tag_hit;
-            end
-            default : next_state_stats = STATS_IDLE; 
-        endcase
-    end 
-
-`endif
 endmodule
