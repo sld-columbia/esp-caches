@@ -154,14 +154,18 @@ module llc_process_request(
     logic [(`MAX_N_L2_BITS - 1):0] l2_cnt, invack_cnt;
     logic incr_invack_cnt, skip;
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || (state == IDLE)) begin 
+        if (!rst) begin 
+            l2_cnt <= 0;
+        end else if (state == IDLE) begin 
             l2_cnt <= 0;
         end else if ((state == REQ_RECALL_SSD || state == DMA_RECALL_SSD || state == REQ_GETM_S_FWD) 
                     && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
             l2_cnt <= l2_cnt + 1; 
         end
 
-        if (!rst || (state == IDLE)) begin 
+        if (!rst) begin
+            invack_cnt <= 0;
+        end else if (state == IDLE) begin 
             invack_cnt <= 0;
         end else if (incr_invack_cnt) begin 
             invack_cnt <= invack_cnt + 1; 
@@ -590,7 +594,9 @@ module llc_process_request(
     end
 
     always_ff @(posedge clk or negedge rst) begin 
-        if (!rst || (state == IDLE)) begin 
+        if (!rst) begin 
+            cur_way <= 0;
+        end else if (state == IDLE) begin 
             cur_way <= 0; 
         end else if ((state == PROCESS_FLUSH_RESUME) && (llc_mem_req_ready_int || skip)) begin 
             cur_way <= cur_way + 1; 
