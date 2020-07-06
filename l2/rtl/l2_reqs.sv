@@ -54,7 +54,7 @@ module l2_reqs(
     generate
         for (i = 0; i < `N_REQS; i++) begin 
             always_ff @(posedge clk or negedge rst) begin 
-               if (!rst) begin 
+                if (!rst) begin 
                     reqs[i].cpu_msg <= 0; 
                     reqs[i].tag_estall <= 0;
                     reqs[i].set <= 0; 
@@ -89,7 +89,10 @@ module l2_reqs(
                         reqs[i].word <= word_wr_data_req; 
                     end 
                 end
-                //state
+            end
+
+            //state
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     reqs[i].state <= 0;
                 end else if (wr_req_state_atomic) begin 
@@ -101,7 +104,10 @@ module l2_reqs(
                         reqs[i].state <= state_wr_data_req;
                     end
                 end
-                //line
+            end
+            
+            //line
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     reqs[i].line <= 0; 
                 end else if (wr_req_line || fill_reqs || fill_reqs_flush) begin 
@@ -109,7 +115,10 @@ module l2_reqs(
                         reqs[i].line <= line_wr_data_req;
                     end
                 end
-                //invack_cnt
+            end
+
+            //invack_cnt
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     reqs[i].invack_cnt <= 0;
                 end else if (fill_reqs || fill_reqs_flush) begin 
@@ -121,7 +130,10 @@ module l2_reqs(
                         reqs[i].invack_cnt <= invack_cnt_wr_data_req;
                     end
                 end
-                //tag
+            end
+              
+            //tag
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     reqs[i].tag <= 0; 
                 end else if (fill_reqs) begin 

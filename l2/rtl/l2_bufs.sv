@@ -40,19 +40,25 @@ module l2_bufs(
                 end else if (rd_mem_en) begin 
                     lines_buf[i] <= rd_data_line[i];
                 end
-       
+            end
+
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     tags_buf[i] <= 0;
                 end else if (rd_mem_en) begin  
                     tags_buf[i] <= rd_data_tag[i]; 
                 end
-        
+            end
+
+            always_ff @(posedge clk or negedge rst) begin        
                 if (!rst) begin 
                     hprots_buf[i] <= 0;
                 end else if (rd_mem_en) begin
                     hprots_buf[i] <= rd_data_hprot[i]; 
                 end
-                            
+            end
+
+            always_ff @(posedge clk or negedge rst) begin
                 if (!rst) begin 
                     states_buf[i] <= 0;
                 end else if (rd_mem_en) begin

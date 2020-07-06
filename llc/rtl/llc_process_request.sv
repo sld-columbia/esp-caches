@@ -162,7 +162,9 @@ module llc_process_request(
                     && (llc_fwd_out_ready_int || skip) && l2_cnt < `MAX_N_L2) begin 
             l2_cnt <= l2_cnt + 1; 
         end
+    end
 
+    always_ff @(posedge clk or negedge rst) begin
         if (!rst) begin
             invack_cnt <= 0;
         end else if (state == IDLE) begin 
