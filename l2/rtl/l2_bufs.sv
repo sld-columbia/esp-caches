@@ -29,31 +29,37 @@ module l2_bufs(
         end else if (rd_mem_en) begin 
             evict_way_buf <= rd_data_evict_way;
         end
-        for (int i = 0; i < `L2_WAYS; i++) begin 
-            if (!rst) begin
-                lines_buf[i] <= 0; 
-            end else if (rd_mem_en) begin 
-                lines_buf[i] <= rd_data_line[i];
-            end
-   
-            if (!rst) begin 
-                tags_buf[i] <= 0;
-            end else if (rd_mem_en) begin  
-                tags_buf[i] <= rd_data_tag[i]; 
-            end
-    
-            if (!rst) begin 
-                hprots_buf[i] <= 0;
-            end else if (rd_mem_en) begin
-                hprots_buf[i] <= rd_data_hprot[i]; 
-            end
-                        
-            if (!rst) begin 
-                states_buf[i] <= 0;
-            end else if (rd_mem_en) begin
-                states_buf[i] <= rd_data_state[i]; 
+    end
+
+    genvar i;
+    generate
+        for (i = 0; i < `L2_WAYS; i++) begin 
+            always_ff @(posedge clk or negedge rst) begin 
+                if (!rst) begin
+                    lines_buf[i] <= 0; 
+                end else if (rd_mem_en) begin 
+                    lines_buf[i] <= rd_data_line[i];
+                end
+       
+                if (!rst) begin 
+                    tags_buf[i] <= 0;
+                end else if (rd_mem_en) begin  
+                    tags_buf[i] <= rd_data_tag[i]; 
+                end
+        
+                if (!rst) begin 
+                    hprots_buf[i] <= 0;
+                end else if (rd_mem_en) begin
+                    hprots_buf[i] <= rd_data_hprot[i]; 
+                end
+                            
+                if (!rst) begin 
+                    states_buf[i] <= 0;
+                end else if (rd_mem_en) begin
+                    states_buf[i] <= rd_data_state[i]; 
+                end
             end
         end
-    end
+    endgenerate
 
 endmodule
