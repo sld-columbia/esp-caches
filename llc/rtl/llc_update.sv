@@ -31,6 +31,9 @@ module llc_update(
     input var owner_t owners_buf[`LLC_WAYS],
     input llc_way_t evict_way_buf, 
     input llc_way_t way, 
+    input logic llc_rst_tb_done_ready_int,
+    input logic flush_stall, 
+    input logic rst_stall, 
 
     output logic wr_en, 
     output logic wr_en_evict_way, 
@@ -43,8 +46,10 @@ module llc_update(
     output llc_tag_t wr_data_tag,
     output owner_t wr_data_owner, 
     output llc_way_t wr_data_evict_way,
-    output line_t wr_data_line
-    );
+    output line_t wr_data_line,
+    output logic llc_rst_tb_done_valid_int,
+    output logic llc_rst_tb_done_o 
+);
     
     always_comb begin 
         wr_rst_flush = {`LLC_NUM_PORTS{1'b0}};
@@ -60,7 +65,9 @@ module llc_update(
         wr_en = 1'b0; 
         wr_en_evict_way = 1'b0;
         incr_rst_flush_stalled_set = 1'b0;
-        if (update_en) begin 
+        llc_rst_tb_done_valid_int = 1'b0; 
+        llc_rst_tb_done_o = 1'b0;
+        if (update_en && llc_rst_tb_done_ready_int) begin 
             if (is_rst_to_resume) begin 
                 wr_rst_flush  = {`LLC_NUM_PORTS{1'b1}};
                 wr_data_state = `INVALID;
@@ -69,6 +76,10 @@ module llc_update(
                 wr_data_evict_way = 0; 
                 wr_en_evict_way = 1'b1;
                 incr_rst_flush_stalled_set = 1'b1;
+                if (!flush_stall &&  !rst_stall) begin 
+                    llc_rst_tb_done_valid_int = 1'b1; 
+                    llc_rst_tb_done_o = 1'b1;
+                end
             end else if (is_flush_to_resume) begin 
                 wr_data_state = `INVALID;
                 wr_data_dirty_bit = 1'b0; 
@@ -80,7 +91,11 @@ module llc_update(
                         wr_rst_flush[cur_way] = 1'b1; 
                     end
                 end
-            end else if (is_rsp_to_get || is_req_to_get || is_dma_req_to_get ||
+                if (!flush_stall &&  !rst_stall) begin 
+                    llc_rst_tb_done_valid_int = 1'b1; 
+                    llc_rst_tb_done_o = 1'b1;
+                end
+                end else if (is_rsp_to_get || is_req_to_get || is_dma_req_to_get ||
                          is_dma_read_to_resume || is_dma_write_to_resume || is_req_to_resume) begin 
                 wr_en = 1'b1; 
                 wr_data_tag = tags_buf[way]; 

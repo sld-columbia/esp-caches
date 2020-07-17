@@ -50,93 +50,108 @@ module l2_reqs(
     output reqs_buf_t reqs[`N_REQS] 
     );
 
-    always_ff @(posedge clk or negedge rst) begin 
-        for (int i = 0; i < `N_REQS; i++) begin 
-            if (!rst) begin 
-                reqs[i].cpu_msg <= 0; 
-                reqs[i].tag_estall <= 0;
-                reqs[i].set <= 0; 
-                reqs[i].way <= 0; 
-                reqs[i].hsize <= 0; 
-                reqs[i].w_off <= 0; 
-                reqs[i].b_off <= 0; 
-                reqs[i].hprot <= 0; 
-                reqs[i].word <= 0; 
-            end else if (fill_reqs) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
-                    reqs[i].tag_estall <= tag_estall_wr_data_req;
-                    reqs[i].set <= addr_br.set; 
-                    reqs[i].way <= way_wr_data_req; 
-                    reqs[i].hsize <= hsize_wr_data_req; 
-                    reqs[i].w_off <= addr_br.w_off; 
-                    reqs[i].b_off <= addr_br.b_off;
-                    reqs[i].hprot <= hprot_wr_data_req; 
-                    reqs[i].word <= word_wr_data_req; 
-                end 
-            end else if (fill_reqs_flush) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
-                    reqs[i].tag_estall <= tag_estall_wr_data_req;
-                    reqs[i].set <= addr_br_reqs.set; 
-                    reqs[i].way <= way_wr_data_req; 
-                    reqs[i].hsize <= hsize_wr_data_req; 
-                    reqs[i].w_off <= addr_br_reqs.w_off; 
-                    reqs[i].b_off <= addr_br_reqs.b_off;
-                    reqs[i].hprot <= hprot_wr_data_req; 
-                    reqs[i].word <= word_wr_data_req; 
-                end 
+    genvar i;
+    generate
+        for (i = 0; i < `N_REQS; i++) begin 
+            always_ff @(posedge clk or negedge rst) begin 
+                if (!rst) begin 
+                    reqs[i].cpu_msg <= 0; 
+                    reqs[i].tag_estall <= 0;
+                    reqs[i].set <= 0; 
+                    reqs[i].way <= 0; 
+                    reqs[i].hsize <= 0; 
+                    reqs[i].w_off <= 0; 
+                    reqs[i].b_off <= 0; 
+                    reqs[i].hprot <= 0; 
+                    reqs[i].word <= 0; 
+                end else if (fill_reqs) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
+                        reqs[i].tag_estall <= tag_estall_wr_data_req;
+                        reqs[i].set <= addr_br.set; 
+                        reqs[i].way <= way_wr_data_req; 
+                        reqs[i].hsize <= hsize_wr_data_req; 
+                        reqs[i].w_off <= addr_br.w_off; 
+                        reqs[i].b_off <= addr_br.b_off;
+                        reqs[i].hprot <= hprot_wr_data_req; 
+                        reqs[i].word <= word_wr_data_req; 
+                    end 
+                end else if (fill_reqs_flush) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].cpu_msg <= cpu_msg_wr_data_req; 
+                        reqs[i].tag_estall <= tag_estall_wr_data_req;
+                        reqs[i].set <= addr_br_reqs.set; 
+                        reqs[i].way <= way_wr_data_req; 
+                        reqs[i].hsize <= hsize_wr_data_req; 
+                        reqs[i].w_off <= addr_br_reqs.w_off; 
+                        reqs[i].b_off <= addr_br_reqs.b_off;
+                        reqs[i].hprot <= hprot_wr_data_req; 
+                        reqs[i].word <= word_wr_data_req; 
+                    end 
+                end
             end
+
             //state
-            if (!rst) begin 
-                reqs[i].state <= 0;
-            end else if (wr_req_state_atomic) begin 
-                if (reqs_atomic_i == i) begin
-                    reqs[i].state <= state_wr_data_req; 
-                end
-            end else if (wr_req_state || fill_reqs || fill_reqs_flush) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].state <= state_wr_data_req;
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    reqs[i].state <= 0;
+                end else if (wr_req_state_atomic) begin 
+                    if (reqs_atomic_i == i) begin
+                        reqs[i].state <= state_wr_data_req; 
+                    end
+                end else if (wr_req_state || fill_reqs || fill_reqs_flush) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].state <= state_wr_data_req;
+                    end
                 end
             end
+            
             //line
-            if (!rst) begin 
-                reqs[i].line <= 0; 
-            end else if (wr_req_line || fill_reqs || fill_reqs_flush) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].line <= line_wr_data_req;
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    reqs[i].line <= 0; 
+                end else if (wr_req_line || fill_reqs || fill_reqs_flush) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].line <= line_wr_data_req;
+                    end
                 end
             end
+
             //invack_cnt
-            if (!rst) begin 
-                reqs[i].invack_cnt <= 0;
-            end else if (fill_reqs || fill_reqs_flush) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].invack_cnt <= `MAX_N_L2;
-                end
-            end else if (wr_req_invack_cnt) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].invack_cnt <= invack_cnt_wr_data_req;
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    reqs[i].invack_cnt <= 0;
+                end else if (fill_reqs || fill_reqs_flush) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].invack_cnt <= `MAX_N_L2;
+                    end
+                end else if (wr_req_invack_cnt) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].invack_cnt <= invack_cnt_wr_data_req;
+                    end
                 end
             end
+              
             //tag
-            if (!rst) begin 
-                reqs[i].tag <= 0; 
-            end else if (fill_reqs) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].tag <= tag_wr_data_req;
-                end
-            end else if (fill_reqs_flush) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].tag <= addr_br_reqs.tag;
-                end
-            end else if (wr_req_tag) begin 
-                if (reqs_i == i) begin 
-                    reqs[i].tag <= tag_wr_data_req;
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    reqs[i].tag <= 0; 
+                end else if (fill_reqs) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].tag <= tag_wr_data_req;
+                    end
+                end else if (fill_reqs_flush) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].tag <= addr_br_reqs.tag;
+                    end
+                end else if (wr_req_tag) begin 
+                    if (reqs_i == i) begin 
+                        reqs[i].tag <= tag_wr_data_req;
+                    end
                 end
             end
-        end 
-    end
+        end
+    endgenerate
 
     always_comb begin 
         clr_set_conflict_reqs = 1'b0; 

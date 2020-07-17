@@ -64,79 +64,97 @@ module llc_bufs(
         end else if (incr_evict_way_buf) begin 
             evict_way_buf <= evict_way_buf + 1; 
         end
-        for (int i = 0; i < `LLC_WAYS; i++) begin 
-            if (!rst) begin
-                lines_buf[i] <= 0; 
-            end else if (rst_state) begin 
-                lines_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin 
-                lines_buf[i] <= rd_data_line[i];
-            end else if (llc_mem_rsp_ready_int && llc_mem_rsp_valid_int && (way == i)) begin 
-                lines_buf[i] <= llc_mem_rsp_next.line;
-            end else if (wr_en_lines_buf && (way == i)) begin 
-                lines_buf[i] <= lines_buf_wr_data;
-            end
-   
-            if (!rst) begin 
-                tags_buf[i] <= 0;
-            end else if (rst_state) begin 
-                tags_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin  
-                tags_buf[i] <= rd_data_tag[i]; 
-            end else if (wr_en_tags_buf && (way == i)) begin 
-                tags_buf[i] <= tags_buf_wr_data;
-            end
-     
-            if (!rst) begin 
-                sharers_buf[i] <= 0;
-            end else if (rst_state) begin 
-                sharers_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin 
-                sharers_buf[i] <= rd_data_sharers[i]; 
-            end else if (wr_en_sharers_buf && (way == i)) begin 
-                sharers_buf[i] <= sharers_buf_wr_data;
-            end
+    end
 
-            if (!rst) begin 
-                owners_buf[i] <= 0;
-            end else if (rst_state) begin 
-                owners_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin 
-                owners_buf[i] <= rd_data_owner[i]; 
-            end else if (wr_en_owners_buf && (way == i)) begin 
-                owners_buf[i] <= owners_buf_wr_data;
+    genvar i;
+    generate 
+        for (i = 0; i < `LLC_WAYS; i++) begin 
+            always_ff @(posedge clk or negedge rst) begin 
+                if (!rst) begin
+                    lines_buf[i] <= 0; 
+                end else if (rst_state) begin 
+                    lines_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin 
+                    lines_buf[i] <= rd_data_line[i];
+                end else if (llc_mem_rsp_ready_int && llc_mem_rsp_valid_int && (way == i)) begin 
+                    lines_buf[i] <= llc_mem_rsp_next.line;
+                end else if (wr_en_lines_buf && (way == i)) begin 
+                    lines_buf[i] <= lines_buf_wr_data;
+                end
             end
-
-            if (!rst) begin 
-                hprots_buf[i] <= 0;
-            end else if (rst_state) begin 
-                hprots_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin
-                hprots_buf[i] <= rd_data_hprot[i]; 
-            end else if (wr_en_hprots_buf && (way == i)) begin 
-                hprots_buf[i] <= hprots_buf_wr_data;
+             
+            always_ff @(posedge clk or negedge rst) begin 
+                if (!rst) begin 
+                    tags_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    tags_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin  
+                    tags_buf[i] <= rd_data_tag[i]; 
+                end else if (wr_en_tags_buf && (way == i)) begin 
+                    tags_buf[i] <= tags_buf_wr_data;
+                end
             end
-            
-            if (!rst) begin 
-                dirty_bits_buf[i] <= 0;
-            end else if (rst_state) begin 
-                dirty_bits_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin
-                dirty_bits_buf[i] <= rd_data_dirty_bit[i];
-            end else if (wr_en_dirty_bits_buf && (way == i)) begin 
-                dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
+             
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    sharers_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    sharers_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin 
+                    sharers_buf[i] <= rd_data_sharers[i]; 
+                end else if (wr_en_sharers_buf && (way == i)) begin 
+                    sharers_buf[i] <= sharers_buf_wr_data;
+                end
             end
-            
-            if (!rst) begin 
-                states_buf[i] <= 0;
-            end else if (rst_state) begin 
-                states_buf[i] <= 0; 
-            end else if (rd_mem_en & look) begin
-                states_buf[i] <= rd_data_state[i]; 
-            end else if (wr_en_states_buf && (way == i)) begin 
-                states_buf[i] <= states_buf_wr_data;
+             
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    owners_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    owners_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin 
+                    owners_buf[i] <= rd_data_owner[i]; 
+                end else if (wr_en_owners_buf && (way == i)) begin 
+                    owners_buf[i] <= owners_buf_wr_data;
+                end
+            end
+             
+            always_ff @(posedge clk or negedge rst) begin
+                if (!rst) begin 
+                    hprots_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    hprots_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin
+                    hprots_buf[i] <= rd_data_hprot[i]; 
+                end else if (wr_en_hprots_buf && (way == i)) begin 
+                    hprots_buf[i] <= hprots_buf_wr_data;
+                end
+            end
+             
+            always_ff @(posedge clk or negedge rst) begin                
+                if (!rst) begin 
+                    dirty_bits_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    dirty_bits_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin
+                    dirty_bits_buf[i] <= rd_data_dirty_bit[i];
+                end else if (wr_en_dirty_bits_buf && (way == i)) begin 
+                    dirty_bits_buf[i] <= dirty_bits_buf_wr_data;
+                end
+            end
+             
+            always_ff @(posedge clk or negedge rst) begin                
+                if (!rst) begin 
+                    states_buf[i] <= 0;
+                end else if (rst_state) begin 
+                    states_buf[i] <= 0; 
+                end else if (rd_mem_en & look) begin
+                    states_buf[i] <= rd_data_state[i]; 
+                end else if (wr_en_states_buf && (way == i)) begin 
+                    states_buf[i] <= states_buf_wr_data;
+                end
             end
         end
-    end
+    endgenerate
       
 endmodule

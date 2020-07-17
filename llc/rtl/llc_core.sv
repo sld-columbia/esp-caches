@@ -77,7 +77,13 @@ module llc_core(
         end
     end 
     
+    //wires 
     logic process_done, idle, idle_next; 
+    logic rst_stall, clr_rst_stall;
+    logic flush_stall, clr_flush_stall, set_flush_stall; 
+    logic do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
+    logic llc_rsp_out_ready_int, llc_dma_rsp_out_ready_int, llc_fwd_out_ready_int, llc_mem_req_ready_int, llc_rst_tb_done_ready_int; 
+    
     always_comb begin 
         next_state = state; 
         case(state) 
@@ -96,7 +102,13 @@ module llc_core(
                     next_state = UPDATE; 
                 end
             UPDATE :   
-                next_state = DECODE; 
+                if ((is_flush_to_resume || is_rst_to_resume) && !flush_stall && !rst_stall) begin 
+                    if (llc_rst_tb_done_ready_int) begin 
+                        next_state = DECODE;
+                    end
+                end else begin 
+                    next_state = DECODE;
+                end
             default : 
                 next_state = DECODE;
        endcase
@@ -111,8 +123,6 @@ module llc_core(
     assign update_en = (state == UPDATE); 
     
     //wires
-    logic rst_stall, clr_rst_stall;
-    logic flush_stall, clr_flush_stall, set_flush_stall; 
     logic req_stall, clr_req_stall_decoder, clr_req_stall_process, set_req_stall; 
     logic req_in_stalled_valid, clr_req_in_stalled_valid, set_req_in_stalled_valid;  
     logic clr_rst_flush_stalled_set, incr_rst_flush_stalled_set;
@@ -128,12 +138,10 @@ module llc_core(
     logic set_is_dma_write_to_resume_decoder, set_is_dma_write_to_resume_process; 
     logic update_evict_way, set_update_evict_way, incr_evict_way_buf;
     logic is_rst_to_get, is_req_to_get, is_req_to_resume, is_dma_req_to_get, is_rsp_to_get, do_get_req; 
-    logic do_get_dma_req, is_flush_to_resume, is_rst_to_resume, is_rst_to_get_next, is_rsp_to_get_next, look; 
     logic llc_req_in_ready_int, llc_dma_req_in_ready_int, llc_rsp_in_ready_int, llc_rst_tb_ready_int, llc_mem_rsp_ready_int;
     logic llc_req_in_valid_int, llc_dma_req_in_valid_int, llc_rsp_in_valid_int, llc_rst_tb_valid_int, llc_mem_rsp_valid_int;  
     logic llc_rst_tb_done_o, rst_in, rst_state;
     logic llc_rsp_out_valid_int, llc_dma_rsp_out_valid_int, llc_fwd_out_valid_int, llc_mem_req_valid_int, llc_rst_tb_done_valid_int; 
-    logic llc_rsp_out_ready_int, llc_dma_rsp_out_ready_int, llc_fwd_out_ready_int, llc_mem_req_ready_int, llc_rst_tb_done_ready_int; 
     logic wr_en_lines_buf, wr_en_tags_buf, wr_en_sharers_buf, wr_en_owners_buf, wr_en_hprots_buf, wr_en_dirty_bits_buf, wr_en_states_buf;
     logic update_req_in_stalled, update_req_in_from_stalled, set_req_in_stalled; 
     logic rd_en, wr_en, wr_en_evict_way, evict, evict_next;
