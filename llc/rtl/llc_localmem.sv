@@ -5,7 +5,6 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-`define UNISIM
 // llc_localmem.sv 
 // llc memory 
 // author: Joseph Zuckerman
