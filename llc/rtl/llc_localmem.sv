@@ -247,13 +247,13 @@ module llc_localmem (
                         .WEM0({4{1'b1}}));
                     GF12_SRAM_SP_2048x4 owner_sram_1(
                         .CLK(clk), 
-                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS) - 1){1'b0}}, 
+                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS - 1):0]}),
-                        .D1(wr_data_owner), 
-                        .Q1(rd_data_owner_tmp[2*i+1][j]), 
-                        .WE1(wr_en_port[2*i+1] & wr_en_owner_bank[j]), 
-                        .CE1(rd_en),
-                        .WEM1({4{1'b1}}));
+                        .D0(wr_data_owner), 
+                        .Q0(rd_data_owner_tmp[2*i+1][j]), 
+                        .WE0(wr_en_port[2*i+1] & wr_en_owner_bank[j]), 
+                        .CE0(rd_en),
+                        .WEM0({4{1'b1}}));
                     `endif
                 end else begin 
                     `ifdef UNISIM
@@ -669,13 +669,13 @@ module llc_localmem (
                         .WEM0({4{1'b1}}));
                     GF12_SRAM_SP_2048x4 state_sram_1( 
                         .CLK(clk), 
-                        .A1({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS) - 1){1'b0}}, 
+                        .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS - 1):0]}),
-                        .D1(wr_data_state_extended), 
-                        .Q1(rd_data_state_tmp[2*i+1][j]), 
-                        .WE1(wr_en_port[2*i+1] & wr_en_state_bank[j]),
-                        .CE1(rd_en),
-                        .WEM1({4{1'b1}}));
+                        .D0(wr_data_state_extended), 
+                        .Q0(rd_data_state_tmp[2*i+1][j]), 
+                        .WE0(wr_en_port[2*i+1] & wr_en_state_bank[j]),
+                        .CE0(rd_en),
+                        .WEM0({4{1'b1}}));
                     `endif               
                  end else begin 
                     `ifdef UNISIM
@@ -706,12 +706,12 @@ module llc_localmem (
                         .WEM0({4{1'b1}}));
                     GF12_SRAM_SP_2048x4 state_sram_1( 
                         .CLK(clk), 
-                        .A1(set_in[(`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS - 1):0]),
-                        .D1(wr_data_state_extended), 
-                        .Q1(rd_data_state_tmp[2*i+1][j]), 
-                        .WE1(wr_en_port[2*i+1] & wr_en_state_bank[j]),
-                        .CE1(rd_en),
-                        .WEM1({4{1'b1}}));
+                        .A0(set_in[(`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS - 1):0]),
+                        .D0(wr_data_state_extended), 
+                        .Q0(rd_data_state_tmp[2*i+1][j]), 
+                        .WE0(wr_en_port[2*i+1] & wr_en_state_bank[j]),
+                        .CE0(rd_en),
+                        .WEM0({4{1'b1}}));
                     `endif               
                 end 
             end
