@@ -325,14 +325,13 @@ module l2_localmem (
                         .WEM0(state_wr_mask));
                     
                     always_comb begin 
-                        rd_data_state_tmp[2*i][j] = state_line_rd_data_0[0];
-                        rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[0];
-                        for (int b = 0; b < 2; b++) begin 
-                            if (b == set_in[0]) begin 
-                                rd_data_state_tmp[2*i][j] = state_line_rd_data_0[b];
-                                rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[b];
-                            end
-                        end
+                       if (set_in[0] == 1'b0) begin
+                          rd_data_state_tmp[2*i][j] = state_line_rd_data_0[1:0];
+                          rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[1:0];
+		       end else begin
+                          rd_data_state_tmp[2*i][j] = state_line_rd_data_0[3:2];
+                          rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[3:2];
+                       end
                     end
                     
                     `endif
@@ -379,14 +378,13 @@ module l2_localmem (
                         .WEM0(state_wr_mask));
                     
                     always_comb begin                       
-                        rd_data_state_tmp[2*i][j] = state_line_rd_data_0[0];
-                        rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[0];
-                        for (int b = 0; b < 2; b++) begin 
-                            if (b == set_in[1:0]) begin 
-                                rd_data_state_tmp[2*i][j] = state_line_rd_data_0[b];
-                                rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[b];
-                            end
-                        end
+                       if (set_in[0] == 1'b0) begin
+                          rd_data_state_tmp[2*i][j] = state_line_rd_data_0[1:0];
+                          rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[1:0];
+		       end else begin
+                          rd_data_state_tmp[2*i][j] = state_line_rd_data_0[3:2];
+                          rd_data_state_tmp[2*i+1][j] = state_line_rd_data_1[3:2];
+                       end
                     end
                     `endif
                 end 
@@ -460,7 +458,7 @@ module l2_localmem (
                             .D0(wr_data_tag_extended[(8*(k+1)-1):(8*k)]), 
                             .Q0(rd_data_tag_tmp[2*i][j][(8*(k+1)-1):(8*k)]),
                             .WE0(wr_en_port[2*i] & wr_en_tag_bank[j]),
-                            .CE0(rd_en));
+                            .CE0(rd_en),
                             .WEM0({8{1'b1}}));
                         GF12_SRAM_SP_1024x8 tag_sram_1( 
                             .CLK(clk), 
