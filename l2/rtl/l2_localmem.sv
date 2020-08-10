@@ -579,15 +579,35 @@ module l2_localmem (
                 `endif
 
                 `ifdef GF12
-                GF12_SRAM_SP_4096x4 evict_way_sram( 
+	        logic [3:0] rd_data_evict_way_tmp_0;
+	        logic [3:0] rd_data_evict_way_tmp_1;
+
+                GF12_SRAM_SP_2048x4 evict_way_sram_0( 
                     .CLK(clk), 
                     .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, 
-                            set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
+                            set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):1]}),
                     .D0(wr_data_evict_way_extended), 
-                    .Q0(rd_data_evict_way_tmp[j]),
+                    .Q0(rd_data_evict_way_tmp_0),
                     .WE0(wr_en_evict_way_bank[j]),
-                    .CE0(rd_en),
+                    .CE0(rd_en & ~set_in[0]),
                     .WEM0({4{1'b1}}));
+
+                GF12_SRAM_SP_2048x4 evict_way_sram_1( 
+                    .CLK(clk), 
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, 
+                            set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):1]}),
+                    .D0(wr_data_evict_way_extended), 
+                    .Q0(rd_data_evict_way_tmp_1),
+                    .WE0(wr_en_evict_way_bank[j]),
+                    .CE0(rd_en & set_in[0]),
+                    .WEM0({4{1'b1}}));
+
+                always_comb begin
+                   if (set_in[0] == 1'b0)
+		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_0;
+		   else
+		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_1;
+		end
                 `endif
             end else begin 
                 `ifdef UNISIM
@@ -608,14 +628,33 @@ module l2_localmem (
                 `endif
 
                 `ifdef GF12 
-                GF12_SRAM_SP_4096x4 evict_way_sram( 
+	        logic [3:0] rd_data_evict_way_tmp_0;
+	        logic [3:0] rd_data_evict_way_tmp_1;
+
+                GF12_SRAM_SP_2048x4 evict_way_sram_0( 
                     .CLK(clk), 
-                    .A0(set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):0]),
+                    .A0(set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):1]),
                     .D0(wr_data_evict_way_extended), 
-                    .Q0(rd_data_evict_way_tmp[j]),
+                    .Q0(rd_data_evict_way_tmp_0),
                     .WE0(wr_en_evict_way_bank[j]),
-                    .CE0(rd_en),
+                    .CE0(rd_en & ~set_in[0]),
                     .WEM0({4{1'b1}}));
+
+                GF12_SRAM_SP_2048x4 evict_way_sram_1( 
+                    .CLK(clk), 
+                    .A0(set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):1]),
+                    .D0(wr_data_evict_way_extended), 
+                    .Q0(rd_data_evict_way_tmp_1),
+                    .WE0(wr_en_evict_way_bank[j]),
+                    .CE0(rd_en & set_in[0]),
+                    .WEM0({4{1'b1}}));
+
+                always_comb begin
+                   if (set_in[0] == 1'b0)
+		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_0;
+		   else
+		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_1;
+		end
                 `endif
             end 
         end
