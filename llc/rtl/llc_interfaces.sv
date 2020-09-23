@@ -39,11 +39,11 @@ module llc_interfaces(
     input logic set_req_in_stalled,
  
     llc_req_in_t.in llc_req_in_i,
-    llc_req_in_t.in llc_dma_req_in_i,
+    llc_dma_req_in_t.in llc_dma_req_in_i,
     llc_rsp_in_t.in llc_rsp_in_i,
     llc_mem_rsp_t.in llc_mem_rsp_i,
     llc_rsp_out_t.in llc_rsp_out_o,
-    llc_rsp_out_t.in llc_dma_rsp_out_o,
+    llc_dma_rsp_out_t.in llc_dma_rsp_out_o,
     llc_fwd_out_t.in llc_fwd_out_o,
     llc_mem_req_t.in llc_mem_req_o,
     
@@ -78,13 +78,13 @@ module llc_interfaces(
     
     llc_req_in_t.out llc_req_in,
     llc_rsp_out_t.out llc_rsp_out, 
-    llc_rsp_out_t.out llc_dma_rsp_out, 
+    llc_dma_rsp_out_t.out llc_dma_rsp_out, 
     llc_fwd_out_t.out llc_fwd_out,
     llc_mem_req_t.out llc_mem_req, 
-    llc_req_in_t.out llc_dma_req_in, 
+    llc_dma_req_in_t.out llc_dma_req_in, 
     llc_rsp_in_t.out llc_rsp_in,
     llc_mem_rsp_t.out llc_mem_rsp,
-    llc_req_in_t.out llc_dma_req_in_next, 
+    llc_dma_req_in_t.out llc_dma_req_in_next, 
     llc_mem_rsp_t.out llc_mem_rsp_next 
 
     `ifdef STATS_ENABLE
@@ -142,7 +142,7 @@ module llc_interfaces(
 
     //DMA REQ IN 
     logic llc_dma_req_in_valid_tmp;
-    llc_req_in_t llc_dma_req_in_tmp(); 
+    llc_dma_req_in_t llc_dma_req_in_tmp(); 
     
     interface_controller llc_dma_req_in_intf(
         .clk(clk), 
@@ -307,7 +307,7 @@ module llc_interfaces(
     assign llc_rsp_out.word_offset = (!llc_rsp_out_valid_tmp) ? llc_rsp_out_o.word_offset : llc_rsp_out_tmp.word_offset; 
     
     //LLC DMA RSP OUT
-    llc_rsp_out_t llc_dma_rsp_out_tmp(); 
+    llc_dma_rsp_out_t llc_dma_rsp_out_tmp(); 
     
     interface_controller llc_dma_rsp_out_intf(
         .clk(clk), 

@@ -52,7 +52,7 @@ module llc_regs(
     input var llc_tag_t tags_buf[`LLC_WAYS], 
         
     line_breakdown_llc_t.in line_br, 
-    llc_req_in_t.in llc_dma_req_in,
+    llc_dma_req_in_t.in llc_dma_req_in,
     
     output logic rst_stall,
     output logic flush_stall,

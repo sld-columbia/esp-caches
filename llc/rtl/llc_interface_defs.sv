@@ -18,6 +18,20 @@ interface llc_rsp_out_t;
     
 endinterface
 
+interface llc_dma_rsp_out_t;
+   coh_msg_t           coh_msg;        // data, e-data, inv-ack, rsp-data-dma
+   line_addr_t         addr;
+   line_t              line;
+   invack_cnt_t        invack_cnt;     // used to mark last line of RSP_DATA_DMA
+   llc_coh_dev_id_t    req_id;
+   cache_id_t          dest_id;
+   word_offset_t       word_offset;
+
+   modport in (input coh_msg, addr, line, invack_cnt, req_id, dest_id, word_offset);
+   modport out (output coh_msg, addr, line, invack_cnt, req_id, dest_id, word_offset);
+
+endinterface
+
 interface llc_fwd_out_t;
     mix_msg_t		coh_msg;	// fwd_gets, fwd_getm, fwd_inv
     line_addr_t		addr;
@@ -43,6 +57,19 @@ interface llc_req_in_t;
 
 endinterface
 
+interface llc_dma_req_in_t;
+   mix_msg_t        coh_msg;   // gets, getm, puts, putm, dma_read, dma_write
+   hprot_t          hprot;     // used for dma write burst end (0) and non-aligned addr (1)
+   line_addr_t      addr;
+   line_t           line;      // used for dma burst length too
+   llc_coh_dev_id_t req_id;
+   word_offset_t    word_offset;
+   word_offset_t    valid_words;
+
+   modport in (input coh_msg, hprot, addr, line, req_id, word_offset, valid_words);
+   modport out (output coh_msg, hprot, addr, line, req_id, word_offset, valid_words);
+
+endinterface
 
 interface llc_rsp_in_t;
     coh_msg_t coh_msg;
