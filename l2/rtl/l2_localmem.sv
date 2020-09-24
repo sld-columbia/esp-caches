@@ -149,7 +149,7 @@ module l2_localmem (
             //need 1 bit for hprot - 16384x1 BRAM
             for (j = 0; j < `L2_HPROT_BRAMS_PER_WAY; j++) begin
                 if (`BRAM_16384_ADDR_WIDTH > (`L2_SET_BITS - `L2_HPROT_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_16384_ADDR_WIDTH - (`L2_SET_BITS - `L2_HPROT_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -214,7 +214,7 @@ module l2_localmem (
                     
                     `endif
                 end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`L2_SET_BITS - `L2_HPROT_BRAM_INDEX_BITS - 1):0]}),
@@ -279,7 +279,7 @@ module l2_localmem (
             //need 3 bits for state - 4096x4 BRAM
             for (j = 0; j < `L2_STATE_BRAMS_PER_WAY; j++) begin
                  if (`BRAM_8192_ADDR_WIDTH > (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_8192x2 state_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_8192_ADDR_WIDTH - (`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -336,7 +336,7 @@ module l2_localmem (
                     
                     `endif
                 end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_8192x2 state_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`L2_SET_BITS - `L2_STATE_BRAM_INDEX_BITS - 1):0]}),
@@ -394,7 +394,7 @@ module l2_localmem (
             for (j = 0; j < `L2_TAG_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `L2_BRAMS_PER_TAG; k++) begin 
                     if (`BRAM_2048_ADDR_WIDTH > (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) + 1) begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_2048x8 tag_bram( 
                             .CLK(clk), 
                             .A0({{(`BRAM_2048_ADDR_WIDTH - (`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -434,7 +434,7 @@ module l2_localmem (
                             .WEM0({8{1'b1}}));
                         `endif
                     end else begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_2048x8 tag_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`L2_SET_BITS - `L2_TAG_BRAM_INDEX_BITS - 1):0]}),
@@ -477,7 +477,7 @@ module l2_localmem (
             for (j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `L2_BRAMS_PER_LINE; k++) begin 
                     if (`BRAM_1024_ADDR_WIDTH > (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) + 1) begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_1024x16 line_bram( 
                             .CLK(clk), 
                             .A0({{(`BRAM_1024_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -517,7 +517,7 @@ module l2_localmem (
                             .WEM0({16{1'b1}}));
                         `endif
                     end else begin 
-                        `ifdef UNISIM 
+                        `ifdef XILINX_FPGA 
                         BRAM_1024x16 line_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
@@ -560,7 +560,7 @@ module l2_localmem (
         //need 2-5 bits for eviction  - 4096x4 BRAM
         for (j = 0; j < `L2_EVICT_WAY_BRAMS; j++) begin
             if (`BRAM_4096_ADDR_WIDTH > (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)) begin 
-                `ifdef UNISIM
+                `ifdef XILINX_FPGA
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
                     .A0({{(`BRAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}}, 
@@ -610,7 +610,7 @@ module l2_localmem (
 		end
                 `endif
             end else begin 
-                `ifdef UNISIM
+                `ifdef XILINX_FPGA
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
                     .A0({set_in[(`L2_SET_BITS - `L2_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),

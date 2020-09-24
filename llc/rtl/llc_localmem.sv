@@ -216,7 +216,7 @@ module llc_localmem (
             //need 4 bits for owner - 4096x4 BRAM
             for (j = 0; j < `LLC_OWNER_BRAMS_PER_WAY; j++) begin
                 if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_4096x4 owner_bram(
                         .CLK(clk), 
                         .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -256,7 +256,7 @@ module llc_localmem (
                         .WEM0({4{1'b1}}));
                     `endif
                 end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_4096x4 owner_bram(
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_OWNER_BRAM_INDEX_BITS - 1):0]}),
@@ -297,7 +297,7 @@ module llc_localmem (
             //need 16 bits for sharers - 1024x16 BRAM
             for (j = 0; j < `LLC_SHARERS_BRAMS_PER_WAY; j++) begin
                 if (`BRAM_1024_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_SHARERS_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_1024x16 sharers_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_SHARERS_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -337,7 +337,7 @@ module llc_localmem (
                         .WEM0({16{1'b1}}));
                     `endif
                 end else begin 
-                    `ifdef UNISIM 
+                    `ifdef XILINX_FPGA 
                     BRAM_1024x16 sharers_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_SHARERS_BRAM_INDEX_BITS - 1):0]}),
@@ -378,7 +378,7 @@ module llc_localmem (
             //need 1 bit for hport - 16384x1 BRAM
             for (j = 0; j < `LLC_HPROT_BRAMS_PER_WAY; j++) begin
                 if (`BRAM_16384_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_HPROT_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_HPROT_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -443,7 +443,7 @@ module llc_localmem (
                     
                     `endif
                 end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_16384x1 hprot_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_HPROT_BRAM_INDEX_BITS - 1):0]}),
@@ -508,7 +508,7 @@ module llc_localmem (
             //need 1 dirty bit1 - 16384x1 BRAM
             for (j = 0; j < `LLC_DIRTY_BIT_BRAMS_PER_WAY; j++) begin
                 if (`BRAM_16384_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_DIRTY_BIT_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM 
+                    `ifdef XILINX_FPGA 
                     BRAM_16384x1 dirty_bit_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_16384_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_DIRTY_BIT_BRAM_INDEX_BITS) - 1){1'b0}},
@@ -573,7 +573,7 @@ module llc_localmem (
                     
                     `endif
                 end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_16384x1 dirty_bit_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_DIRTY_BIT_BRAM_INDEX_BITS - 1):0]}),
@@ -638,7 +638,7 @@ module llc_localmem (
             //need 3 bits for state - 4096x4 BRAM
             for (j = 0; j < `LLC_STATE_BRAMS_PER_WAY; j++) begin
                  if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS) + 1) begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_4096x4 state_bram( 
                         .CLK(clk), 
                         .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -678,7 +678,7 @@ module llc_localmem (
                         .WEM0({4{1'b1}}));
                     `endif               
                  end else begin 
-                    `ifdef UNISIM
+                    `ifdef XILINX_FPGA
                     BRAM_4096x4 state_bram( 
                         .CLK(clk), 
                         .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_STATE_BRAM_INDEX_BITS - 1):0]}),
@@ -720,7 +720,7 @@ module llc_localmem (
             for (j = 0; j < `LLC_TAG_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `LLC_BRAMS_PER_TAG; k++) begin 
                     if (`BRAM_2048_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_TAG_BRAM_INDEX_BITS) + 1) begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_2048x8 tag_bram( 
                             .CLK(clk), 
                             .A0({{(`BRAM_2048_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_TAG_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -760,7 +760,7 @@ module llc_localmem (
                             .WEM0({8{1'b1}}));
                         `endif
                     end else begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_2048x8 tag_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_TAG_BRAM_INDEX_BITS - 1):0]}),
@@ -803,7 +803,7 @@ module llc_localmem (
             for (j = 0; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `LLC_BRAMS_PER_LINE; k++) begin 
                     if (`BRAM_1024_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS) + 1) begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_1024x16 line_bram( 
                             .CLK(clk), 
                             .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -843,7 +843,7 @@ module llc_localmem (
                             .WEM0());
                         `endif
                     end else begin 
-                        `ifdef UNISIM
+                        `ifdef XILINX_FPGA
                         BRAM_1024x16 line_bram( 
                             .CLK(clk), 
                             .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS - 1):0]}),
@@ -886,7 +886,7 @@ module llc_localmem (
             //need 2-5 bits for eviction  - 4096x4 BRAM
         for (j = 0; j < `LLC_EVICT_WAY_BRAMS; j++) begin
             if (`BRAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)) begin 
-                `ifdef UNISIM
+                `ifdef XILINX_FPGA
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
                     .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}},
@@ -916,7 +916,7 @@ module llc_localmem (
                     .WEM0({4{1'b1}}));
                 `endif
             end else begin 
-                `ifdef UNISIM
+                `ifdef XILINX_FPGA
                 BRAM_4096x4 evict_way_bram( 
                     .CLK(clk), 
                     .A0({set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):0]}),
