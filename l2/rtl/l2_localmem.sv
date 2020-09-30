@@ -650,11 +650,12 @@ module l2_localmem (
                     .WEM0({4{1'b1}}));
 
                 always_comb begin
-                   if (set_in[0] == 1'b0)
-		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_0;
-		   else
-		     rd_data_evict_way_tmp[j] <= rd_data_evict_way_tmp_1;
-		end
+                    if (set_in[0] == 1'b0) begin
+		                rd_data_evict_way_tmp[j] = rd_data_evict_way_tmp_0;
+                    end else begin
+		                rd_data_evict_way_tmp[j] = rd_data_evict_way_tmp_1;
+	            	end
+                end
                 `endif
             end 
         end
