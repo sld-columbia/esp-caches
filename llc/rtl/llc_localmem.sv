@@ -910,7 +910,8 @@ module llc_localmem (
                 
                 GF12_SRAM_SP_2048x4 evict_way_sram_0( 
                     .CLK(clk), 
-                    .A0(set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):0]),
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}},
+                            set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):1]}),
                     .D0(wr_data_evict_way_extended), 
                     .Q0(rd_data_evict_way_tmp_0),
                     .WE0(wr_en_evict_way_bank[j]),
@@ -919,7 +920,8 @@ module llc_localmem (
 
                 GF12_SRAM_SP_2048x4 evict_way_sram_1( 
                     .CLK(clk), 
-                    .A0(set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):0]),
+                    .A0({{(`BRAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS)){1'b0}},
+                            set_in[(`LLC_SET_BITS - `LLC_EVICT_WAY_BRAM_INDEX_BITS - 1):1]}),
                     .D0(wr_data_evict_way_extended), 
                     .Q0(rd_data_evict_way_tmp_1),
                     .WE0(wr_en_evict_way_bank[j]),
