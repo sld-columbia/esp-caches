@@ -840,7 +840,7 @@ module llc_localmem (
                             .Q0(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
                             .WE0(wr_en_port[2*i+1] & wr_en_line_bank[j]),
                             .CE0(rd_en),
-                            .WEM0());
+                            .WEM0({16{1'b1}}));
                         `endif
                     end else begin 
                         `ifdef XILINX_FPGA
