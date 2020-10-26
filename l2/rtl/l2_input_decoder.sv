@@ -92,7 +92,7 @@ module l2_input_decoder (
                 do_flush_next = 1'b1;
                 set_ongoing_flush = 1'b1; 
                 l2_flush_ready_int = 1'b1; 
-            end else if (l2_rsp_in_valid_int) begin 
+            end else if (l2_rsp_in_valid_int && reqs_cnt != `N_REQS) begin
                 do_rsp_next = 1'b1; 
                 l2_rsp_in_ready_int = 1'b1; 
             end else if ((l2_fwd_in_valid_int && !fwd_stall) || fwd_stall_ended) begin 
