@@ -13,6 +13,7 @@ FLAGS += -DRTL_CACHE
 FLAGS += -DSTATS_ENABLE
 FLAGS += -TOP glbl
 FLAGS += -access +R
++FLAGS += -xmvlog_args,"-define XILINX_FPGA"
 
 INCDIR ?=
 INCDIR += -I$(ACCEL)
