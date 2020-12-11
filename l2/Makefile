@@ -2,8 +2,8 @@
 # SPDC-License-Identifier: Apache-2.0
 
 VIVADO = $(XILINX_VIVADO)
-ESPROOT ?= ../../../../../../
-ACCEL = $(ESPROOT)/accelerators/stratus_hls/common/syn-templates
+ESP_ROOT ?= ../../../..
+ACCEL = $(ESP_ROOT)/accelerators/stratus_hls/common/inc
 
 FLAGS ?=
 FLAGS += -NOWarn SCK505
@@ -17,41 +17,41 @@ FLAGS += -xmvlog_args,"-define XILINX_FPGA"
 
 INCDIR ?=
 INCDIR += -I$(ACCEL)
-INCDIR += -I$(ESPROOT)/systemc/common/caches
-INCDIR += -I$(ESPROOT)/systemc/llc/tb
-INCDIR += -I$(ESPROOT)/systemc/l2/tb
+INCDIR += -I../systemc/common/caches
+INCDIR += -I../systemc/llc/tb
+INCDIR += -I../systemc/l2/tb
 INCDIR += -I$(STRATUS_PATH)/share/stratus/include
 INCDIR += +incdir+../common/defs
 INCDIR += +incdir+.
 
-L2_TB ?= 
-L2_TB +=$(ESPROOT)/systemc/l2/tb/l2_tb.cpp
+L2_TB ?=
+L2_TB +=../systemc/l2/tb/l2_tb.cpp
 L2_TB += sim/sc_main.cpp
 
 L2_COSIM_SRC ?=
 L2_COSIM_SRC += sim/l2_wrap.cpp
 
-L2_SRC ?= 
-L2_SRC += rtl/*.sv 
+L2_SRC ?=
+L2_SRC += rtl/*.sv
 
 RTL_SRC ?=
-RTL_SRC += $(ESPROOT)/tech/virtex7/mem/*.v
+RTL_SRC += $(ESP_ROOT)/tech/virtex7/mem/*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/glbl.v
 RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
 RTL_SRC += ../common/rtl/*.sv
 
 l2-sim: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
-	cp cache_cfg.svh $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
-	sed -i 's/`/#/g' $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
-	rm $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	rm ../systemc/common/caches/cache_cfg.hpp
 
 l2-sim-gui: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
-	cp cache_cfg.svh $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
-	sed -i 's/`/#/g' $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^
-	rm $(ESPROOT)/systemc/common/caches/cache_cfg.hpp 
+	rm ../systemc/common/caches/cache_cfg.hpp
 
 clean:
 	rm -rf 			\
