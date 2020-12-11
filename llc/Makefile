@@ -2,7 +2,7 @@
 # SPDC-License-Identifier: Apache-2.0
 
 VIVADO = $(XILINX_VIVADO)
-ESP_ROOT ?= ../../../..
+ESP_ROOT ?= ../../../../../..
 ACCEL = $(ESP_ROOT)/accelerators/stratus_hls/common/inc
 
 FLAGS ?=
@@ -13,7 +13,7 @@ FLAGS += -DRTL_CACHE
 FLAGS += -DSTATS_ENABLE
 FLAGS += -TOP glbl
 FLAGS += -access +R
-+FLAGS += -xmvlog_args,"-define XILINX_FPGA"
+FLAGS += -ncvlog_args,"-define XILINX_FPGA"
 
 INCDIR ?=
 INCDIR += -I$(ACCEL)
@@ -34,7 +34,7 @@ LLC_SRC ?=
 LLC_SRC += ./rtl/*.sv
 
 RTL_SRC ?=
-RTL_SRC += $(ESP_ROOT)/tech/virtex7/mem/*.v
+RTL_SRC += $(ESP_ROOT)/rtl/techmap/virtex7/mem/*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/glbl.v
 RTL_SRC += $(VIVADO)/data/verilog/src/retarget/RAMB*.v
 RTL_SRC += $(VIVADO)/data/verilog/src/unisims/RAMB*.v
