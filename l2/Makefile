@@ -62,6 +62,7 @@ clean:
 		*.key		\
 		*.shm		\
 		*.err 		\
-        *.diag
+        *.diag		\
+		../systemc/common/caches/cache_cfg.hpp
 
 .PHONY: sc-sim sc-sim-gui clean
