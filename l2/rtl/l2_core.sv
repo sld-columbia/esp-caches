@@ -136,7 +136,12 @@ module l2_core(
     l2_fsm fsm_u(.*);  
     l2_interfaces interfaces_u(.*); 
     l2_input_decoder decode_u (.*);
+`ifdef XILINX_FPGA
     l2_localmem localmem_u (.*);
+`endif
+`ifdef GF12
+    l2_localmem_gf12 localmem_u(.*);
+`endif
     l2_lookup lookup_u(.*); 
     l2_regs regs_u (.*); 
     l2_reqs reqs_u (.*); 
