@@ -62,7 +62,11 @@ public:
     sc_in<bool> l2_inval_ready;
     sc_out<bool> l2_inval_valid;
     sc_out<l2_inval_t> l2_inval_data;
-   
+    
+    sc_in<bool> l2_bresp_ready;
+    sc_out<bool> l2_bresp_valid;
+    sc_out<bresp_t> l2_bresp_data;
+ 
     sc_out<bool> flush_done;
 
 #ifdef STATS_ENABLE
@@ -115,7 +119,10 @@ public:
     , l2_inval_ready("l2_inval_ready")
     , l2_inval_valid("l2_inval_valid")
     , l2_inval_data("l2_inval_data")
-    , flush_done("flush_done")
+    , l2_bresp_ready("l2_bresp_ready")
+    , l2_bresp_valid("l2_bresp_valid")
+    , l2_bresp_data("l2_bresp_data")
+, flush_done("flush_done")
 #ifdef STATS_ENABLE
         , l2_stats_valid ("l2_stats_valid")
         , l2_stats_data("l2_stats_data")
@@ -141,6 +148,7 @@ public:
     cynw::cynw_put_port_base<l2_rsp_out_t> l2_rsp_out;
     cynw::cynw_put_port_base<l2_rd_rsp_t> l2_rd_rsp;
     cynw::cynw_put_port_base<l2_inval_t> l2_inval;
+    cynw::cynw_put_port_base<bresp_t> l2_bresp;
 
 #ifdef STATS_ENABLE
     cynw::cynw_put_port_base<bool> l2_stats;
@@ -158,6 +166,7 @@ public:
     , l2_rsp_out("l2_rsp_out")
     , l2_rd_rsp("l2_rd_rsp")
     , l2_inval ("l2_inval")
+    , l2_bresp ("l2_bresp")
 #ifdef STATS_ENABLE
         ,  l2_stats("l2_stats")
 #endif          
@@ -185,6 +194,7 @@ public:
     , l2_rd_rsp_data_conv_line("l2_rd_rsp_data_conv_line")
     , l2_flush_data_conv("l2_flush_data_conv")
     , l2_inval_data_conv("l2_inval_data_conv")
+    , l2_bresp_data_conv("l2_bresp_data_conv")
 #ifdef STATS_ENABLE
         , l2_stats_data_conv("l2_stats_data_conv")
 #endif
@@ -207,6 +217,8 @@ public:
         sensitive << l2_rd_rsp_data_conv_line;
         SC_METHOD(thread_l2_inval_data_conv);
         sensitive << l2_inval_data_conv; 
+        SC_METHOD(thread_l2_bresp_data_conv);
+        sensitive << l2_bresp_data_conv; 
 #ifdef STATS_ENABLE
         SC_METHOD(thread_l2_stats_data_conv);
         sensitive << l2_stats_data_conv;
@@ -254,6 +266,9 @@ public:
     cosim.l2_inval_ready(l2_inval.ready);
     cosim.l2_inval_valid(l2_inval.valid);
     cosim.l2_inval_data(l2_inval_data_conv);
+    cosim.l2_bresp_ready(l2_bresp.ready);
+    cosim.l2_bresp_valid(l2_bresp.valid);
+    cosim.l2_bresp_data(l2_bresp_data_conv);
     cosim.flush_done(flush_done);
 #ifdef STATS_ENABLE
         cosim.l2_stats_valid (l2_stats.valid);
@@ -294,6 +309,8 @@ public:
     sc_signal<bool> l2_flush_data_conv;
    
     sc_signal<l2_inval_t> l2_inval_data_conv;
+    
+    sc_signal<bresp_t> l2_bresp_data_conv;
 #ifdef STATS_ENABLE
     sc_signal<bool> l2_stats_data_conv;
 #endif
@@ -307,6 +324,7 @@ public:
     void thread_l2_rsp_out_data_conv();
     void thread_l2_rd_rsp_data_conv();
     void thread_l2_inval_data_conv(); 
+    void thread_l2_bresp_data_conv(); 
 #ifdef STATS_ENABLE
     void thread_l2_stats_data_conv();
 #endif

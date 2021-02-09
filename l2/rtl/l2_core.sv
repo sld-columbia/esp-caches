@@ -21,7 +21,8 @@ module l2_core(
     input logic l2_flush_valid,
     input logic l2_flush_i,
     input logic l2_inval_ready,
-    
+    input logic l2_bresp_ready,
+
     l2_cpu_req_t.in l2_cpu_req_i,
     l2_fwd_in_t.in l2_fwd_in_i, 
     l2_rsp_in_t.in l2_rsp_in_i, 
@@ -35,8 +36,10 @@ module l2_core(
     output logic l2_flush_ready,
     output logic l2_inval_valid,
     output logic flush_done, 
+    output logic l2_bresp_valid,
     output l2_inval_t l2_inval,
-    
+    output bresp_t l2_bresp,
+
     l2_req_out_t.out l2_req_out,
     l2_rsp_out_t.out l2_rsp_out,
     l2_rd_rsp_t.out l2_rd_rsp 
@@ -63,6 +66,7 @@ module l2_core(
     logic l2_rsp_out_ready_int, l2_req_out_ready_int, l2_inval_ready_int, l2_rd_rsp_ready_int;
     logic l2_cpu_req_valid_int, l2_fwd_in_valid_int, l2_rsp_in_valid_int, l2_flush_valid_int; 
     logic l2_rsp_out_valid_int, l2_req_out_valid_int, l2_inval_valid_int, l2_rd_rsp_valid_int; 
+    logic l2_bresp_valid_int, l2_bresp_ready_int;
     logic decode_en, lookup_en, rd_mem_en;
     logic fwd_stall, fwd_stall_ended, ongoing_flush, set_conflict, evict_stall, ongoing_atomic, idle;
     logic set_cpu_req_conflict, set_fwd_in_stalled;
@@ -80,6 +84,7 @@ module l2_core(
     logic wr_req_invack_cnt, wr_req_tag, wr_en_put_reqs, wr_req_state_atomic, put_reqs_atomic; 
     logic wr_en_lines_buf, wr_en_tags_buf, wr_en_states_buf, wr_en_hprots_buf; 
     logic wr_rst, wr_en_state, wr_en_line, wr_en_evict_way, rd_en; 
+    logic ongoing_atomic_set_conflict_instr, set_ongoing_atomic_set_conflict_instr, clr_ongoing_atomic_set_conflict_instr;
     logic [2:0] reqs_op_code; 
     logic [`L2_SET_BITS:0] flush_set; 
     logic [`L2_WAY_BITS:0] flush_way; 
@@ -89,6 +94,7 @@ module l2_core(
     addr_t cpu_req_addr;
     mix_msg_t fwd_in_coh_msg; 
     l2_inval_t l2_inval_o;
+    bresp_t l2_bresp_o;
     l2_set_t set; 
     l2_set_t set_in;
     l2_way_t empty_way, way_hit, way_hit_next, way;

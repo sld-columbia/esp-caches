@@ -77,7 +77,7 @@
 #define INVACK_CNT_CALC_WIDTH   (INVACK_CNT_WIDTH + 1)
 #define CACHE_ID_WIDTH          MAX_N_L2_BITS
 #define LLC_COH_DEV_ID_WIDTH    MAX_N_LLC_BITS
-
+#define BRESP_WIDTH 2
 //
 // L2
 //
@@ -134,6 +134,7 @@
 #define HIT		0
 #define MISS		1
 #define MISS_EVICT	2
+#define REG_WRITE_TO_ATOMIC 3
 
 // Invalidation acknowledges order
 #define DATA_FIRST	0
@@ -231,6 +232,11 @@
 #define RSP_EDATA	1
 #define RSP_INVACK	2
 #define RSP_DATA_DMA    3
+
+#define BRESP_OKAY 0
+#define BRESP_EXOKAY 1
+#define BRESP_SLVERR 2
+#define BRESP_DECERR 3
 
 // DMA burst
 #define DMA_BURST_LENGTH_BITS 32

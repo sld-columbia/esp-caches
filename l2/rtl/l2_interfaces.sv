@@ -34,8 +34,11 @@ module l2_interfaces(
     input logic set_cpu_req_conflict, 
     input logic set_fwd_in_from_stalled, 
     input logic set_fwd_in_stalled, 
+    input logic l2_bresp_ready,
+    input logic l2_bresp_valid_int,
+    input bresp_t l2_bresp_o,
     input line_addr_t l2_inval_o, 
- 
+
     l2_cpu_req_t.in l2_cpu_req_i, 
     l2_fwd_in_t.in l2_fwd_in_i, 
     l2_rsp_in_t.in l2_rsp_in_i, 
@@ -60,11 +63,14 @@ module l2_interfaces(
     output logic l2_inval_ready_int, 
     output logic l2_inval_valid, 
     output logic is_flush_all, 
+    output logic l2_bresp_valid,
+    output logic l2_bresp_ready_int,
+    output bresp_t l2_bresp,
     output line_addr_t l2_inval, 
     output line_addr_t rsp_in_addr, 
     output line_addr_t fwd_in_addr,
     output addr_t cpu_req_addr, 
-    
+     
     l2_req_out_t.out l2_req_out, 
     l2_rsp_out_t.out l2_rsp_out, 
     l2_rd_rsp_t.out l2_rd_rsp, 
@@ -320,6 +326,30 @@ module l2_interfaces(
     end
 
     assign l2_inval = (!l2_inval_valid_tmp) ? l2_inval_o : l2_inval_tmp;
+
+    //L2 BRESP
+    logic l2_bresp_valid_tmp; 
+    bresp_t l2_bresp_tmp; 
+    
+    interface_controller l2_bresp_intf(
+        .clk(clk), 
+        .rst(rst), 
+        .ready_in(l2_bresp_ready), 
+        .valid_in(l2_bresp_valid_int), 
+        .ready_out(l2_bresp_ready_int), 
+        .valid_out(l2_bresp_valid), 
+        .valid_tmp(l2_bresp_valid_tmp)
+    ); 
+
+    always_ff @(posedge clk or negedge rst) begin 
+        if (!rst) begin 
+            l2_bresp_tmp <= 0;
+        end else if (l2_bresp_valid_int && l2_bresp_ready_int && !l2_bresp_ready) begin 
+            l2_bresp_tmp <= l2_bresp_o;  
+        end
+    end
+
+    assign l2_bresp = (!l2_bresp_valid_tmp) ? l2_bresp_o : l2_bresp_tmp;
 
     //L2 STATS
 `ifdef STATS_ENABLE    

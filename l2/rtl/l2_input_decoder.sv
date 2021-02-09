@@ -54,6 +54,10 @@ module l2_input_decoder (
     addr_breakdown_t.out addr_br,
     line_breakdown_l2_t.out line_br_next,
     addr_breakdown_t.out addr_br_next 
+
+`ifdef LLSC
+    , input logic ongoing_atomic_set_conflict_instr
+`endif    
     ); 
 
     always_comb begin 
@@ -119,7 +123,11 @@ module l2_input_decoder (
                     flush_done = 1'b1; 
                 end 
             end else if ((l2_cpu_req_valid_int || set_conflict)  && !evict_stall 
-                                && (reqs_cnt != 0 || ongoing_atomic)) begin 
+                && (reqs_cnt != 0 || ongoing_atomic) 
+`ifdef LLSC
+                && !ongoing_atomic_set_conflict_instr
+`endif                
+                ) begin 
                 do_cpu_req_next = 1'b1;
                 if (!set_conflict) begin 
                     l2_cpu_req_ready_int = 1'b1; 

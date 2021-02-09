@@ -33,6 +33,7 @@ public:
     // From L2 cache
     put_get_channel<l2_rd_rsp_t>	l2_rd_rsp_chnl;
     put_get_channel<l2_inval_t>	        l2_inval_chnl;
+    put_get_channel<bresp_t>	        l2_bresp_chnl;
     put_get_channel<l2_req_out_t>	l2_req_out_chnl;
     put_get_channel<l2_rsp_out_t>	l2_rsp_out_chnl;
 
@@ -63,6 +64,7 @@ public:
 	dut->l2_flush(l2_flush_chnl);
 	dut->l2_rd_rsp(l2_rd_rsp_chnl);
 	dut->l2_inval(l2_inval_chnl);
+	dut->l2_bresp(l2_bresp_chnl);
 	dut->l2_req_out(l2_req_out_chnl);
 	dut->l2_rsp_out(l2_rsp_out_chnl);
 #ifdef STATS_ENABLE
@@ -79,6 +81,7 @@ public:
 	tb->l2_flush_tb(l2_flush_chnl); 
 	tb->l2_rd_rsp_tb(l2_rd_rsp_chnl);
 	tb->l2_inval_tb(l2_inval_chnl);
+	tb->l2_bresp_tb(l2_bresp_chnl);
 	tb->l2_req_out_tb(l2_req_out_chnl);
 	tb->l2_rsp_out_tb(l2_rsp_out_chnl);
 #ifdef STATS_ENABLE
