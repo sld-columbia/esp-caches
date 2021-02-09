@@ -33,6 +33,7 @@ public:
     // Output ports
     get_initiator<l2_rd_rsp_t>	l2_rd_rsp_tb;
     get_initiator<l2_inval_t>   l2_inval_tb;
+    get_initiator<bresp_t>   l2_bresp_tb;
     get_initiator<l2_req_out_t> l2_req_out_tb;
     get_initiator<l2_rsp_out_t> l2_rsp_out_tb;
 
@@ -67,6 +68,7 @@ public:
 	l2_flush_tb.clk_rst (clk, rst);
 	l2_rd_rsp_tb.clk_rst(clk, rst);
 	l2_inval_tb.clk_rst(clk, rst);
+	l2_bresp_tb.clk_rst(clk, rst);
 	l2_req_out_tb.clk_rst(clk, rst);
 	l2_rsp_out_tb.clk_rst(clk, rst);
 #ifdef STATS_ENABLE
@@ -100,6 +102,7 @@ public:
     void put_rsp_in(coh_msg_t coh_msg, addr_t addr, line_t line, invack_cnt_t invack_cnt);
     void get_rd_rsp(line_t line);
     void get_inval(addr_t addr);
+    void get_bresp(bresp_t gold_val);
     void op(cpu_msg_t cpu_msg, int beh, int rsp_beh, coh_msg_t rsp_msg, invack_cnt_t invack_cnt, 
 	    coh_msg_t put_msg, hsize_t hsize, addr_breakdown_t req_addr, word_t req_word, 
 	    line_t rsp_line, int fwd_beh, mix_msg_t fwd_msg, state_t fwd_state, cache_id_t fwd_id, 

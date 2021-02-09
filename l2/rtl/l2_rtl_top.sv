@@ -34,7 +34,8 @@ module l2_rtl_top(
     input logic l2_flush_data,
     input logic l2_inval_ready,
     input logic l2_stats_ready,
-     
+    input logic l2_bresp_ready,
+
     output logic l2_cpu_req_ready,
     output logic l2_fwd_in_ready,
     output logic l2_rsp_in_ready,
@@ -56,7 +57,9 @@ module l2_rtl_top(
     output l2_inval_t l2_inval_data,
     output logic l2_stats_valid,
     output logic l2_stats_data,
-    output logic flush_done
+    output logic flush_done,
+    output logic l2_bresp_valid,
+    output bresp_t l2_bresp_data
     );
 
     l2_cpu_req_t l2_cpu_req_i();
@@ -98,6 +101,9 @@ module l2_rtl_top(
 
     l2_inval_t l2_inval; 
     assign l2_inval_data = l2_inval;
+    
+    bresp_t l2_bresp;
+    assign l2_bresp_data = l2_bresp;
 
 `ifdef STATS_ENABLE
     logic l2_stats; 

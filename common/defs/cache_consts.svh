@@ -77,7 +77,7 @@
 `define INVACK_CNT_CALC_WIDTH   (`INVACK_CNT_WIDTH + 1)
 `define CACHE_ID_WIDTH          `MAX_N_L2_BITS
 `define LLC_COH_DEV_ID_WIDTH    `MAX_N_LLC_BITS
-
+`define BRESP_WIDTH 2
 //
 // L2
 //
@@ -350,6 +350,11 @@
 
 `define L2_LOOKUP 1'b0
 `define L2_LOOKUP_FWD 1'b1
+
+`define BRESP_OKAY 2'b00
+`define BRESP_EXOKAY 2'b01
+`define BRESP_SLVERR 2'b10
+`define BRESP_DECERR 2'b11
 
 //GF12 DEFINES
 `define GF12_SRAM_SIZE 512

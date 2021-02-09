@@ -49,7 +49,7 @@ typedef sc_uint<LLC_COH_DEV_ID_WIDTH>   llc_coh_dev_id_t;
 typedef sc_uint<MAX_N_L2_BITS>		owner_t;
 typedef sc_uint<MAX_N_L2>		sharers_t;
 typedef sc_uint<DMA_BURST_LENGTH_BITS>  dma_length_t;
-
+typedef sc_uint<BRESP_WIDTH>    bresp_t;
 /*
  * L2 cache coherence channels types
  */

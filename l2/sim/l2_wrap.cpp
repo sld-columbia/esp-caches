@@ -62,6 +62,11 @@ void l2_wrapper_conv::thread_l2_inval_data_conv(){
     l2_inval.data.write(tmp);
 }
 
+void l2_wrapper_conv::thread_l2_bresp_data_conv(){
+    bresp_t tmp = l2_bresp_data_conv.read();
+    l2_bresp.data.write(tmp);
+}
+
 #ifdef STATS_ENABLE
 void l2_wrapper_conv::thread_l2_stats_data_conv(){
     bool tmp = l2_stats_data_conv.read();

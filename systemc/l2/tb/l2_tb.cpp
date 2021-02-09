@@ -733,7 +733,7 @@ void l2_tb::l2_test()
 	op(READ_ATOMIC, MISS, DATA_LAST, RSP_DATA, MAX_N_L2-1, 0, WORD, addr, 0,
 	   line_of_addr(addr.line), 0, 0, 0, 0, 0, DATA);
 	// WRITE(XMW)
-	op(WRITE, HIT, 0, 0, 0, 0, WORD, addr, word++, 0, 0, 0, 0, 0, 0, DATA);
+	op(WRITE, REG_WRITE_TO_ATOMIC, 0, 0, 0, 0, WORD, addr, word++, 0, 0, 0, 0, 0, 0, DATA);
 	addr.tag_incr(1);
     }
 
@@ -1052,7 +1052,7 @@ void l2_tb::l2_test()
 	op(READ_ATOMIC, MISS, DATA_LAST, RSP_DATA, MAX_N_L2-1, 0, WORD, addr, 0,
 	   line_of_addr(addr.line), 0, 0, 0, 0, 0, DATA);
 	// WRITE(XMW)
-	op(WRITE, HIT, 0, 0, 0, 0, WORD, addr, word++, 0, 0, 0, 0, 0, 0, DATA);
+	op(WRITE, REG_WRITE_TO_ATOMIC, 0, 0, 0, 0, WORD, addr, word++, 0, 0, 0, 0, 0, 0, DATA);
 	addr.tag_incr(1);
     }
 
@@ -1277,6 +1277,7 @@ inline void l2_tb::reset_l2_test()
     l2_inval_tb.reset_get();
     l2_req_out_tb.reset_get();
     l2_rsp_out_tb.reset_get();
+    l2_bresp_tb.reset_get();
 
     rpt = RPT_TB;
 
@@ -1407,6 +1408,20 @@ void l2_tb::get_inval(addr_t addr)
 	CACHE_REPORT_VAR(sc_time_stamp(), "INVAL", inval);
 }
 
+void l2_tb::get_bresp(bresp_t gold_bresp)
+{
+    bresp_t bresp;
+    
+    l2_bresp_tb.get(bresp);
+
+    if (bresp != gold_bresp) {
+	CACHE_REPORT_ERROR("get bresp", bresp);
+	CACHE_REPORT_ERROR("get bresp gold", gold_bresp);
+    }
+
+    if (rpt)
+	CACHE_REPORT_VAR(sc_time_stamp(), "BRESP", bresp);
+}
 
 void l2_tb::op(cpu_msg_t cpu_msg, int beh, int rsp_beh, coh_msg_t rsp_msg, invack_cnt_t invack_cnt, 
 	       coh_msg_t put_msg, hsize_t hsize, addr_breakdown_t req_addr, word_t req_word, 
@@ -1438,6 +1453,11 @@ void l2_tb::op(cpu_msg_t cpu_msg, int beh, int rsp_beh, coh_msg_t rsp_msg, invac
     }
 
     put_cpu_req(cpu_req, cpu_msg, hsize, cpu_addr, req_word, hprot);
+
+    if (cpu_msg == WRITE_ATOMIC)
+        get_bresp(BRESP_EXOKAY);
+    else if (beh == REG_WRITE_TO_ATOMIC)
+        get_bresp(BRESP_OKAY);
 
     if (beh == MISS_EVICT) {
 	addr_breakdown_t req_addr_tmp = req_addr;
