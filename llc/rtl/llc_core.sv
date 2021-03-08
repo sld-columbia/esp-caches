@@ -219,8 +219,8 @@ module llc_core(
 `ifdef XILINX_FPGA
     llc_localmem localmem_u(.*);
 `endif
-`ifdef GF12
-    llc_localmem_gf12 localmem_u(.*);
+`ifdef ASIC
+    llc_localmem_asic localmem_u(.*);
 `endif
     llc_update update_u (.*);
     llc_bufs bufs_u(.*);

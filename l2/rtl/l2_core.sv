@@ -139,8 +139,8 @@ module l2_core(
 `ifdef XILINX_FPGA
     l2_localmem localmem_u (.*);
 `endif
-`ifdef GF12
-    l2_localmem_gf12 localmem_u(.*);
+`ifdef ASIC
+    l2_localmem_asic localmem_u(.*);
 `endif
     l2_lookup lookup_u(.*); 
     l2_regs regs_u (.*); 
