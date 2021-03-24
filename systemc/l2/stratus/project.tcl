@@ -25,59 +25,56 @@ define_system_module tb  ../tb/l2_tb.cpp ../tb/system.cpp ../tb/sc_main.cpp
 # HLS and Simulation configurations
 ######################################################################
 
-# foreach sets [list 256 512 1024 2048 4096] {
+# Add more HLS configuration here if needed:
+# set params_set(n) "sets ways word_off_bits byte_off_bits address_bits endian"
 
-#     foreach ways [list 1 2 4 8] {
+# Leon3 default
+set params_set(0) "512 4 2 2 32 BIG_ENDIAN"
+# Ariane default
+set params_set(1) "512 4 1 3 32 LITTLE_ENDIAN"
+# Ibex default
+set params_set(2) "512 4 2 2 32 LITTLE_ENDIAN"
 
-foreach sets [list 512] {
+foreach ps [array names params_set] {
 
-    foreach ways [list 4] {
+    set sets   [lindex $params_set($ps) 0]
+    set ways   [lindex $params_set($ps) 1]
+    set wbits  [lindex $params_set($ps) 2]
+    set bbits  [lindex $params_set($ps) 3]
+    set abits  [lindex $params_set($ps) 4]
+    set endian [lindex $params_set($ps) 5]
 
-	foreach wbits [list 1 2] {
+    set words_per_line [expr 1 << $wbits]
+    set bits_per_word [expr (1 << $bbits) * 8]
 
-	    foreach bbits [list 2 3] {
+    if {$endian == "BIG_ENDIAN"} {set endian_str "be"} {set endian_str "le"}
 
-		foreach abits [list 32] {
+    set pars "_${sets}SETS_${ways}WAYS_${words_per_line}x${bits_per_word}LINE_${abits}ADDR_${endian_str}"
 
-		    # Skip these configurations
-		    if {$wbits == 1 && $bbits == 2} {continue}
-		    if {$wbits == 2 && $bbits == 3} {continue}
-		    # Ariane is 64-bits little endian, Leon3 is 32-bits big endian
-		    if {$bbits == 2} { set endian BIG_ENDIAN } else { set endian LITTLE_ENDIAN }
+    set iocfg "IOCFG$pars"
 
-		    set words_per_line [expr 1 << $wbits]
-		    set bits_per_word [expr (1 << $bbits) * 8]
+    define_io_config * $iocfg -DL2_SETS=$sets -DL2_WAYS=$ways -DADDR_BITS=$abits -DBYTE_BITS=$bbits -DWORD_BITS=$wbits -DENDIAN_$endian
 
-		    set pars "_${sets}SETS_${ways}WAYS_${words_per_line}x${bits_per_word}LINE_${abits}ADDR"
+    define_system_config tb "TESTBENCH$pars" -io_config $iocfg
 
-		    set iocfg "IOCFG$pars"
+    define_sim_config "BEHAV$pars" "l2 BEH" \
+	"tb TESTBENCH$pars" -io_config $iocfg
 
-		    define_io_config * $iocfg -DL2_SETS=$sets -DL2_WAYS=$ways -DADDR_BITS=$abits -DBYTE_BITS=$bbits -DWORD_BITS=$wbits -D$endian
+    foreach cfg [list BASIC] {
 
-		    define_system_config tb "TESTBENCH$pars" -io_config $iocfg
+	set cname "$cfg$pars"
 
-		    define_sim_config "BEHAV$pars" "l2 BEH" \
-			"tb TESTBENCH$pars" -io_config $iocfg
+	define_hls_config l2 $cname --clock_period=$CLOCK_PERIOD $COMMON_HLS_FLAGS \
+	    -DHLS_DIRECTIVES_$cfg -io_config $iocfg
 
-		    foreach cfg [list BASIC] {
+	if {$TECH_IS_XILINX == 1} {
 
-			set cname "$cfg$pars"
+	    define_sim_config "$cname\_V" "l2 RTL_V $cname" "tb TESTBENCH$pars" \
+		-verilog_top_modules glbl -io_config $iocfg
+	} else {
 
-			define_hls_config l2 $cname --clock_period=$CLOCK_PERIOD $COMMON_HLS_FLAGS \
-			    -DHLS_DIRECTIVES_$cfg -io_config $iocfg
-
-			if {$TECH_IS_XILINX == 1} {
-
-			    define_sim_config "$cname\_V" "l2 RTL_V $cname" "tb TESTBENCH$pars" \
-				-verilog_top_modules glbl -io_config $iocfg
-			} else {
-
-			    define_sim_config "$cname\_V" "l2 RTL_V $cname" "tb TESTBENCH$pars" \
-				-io_config $iocfg
-			}
-		    }
-		}
-	    }
+	    define_sim_config "$cname\_V" "l2 RTL_V $cname" "tb TESTBENCH$pars" \
+		-io_config $iocfg
 	}
     }
 }

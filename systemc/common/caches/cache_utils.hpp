@@ -53,56 +53,54 @@
 
 inline void write_word(line_t &line, word_t word, word_offset_t w_off, byte_offset_t b_off, hsize_t hsize)
 {
-    uint32_t size = BITS_PER_WORD, b_off_tmp = 0;
+    uint32_t b_off_tmp = 0;
 
-#ifdef BIG_ENDIAN
+#ifdef ENDIAN_BIG_ENDIAN
 
     switch (hsize) {
     case BYTE:
         b_off_tmp = BYTES_PER_WORD - 1 - b_off;
-	size = 8; break;
+	break;
     case HALFWORD:
         b_off_tmp = BYTES_PER_WORD - BYTES_PER_WORD/2 - b_off;
-	size = 16; break;
+	break;
 #if (BYTES_PER_WORD == 4)
     default:
         b_off_tmp = 0;
-        size = 32; break;
+        break;
 #else
     case WORD_32:
         b_off_tmp = BYTES_PER_WORD - BYTES_PER_WORD/4 - b_off;
-        size = 32; break;
+        break;
     default:
         b_off_tmp = 0;
-        size = 64; break;
+        break;
 #endif
     }
 
-#else // LITTLE_ENDIAN
+#else // ENDIAN_LITTLE_ENDIAN
+
     b_off_tmp = b_off;
 
-    switch (hsize) {
-    case BYTE:
-	size = 8; break;
-    case HALFWORD:
-	size = 16; break;
-    case WORD_32:
-        size = 32; break;
-    default:
-        size = 64; break;
-    }
 #endif
 
     uint32_t w_off_bits = BITS_PER_WORD * w_off;
     uint32_t b_off_bits = 8 * b_off_tmp;
     uint32_t off_bits = w_off_bits + b_off_bits;
 
-    uint32_t word_range_hi = b_off_bits + size - 1;
-    uint32_t line_range_hi = off_bits + size - 1;
+    // uint32_t word_range_hi = b_off_bits + size - 1;
+    // uint32_t line_range_hi = off_bits + size - 1;
 
     // cerr << "line_range_hi: " << line_range_hi << ", word_range_hi: " << word_range_hi << endl;
     // cerr << "off_bits: " << off_bits << ", b_off_bits: " << b_off_bits << endl;
-    line.range(line_range_hi, off_bits) = word.range(word_range_hi, b_off_bits);
+    if (hsize == BYTE)
+        line.range(off_bits + 7, off_bits) = word.range(b_off_bits + 7, b_off_bits);
+    else if (hsize == HALFWORD)
+        line.range(off_bits + 15, off_bits) = word.range(b_off_bits + 15, b_off_bits);
+    else if (hsize == WORD_32)
+        line.range(off_bits + 31, off_bits) = word.range(b_off_bits + 31, b_off_bits);
+    else if (BYTE_BITS != 2)
+        line.range(off_bits + 63, off_bits) = word.range(b_off_bits + 63, b_off_bits);
 }
 
 inline word_t read_word(line_t line, word_offset_t w_off)
