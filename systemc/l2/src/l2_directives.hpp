@@ -68,6 +68,11 @@
     // HLS_DEFINE_PROTOCOL("l2-send-inval-protocol")
     // bookmark_tmp |= BM_SEND_INVAL;			
 
+#define SEND_BRESP							\
+    if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Send bresp.")
+    // HLS_DEFINE_PROTOCOL("l2-send-bresp-protocol")
+    // bookmark_tmp |= BM_SEND_BRESP;			
+
 #define SEND_RSP_OUT							\
     if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Send rsp out.");   \
     HLS_DEFINE_PROTOCOL("l2-send-rsp-out-protocol")

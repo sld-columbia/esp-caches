@@ -53,6 +53,7 @@ void l2::ctrl()
         l2_fwd_in_t fwd_in;
         l2_cpu_req_t cpu_req;
 
+        l2_way_t evict_way_tmp = 0;
         {
             HLS_DEFINE_PROTOCOL("llc-io-check");
             if (l2_flush.nb_can_get() && reqs_cnt == N_REQS) {
@@ -87,10 +88,13 @@ void l2::ctrl()
 		    wait();
 		    flush_done.write(false);
                 }
-            } else if ((l2_cpu_req.nb_can_get() || set_conflict) &&
-                       !evict_stall && (reqs_cnt != 0 || ongoing_atomic)) { // assuming
-                                                                            // HPROT
-                                                                            // cacheable
+            } else if ((l2_cpu_req.nb_can_get() || set_conflict)
+                       && !evict_stall
+                       && (reqs_cnt != 0 || ongoing_atomic)
+#ifdef LLSC
+                       && !ongoing_atomic_set_conflict_instr
+#endif
+                ) { // assuming HPROT cacheable
                 if (!set_conflict) {
                     get_cpu_req(cpu_req);
                 } else {
@@ -124,6 +128,12 @@ void l2::ctrl()
 	    {
 		RSP_EDATA_ISD;
 
+#ifdef LLSC
+                if (ongoing_atomic_set_conflict_instr && ongoing_atomic_set_conflict_instr_line_addr == rsp_in.addr) {
+                    ongoing_atomic_set_conflict_instr = false;
+		    set_conflict = false;
+                }
+#endif
 		send_rd_rsp(rsp_in.line);
 			
 		reqs[reqs_hit_i].state = INVALID;
@@ -141,7 +151,12 @@ void l2::ctrl()
 		case ISD :
 		{
 		    RSP_DATA_ISD;
-			
+#ifdef LLSC
+                    if (ongoing_atomic_set_conflict_instr && ongoing_atomic_set_conflict_instr_line_addr == rsp_in.addr) {
+                        ongoing_atomic_set_conflict_instr = false;
+                        set_conflict = false;
+                    }
+#endif
 		    // read response
 		    send_rd_rsp(rsp_in.line);
 			
@@ -315,11 +330,12 @@ void l2::ctrl()
 		    l2_set_t set_tmp = reqs[reqs_hit_i].set;
 
 		    // TODO
-#if (L2_WAY_BITS == 1)
-		    evict_ways.port1[0][set_tmp] = (reqs[reqs_hit_i].way + 1) % 2;
-#else
-		    evict_ways.port1[0][set_tmp] = reqs[reqs_hit_i].way + 1;
-#endif		    
+                    l2_way_t way_inc = 1;
+#ifdef LLSC
+                    if (ongoing_atomic_set_conflict_instr && reqs[reqs_atomic_i].way == evict_way)
+                        way_inc = 2;
+#endif
+		    evict_ways.port1[0][set_tmp] = (reqs[reqs_hit_i].way + way_inc) % L2_WAYS;
 		    reqs[reqs_hit_i].state = state_tmp;
 		    reqs[reqs_hit_i].tag = reqs[reqs_hit_i].tag_estall;
 
@@ -552,8 +568,19 @@ void l2::ctrl()
 
 	    set_conflict = reqs_peek_req(addr_br.set, reqs_hit_i);
 
-	    if (ongoing_atomic) {
+#ifdef LLSC
+            if (set_conflict && ongoing_atomic && cpu_req.hprot == INSTR) {
+                // Always allow instruction fecth with ongoing atomic
+                // even upon set conflict!
+                ongoing_atomic_set_conflict_instr = true;
+                ongoing_atomic_set_conflict_instr_line_addr = addr_br.line_addr;
+            }
 
+	    if (ongoing_atomic && cpu_req.hprot == DATA)
+#else
+            if (ongoing_atomic)
+#endif
+            {
 		// assuming there can only be 1 atomic operation in flight at a time
 
 		if (atomic_line_addr != addr_br.line_addr) {
@@ -579,16 +606,23 @@ void l2::ctrl()
 
 		    ATOMIC_CONTINUE;
 
-		    set_conflict = false;
-
 		    switch (cpu_req.cpu_msg) {
 
 		    case READ :
 
 			ATOMIC_CONTINUE_READ;
 
-			send_rd_rsp(reqs[reqs_atomic_i].line);
+                        set_conflict = false;
 
+			send_rd_rsp(reqs[reqs_atomic_i].line);
+#ifdef LLSC
+			break;
+
+		    case READ_ATOMIC :
+
+                        set_conflict = true;
+                        cpu_req_conflict = cpu_req;
+#endif
 			reqs[reqs_atomic_i].state = INVALID;
 			reqs_cnt++;
 
@@ -600,17 +634,21 @@ void l2::ctrl()
 			ongoing_atomic = false;
 
 			break;
-
+#ifndef LLSC
 		    case READ_ATOMIC :
 
-			send_rd_rsp(reqs[reqs_atomic_i].line);
-			
-			break;
+                        set_conflict = false;
 
+			send_rd_rsp(reqs[reqs_atomic_i].line);
+
+			break;
+#endif
 		    case WRITE :
 		    case WRITE_ATOMIC :
 
 			ATOMIC_CONTINUE_WRITE;
+
+                        set_conflict = false;
 
 			write_word(reqs[reqs_atomic_i].line, cpu_req.word, addr_br.w_off, 
 				   addr_br.b_off, cpu_req.hsize);
@@ -619,6 +657,12 @@ void l2::ctrl()
 			reqs_cnt++;
 
 			wait();
+
+                        // Send AXI RESP_EXOKAY on write atomic: successful LLSC
+                        if (cpu_req.cpu_msg == WRITE_ATOMIC)
+                            send_bresp(BRESP_EXOKAY);
+                        else if (cpu_req.cpu_msg == WRITE)
+                            send_bresp(BRESP_OKAY);
 
 			put_reqs(reqs[reqs_atomic_i].set, reqs[reqs_atomic_i].way, reqs[reqs_atomic_i].tag,
 				 reqs[reqs_atomic_i].line, reqs[reqs_atomic_i].hprot, MODIFIED, reqs_atomic_i);
@@ -629,9 +673,15 @@ void l2::ctrl()
 
 		    }
 		}
+            } else if (!ongoing_atomic && cpu_req.cpu_msg == WRITE_ATOMIC) {
 
+                // Fail LLSC write atomic if paired read atomic was interrupted
+                send_bresp(BRESP_OKAY);
+#ifdef LLSC
+	    } else if (set_conflict && !(ongoing_atomic && cpu_req.hprot == INSTR)) {
+#else
 	    } else if (set_conflict) {
-
+#endif
 		SET_CONFLICT;
 
 		cpu_req_conflict = cpu_req;
@@ -650,7 +700,6 @@ void l2::ctrl()
 		    atomic_line_addr = addr_br.line_addr;
 		}
 
-
 #ifdef STATS_ENABLE
 		send_stats(tag_hit);
 #endif
@@ -662,7 +711,15 @@ void l2::ctrl()
 		    case READ : // read hit
 		    {
 			HIT_READ;
-
+#ifdef LLSC
+                        // If there was an ongoing atomic with a set conflict
+                        // resulting from instruction fetch, which hits in cache,
+                        // then this READ must be serving the instruction fetch.
+                        // Clear the instruction conflict flag.
+                        if (ongoing_atomic_set_conflict_instr)
+                            set_conflict = false;
+                        ongoing_atomic_set_conflict_instr = false;
+#endif
 			// read response
 			send_rd_rsp(line_buf[way_hit]);
 		    }
@@ -799,14 +856,21 @@ void l2::ctrl()
 		} else {
 
 		    evict_stall = true;
-		    line_addr_t line_addr_evict = (tag_buf[evict_way] << L2_SET_BITS) | (addr_br.set);
+#ifdef LLSC
+                    if (ongoing_atomic_set_conflict_instr && evict_way == reqs[reqs_atomic_i].way)
+                        evict_way_tmp = evict_way + 1;
+                    else
+#endif
+                        evict_way_tmp = evict_way;
+
+		    line_addr_t line_addr_evict = (tag_buf[evict_way_tmp] << L2_SET_BITS) | (addr_br.set);
 		    l2_tag_t tag_tmp = addr_br.tag;
-		    addr_br.tag = tag_buf[evict_way];
+		    addr_br.tag = tag_buf[evict_way_tmp];
 		
 		    unstable_state_t state_tmp;
 		    coh_msg_t coh_msg_tmp;
 
-		    switch (state_buf[evict_way]) {
+		    switch (state_buf[evict_way_tmp]) {
 
 		    case SHARED :
 			coh_msg_tmp = REQ_PUTS;
@@ -828,9 +892,9 @@ void l2::ctrl()
 		    }
 
 		    send_inval(line_addr_evict);
-		    send_req_out(coh_msg_tmp, 0, line_addr_evict, line_buf[evict_way]);
-		    fill_reqs(cpu_req.cpu_msg, addr_br, tag_tmp, evict_way, cpu_req.hsize, state_tmp, 
-			      cpu_req.hprot, cpu_req.word, line_buf[evict_way], reqs_hit_i);
+		    send_req_out(coh_msg_tmp, 0, line_addr_evict, line_buf[evict_way_tmp]);
+		    fill_reqs(cpu_req.cpu_msg, addr_br, tag_tmp, evict_way_tmp, cpu_req.hsize, state_tmp, 
+			      cpu_req.hprot, cpu_req.word, line_buf[evict_way_tmp], reqs_hit_i);
 		}
 	    }
 	}
@@ -864,7 +928,7 @@ void l2::ctrl()
 	    state_buf_dbg[i] = state_buf[i];
 	}
 
-	evict_way_dbg.write(evict_way);
+	evict_way_dbg.write(evict_way_tmp);
 #endif
 
 #ifndef STRATUS_HLS
@@ -890,6 +954,7 @@ inline void l2::reset_io()
     l2_flush.reset_get();
     l2_rd_rsp.reset_put();
     l2_inval.reset_put();
+    l2_bresp.reset_put();
     l2_req_out.reset_put();
     l2_rsp_out.reset_put();
 #ifdef STATS_ENABLE
@@ -1024,6 +1089,10 @@ inline void l2::reset_io()
     ongoing_flush = false;
     flush_set = 0;
     flush_way = 0;
+#ifdef LLSC
+    ongoing_atomic_set_conflict_instr = false;
+    ongoing_atomic_set_conflict_instr_line_addr = 0;
+#endif
 }
 
 
@@ -1081,6 +1150,13 @@ void l2::send_inval(line_addr_t addr_inval)
     SEND_INVAL;
 
     l2_inval.put(addr_inval);
+}
+
+void l2::send_bresp(bresp_t resp)
+{
+    SEND_BRESP;
+
+    l2_bresp.put(resp);
 }
 
 void l2::send_req_out(coh_msg_t coh_msg, hprot_t hprot, line_addr_t line_addr, line_t line)

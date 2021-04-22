@@ -73,6 +73,7 @@ public:
     // Output ports
     put_initiator<l2_rd_rsp_t>	l2_rd_rsp;
     put_initiator<l2_inval_t>	l2_inval;
+    put_initiator<bresp_t>      l2_bresp;
     nb_put_initiator<l2_req_out_t> l2_req_out;
     nb_put_initiator<l2_rsp_out_t> l2_rsp_out;
 
@@ -111,6 +112,7 @@ public:
 	, l2_flush("l2_flush")
 	, l2_rd_rsp("l2_rd_rsp")
 	, l2_inval("l2_inval")
+        , l2_bresp("l2_bresp")
 	, l2_req_out("l2_req_out")
 	, l2_rsp_out("l2_rsp_out")
 #ifdef STATS_ENABLE
@@ -129,6 +131,7 @@ public:
 	    l2_flush.clk_rst (clk, rst);
 	    l2_rd_rsp.clk_rst(clk, rst);
 	    l2_inval.clk_rst(clk, rst);
+            l2_bresp.clk_rst (clk, rst);
 	    l2_req_out.clk_rst(clk, rst);
 	    l2_rsp_out.clk_rst(clk, rst);
 #ifdef STATS_ENABLE
@@ -164,6 +167,7 @@ public:
     /* Functions to send output messages */
     void send_rd_rsp(line_t lines);
     void send_inval(line_addr_t addr_inval);
+    void send_bresp(bresp_t resp);
     void send_req_out(coh_msg_t coh_msg, hprot_t hprot, line_addr_t line_addr, line_t lines);
     void send_rsp_out(coh_msg_t coh_msg, cache_id_t req_id, bool to_req, line_addr_t line_addr, line_t line);
 
@@ -214,6 +218,10 @@ private:
     sc_uint<REQS_BITS> reqs_atomic_i;
     bool ongoing_flush;
     uint32_t flush_way, flush_set;
+#ifdef LLSC
+    bool ongoing_atomic_set_conflict_instr;
+    line_addr_t ongoing_atomic_set_conflict_instr_line_addr;
+#endif
 };
 
 
