@@ -29,11 +29,11 @@ define_system_module tb  ../tb/l2_tb.cpp ../tb/system.cpp ../tb/sc_main.cpp
 # set params_set(n) "sets ways word_off_bits byte_off_bits address_bits endian"
 
 # Leon3 default
-set params_set(0) "512 4 2 2 32 BIG_ENDIAN"
+set params_set(0) "512 4 2 2 32 BIG_ENDIAN NOLLSC"
 # Ariane default
-set params_set(1) "512 4 1 3 32 LITTLE_ENDIAN"
+set params_set(1) "512 4 1 3 32 LITTLE_ENDIAN LLSC"
 # Ibex default
-set params_set(2) "512 4 2 2 32 LITTLE_ENDIAN"
+set params_set(2) "512 4 2 2 32 LITTLE_ENDIAN NOLLSC"
 
 foreach ps [array names params_set] {
 
@@ -43,17 +43,18 @@ foreach ps [array names params_set] {
     set bbits  [lindex $params_set($ps) 3]
     set abits  [lindex $params_set($ps) 4]
     set endian [lindex $params_set($ps) 5]
+    set llsc   [lindex $params_set($ps) 6]
 
     set words_per_line [expr 1 << $wbits]
     set bits_per_word [expr (1 << $bbits) * 8]
 
     if {$endian == "BIG_ENDIAN"} {set endian_str "be"} {set endian_str "le"}
 
-    set pars "_${sets}SETS_${ways}WAYS_${words_per_line}x${bits_per_word}LINE_${abits}ADDR_${endian_str}"
+    set pars "_${sets}SETS_${ways}WAYS_${words_per_line}x${bits_per_word}LINE_${abits}ADDR_${llsc}_${endian_str}"
 
     set iocfg "IOCFG$pars"
 
-    define_io_config * $iocfg -DL2_SETS=$sets -DL2_WAYS=$ways -DADDR_BITS=$abits -DBYTE_BITS=$bbits -DWORD_BITS=$wbits -DENDIAN_$endian
+    define_io_config * $iocfg -DL2_SETS=$sets -DL2_WAYS=$ways -DADDR_BITS=$abits -DBYTE_BITS=$bbits -DWORD_BITS=$wbits -DENDIAN_$endian -D${llsc}
 
     define_system_config tb "TESTBENCH$pars" -io_config $iocfg
 
