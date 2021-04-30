@@ -32,28 +32,5 @@ set_attr sharing_effort_parts low
 set_attr sharing_effort_regs low
 
 
-if {$TECH eq "virtex7"} {
-    set CLOCK_PERIOD 12.5
-    set_attr default_input_delay      0.1
-}
-if {$TECH eq "zynq7000"} {
-    set CLOCK_PERIOD 10.0
-    set_attr default_input_delay      0.1
-}
-if {$TECH eq "virtexu"} {
-    set CLOCK_PERIOD 8.0
-    set_attr default_input_delay      0.1
-}
-if {$TECH eq "virtexup"} {
-    set CLOCK_PERIOD 6.4
-    set_attr default_input_delay      0.1
-}
-if {$TECH eq "cmos32soi"} {
-    set CLOCK_PERIOD 1000.0
-    set_attr default_input_delay      100.0
-}
-set_attr clock_period $CLOCK_PERIOD
-
-
 set CACHE_INCLUDES "-I../../common/caches"
 

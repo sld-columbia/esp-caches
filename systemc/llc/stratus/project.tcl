@@ -11,15 +11,33 @@
 source ../../common/syn/caches.tcl
 
 #
-# WORKAROUND. When the target FPGA is the Xilinx Ultrascale(+) we generate the LLC
-# as if the target FPGA was a Xilinx Virtex7 w/ clock period of 12.5 ns.
-# To do so here we overwrite two attributes.
+# Timing constraints
 #
-# Xilinx Virtex7 part
-set_attr fpga_part "xc7v2000tflg1925-2"
-
-# Xilinx Virtex7 ESP target clock cycle
-set CLOCK_PERIOD 12.5
+if {$TECH eq "virtex7"} {
+    set CLOCK_PERIOD 10.0
+    set_attr default_input_delay      0.1
+}
+if {$TECH eq "zynq7000"} {
+    set CLOCK_PERIOD 10.0
+    set_attr default_input_delay      0.1
+}
+if {$TECH eq "virtexu"} {
+    set CLOCK_PERIOD 8.0
+    set_attr default_input_delay      0.1
+}
+if {$TECH eq "virtexup"} {
+    set CLOCK_PERIOD 6.4
+    set_attr default_input_delay      0.1
+}
+if {$TECH eq "cmos32soi"} {
+    set CLOCK_PERIOD 1000.0
+    set_attr default_input_delay      100.0
+}
+if {$TECH eq "gf12"} {
+    set CLOCK_PERIOD 1000.0
+    set_attr default_input_delay      100.0
+}
+set_attr clock_period $CLOCK_PERIOD
 
 #
 # System level modules to be synthesized
