@@ -61,7 +61,8 @@ public:
    
     sc_in<bool> l2_inval_ready;
     sc_out<bool> l2_inval_valid;
-    sc_out<l2_inval_t> l2_inval_data;
+    sc_out<l2_inval_addr_t> l2_inval_data_addr;
+    sc_out<hprot_t> l2_inval_data_hprot;
     
     sc_in<bool> l2_bresp_ready;
     sc_out<bool> l2_bresp_valid;
@@ -118,7 +119,8 @@ public:
     , l2_flush_ready("l2_flush_ready")
     , l2_inval_ready("l2_inval_ready")
     , l2_inval_valid("l2_inval_valid")
-    , l2_inval_data("l2_inval_data")
+    , l2_inval_data_addr("l2_inval_data_addr")
+    , l2_inval_data_hprot("l2_inval_data_hprot")
     , l2_bresp_ready("l2_bresp_ready")
     , l2_bresp_valid("l2_bresp_valid")
     , l2_bresp_data("l2_bresp_data")
@@ -193,7 +195,8 @@ public:
     , l2_rsp_out_data_conv_line("l2_rsp_out_data_conv_line")
     , l2_rd_rsp_data_conv_line("l2_rd_rsp_data_conv_line")
     , l2_flush_data_conv("l2_flush_data_conv")
-    , l2_inval_data_conv("l2_inval_data_conv")
+    , l2_inval_data_conv_addr("l2_inval_data_conv_addr")
+    , l2_inval_data_conv_hprot("l2_inval_data_conv_hprot")
     , l2_bresp_data_conv("l2_bresp_data_conv")
 #ifdef STATS_ENABLE
         , l2_stats_data_conv("l2_stats_data_conv")
@@ -216,7 +219,7 @@ public:
         SC_METHOD(thread_l2_rd_rsp_data_conv);
         sensitive << l2_rd_rsp_data_conv_line;
         SC_METHOD(thread_l2_inval_data_conv);
-        sensitive << l2_inval_data_conv; 
+        sensitive << l2_inval_data_conv_addr << l2_inval_data_conv_hprot; 
         SC_METHOD(thread_l2_bresp_data_conv);
         sensitive << l2_bresp_data_conv; 
 #ifdef STATS_ENABLE
@@ -265,7 +268,8 @@ public:
     cosim.l2_flush_ready(l2_flush.ready);
     cosim.l2_inval_ready(l2_inval.ready);
     cosim.l2_inval_valid(l2_inval.valid);
-    cosim.l2_inval_data(l2_inval_data_conv);
+    cosim.l2_inval_data_addr(l2_inval_data_conv_addr);
+    cosim.l2_inval_data_hprot(l2_inval_data_conv_hprot);
     cosim.l2_bresp_ready(l2_bresp.ready);
     cosim.l2_bresp_valid(l2_bresp.valid);
     cosim.l2_bresp_data(l2_bresp_data_conv);
@@ -308,7 +312,8 @@ public:
 
     sc_signal<bool> l2_flush_data_conv;
    
-    sc_signal<l2_inval_t> l2_inval_data_conv;
+    sc_signal<l2_inval_addr_t> l2_inval_data_conv_addr;
+    sc_signal<hprot_t> l2_inval_data_conv_hprot;
     
     sc_signal<bresp_t> l2_bresp_data_conv;
 #ifdef STATS_ENABLE
