@@ -54,7 +54,8 @@ module l2_rtl_top(
     output line_t l2_rd_rsp_data_line,
     output logic l2_flush_ready,
     output logic l2_inval_valid,
-    output l2_inval_t l2_inval_data,
+    output l2_inval_addr_t l2_inval_data_addr,
+    output logic[1:0] l2_inval_data_hprot,
     output logic l2_stats_valid,
     output logic l2_stats_data,
     output logic flush_done,
@@ -99,8 +100,9 @@ module l2_rtl_top(
     logic l2_flush_i;
     assign l2_flush_i = l2_flush_data;
 
-    l2_inval_t l2_inval; 
-    assign l2_inval_data = l2_inval;
+    l2_inval_t l2_inval(); 
+    assign l2_inval_data_addr = l2_inval.addr;
+    assign l2_inval_data_hprot = {1'b0, l2_inval.hprot};
     
     bresp_t l2_bresp;
     assign l2_bresp_data = l2_bresp;

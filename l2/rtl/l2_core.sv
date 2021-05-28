@@ -26,7 +26,7 @@ module l2_core(
     l2_cpu_req_t.in l2_cpu_req_i,
     l2_fwd_in_t.in l2_fwd_in_i, 
     l2_rsp_in_t.in l2_rsp_in_i, 
- 
+
     output logic l2_cpu_req_ready,
     output logic l2_fwd_in_ready, 
     output logic l2_rsp_in_ready, 
@@ -37,12 +37,12 @@ module l2_core(
     output logic l2_inval_valid,
     output logic flush_done, 
     output logic l2_bresp_valid,
-    output l2_inval_t l2_inval,
     output bresp_t l2_bresp,
 
     l2_req_out_t.out l2_req_out,
     l2_rsp_out_t.out l2_rsp_out,
-    l2_rd_rsp_t.out l2_rd_rsp 
+    l2_rd_rsp_t.out l2_rd_rsp,
+    l2_inval_t.out l2_inval
 
 `ifdef STATS_ENABLE
     , input logic l2_stats_ready,
@@ -58,6 +58,7 @@ module l2_core(
     l2_rsp_out_t l2_rsp_out_o(); 
     l2_req_out_t l2_req_out_o(); 
     l2_rd_rsp_t l2_rd_rsp_o(); 
+    l2_inval_t l2_inval_o();
     line_breakdown_l2_t line_br(), line_br_next();
     addr_breakdown_t addr_br(), addr_br_next(), addr_br_reqs(); 
     
@@ -93,7 +94,6 @@ module l2_core(
     
     addr_t cpu_req_addr;
     mix_msg_t fwd_in_coh_msg; 
-    l2_inval_t l2_inval_o;
     bresp_t l2_bresp_o;
     l2_set_t set; 
     l2_set_t set_in;

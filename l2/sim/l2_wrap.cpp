@@ -51,14 +51,16 @@ void l2_wrapper_conv::thread_l2_rsp_out_data_conv(){
 }
 
 void l2_wrapper_conv::thread_l2_rd_rsp_data_conv(){
-    l2_rd_rsp_t tmp; 
+    l2_rd_rsp_t tmp;
     tmp.line = l2_rd_rsp_data_conv_line.read();
     l2_rd_rsp.data.write(tmp);
 }
 
 
 void l2_wrapper_conv::thread_l2_inval_data_conv(){
-    l2_inval_t tmp = l2_inval_data_conv.read();
+    l2_inval_t tmp;
+    tmp.addr = l2_inval_data_conv_addr.read();
+    tmp.hprot = l2_inval_data_conv_hprot.read();
     l2_inval.data.write(tmp);
 }
 
@@ -74,4 +76,4 @@ void l2_wrapper_conv::thread_l2_stats_data_conv(){
 }
 #endif
 
-NCSC_MODULE_EXPORT(l2_wrapper_conv) 
+NCSC_MODULE_EXPORT(l2_wrapper_conv)
