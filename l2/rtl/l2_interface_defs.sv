@@ -104,3 +104,10 @@ interface addr_breakdown_t;
 
 endinterface
 
+interface l2_inval_t;
+    l2_inval_addr_t     addr;
+    hprot_t             hprot;
+    
+    modport in(input addr, hprot);
+    modport out(output addr, hprot);
+endinterface

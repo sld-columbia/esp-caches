@@ -144,8 +144,39 @@ public:
 };
 
 // invalidate address
-typedef line_addr_t l2_inval_t;
+typedef line_addr_t l2_inval_addr_t;
+class l2_inval_t
+{
+public:
+    l2_inval_addr_t addr;
+    hprot_t hprot;
 
+    l2_inval_t() :
+	addr(0),
+	hprot(0)
+    {}
+
+    inline l2_inval_t& operator  = (const l2_inval_t& x) {
+	addr    = x.addr;
+	hprot    = x.hprot;
+	return *this;
+    }
+    inline bool operator == (const l2_inval_t& x) const {
+	return (x.addr == addr);
+	return (x.hprot == hprot);
+    }
+    inline friend void sc_trace(sc_trace_file *tf, const l2_inval_t& x, const std::string & name) {
+	sc_trace(tf, x.addr , name + ".addr ");
+	sc_trace(tf, x.hprot , name + ".hprot ");
+    }
+    inline friend ostream & operator<<(ostream& os, const l2_inval_t& x) {
+	os << hex << "("
+	   << "addr: " << x.addr
+	   << ", hprot: " << x.hprot
+       << ")";
+	return os;
+    }
+};
 /* L2/LLC to L2 */
 
 // forwards

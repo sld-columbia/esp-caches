@@ -46,7 +46,7 @@ typedef logic[(`MAX_N_L2-1):0]		sharers_t;
 typedef logic[(`DMA_BURST_LENGTH_BITS-1):0]  dma_length_t;
 typedef logic[(`BRESP_WIDTH-1):0]   bresp_t;
 // invalidate address
-typedef line_addr_t l2_inval_t;
+typedef line_addr_t l2_inval_addr_t;
 
 // ongoing request buffer
 typedef struct packed{

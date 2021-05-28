@@ -45,6 +45,7 @@ module l2_fsm(
     input line_t line_out, 
     input var reqs_buf_t reqs[`N_REQS],
     input var state_t states_buf[`L2_WAYS], 
+    input var hprot_t hprots_buf[`L2_WAYS], 
     input var state_t rd_data_state[`L2_NUM_PORTS],
     input var hprot_t rd_data_hprot[`L2_NUM_PORTS],
     input var line_t lines_buf[`L2_WAYS],
@@ -110,7 +111,6 @@ module l2_fsm(
     output l2_way_t way, 
     output l2_way_t way_wr_data_req, 
     output l2_way_t wr_data_evict_way,
-    output line_addr_t l2_inval_o,
     output bresp_t l2_bresp_o,
     output word_t word_in, 
     output word_offset_t w_off_in, 
@@ -121,8 +121,8 @@ module l2_fsm(
     addr_breakdown_t.out addr_br_reqs,
     l2_rd_rsp_t.out l2_rd_rsp_o, 
     l2_rsp_out_t.out l2_rsp_out_o, 
-    l2_req_out_t.out l2_req_out_o
-
+    l2_req_out_t.out l2_req_out_o,
+    l2_inval_t.out l2_inval_o
 `ifdef LLSC
     , input logic ongoing_atomic_set_conflict_instr,
     output logic set_ongoing_atomic_set_conflict_instr,
@@ -531,7 +531,7 @@ module l2_fsm(
         coh_msg_tmp = 0; 
         fill_reqs = 1'b0;
         fill_reqs_flush = 1'b0; 
-            
+
         set_fwd_in_stalled = 1'b0; 
         clr_fwd_stall_ended = 1'b0;
         set_set_conflict_fsm = 1'b0;
@@ -545,7 +545,8 @@ module l2_fsm(
 
         l2_rd_rsp_o.line = 0; 
         l2_rd_rsp_valid_int = 1'b0;
-        l2_inval_o = 0; 
+        l2_inval_o.addr = 0; 
+        l2_inval_o.hprot = 1'b0; 
         l2_inval_valid_int = 1'b0; 
         l2_bresp_valid_int = 1'b0;
         l2_bresp_o = `BRESP_OKAY;
@@ -557,7 +558,7 @@ module l2_fsm(
         addr_br_reqs.set = 0;
         addr_br_reqs.w_off = 0;
         addr_br_reqs.b_off = 0; 
-        
+
         cpu_msg_wr_data_req = 0;
         tag_estall_wr_data_req = 0;
         invack_cnt_wr_data_req = 0; 
@@ -573,7 +574,7 @@ module l2_fsm(
         l2_req_out_o.hprot = 0;
         l2_req_out_o.addr = 0; 
         l2_req_out_o.line = 0;
-                   
+
         l2_rsp_out_valid_int = 1'b0;
         l2_rsp_out_o.coh_msg = 0; 
         l2_rsp_out_o.req_id = 0; 
@@ -757,7 +758,7 @@ module l2_fsm(
 `else
                     wr_data_evict_way = reqs[reqs_i].way + 1;
 `endif
-                    
+
                     set_in = reqs[reqs_i].set; 
 
                     l2_req_out_o.hprot = reqs[reqs_i].hprot; 
@@ -782,12 +783,13 @@ module l2_fsm(
                         l2_rsp_out_o.addr = l2_fwd_in.addr;
                         l2_rsp_out_o.line = 0; 
                     end
-                    
+
                     if (!ready_bits[0] && reqs[reqs_i].state != `SIA) begin
-                        l2_inval_o = l2_fwd_in.addr;
+                        l2_inval_o.addr = l2_fwd_in.addr;
+                        l2_inval_o.hprot = reqs[reqs_i].hprot;
                         l2_inval_valid_int = 1'b1;
                     end
-                    
+
                     if (reqs[reqs_i] != `SIA) begin  
                         if (l2_fwd_in.coh_msg == `FWD_INV) begin 
                             if (l2_rsp_out_ready_int && l2_inval_ready_int) begin 
@@ -824,7 +826,7 @@ module l2_fsm(
                         l2_rsp_out_o.req_id = 0; 
                         l2_rsp_out_o.to_req = 1'b0; 
                     end
-                    
+
                     wr_req_state = 1'b1; 
                     if (l2_fwd_in.coh_msg == `FWD_GETS) begin 
                         state_wr_data_req = `SIA;
@@ -846,9 +848,10 @@ module l2_fsm(
                     if (!ready_bits[0]) begin 
                         l2_inval_valid_int = 1'b1;
                     end
-                    l2_inval_o = l2_fwd_in.addr;
+                    l2_inval_o.addr = l2_fwd_in.addr;
+                    l2_inval_o.hprot = hprots_buf[way_hit];
                 end
-                
+
                 if (l2_fwd_in.coh_msg != `FWD_INV_LLC) begin  
                     if (!ready_bits[1]) begin 
                         l2_rsp_out_valid_int = 1'b1;
@@ -878,7 +881,7 @@ module l2_fsm(
                         end
                     end
                 end
-                
+
                 if (l2_fwd_in.coh_msg != `FWD_GETS) begin    
                     wr_en_state = 1'b1; 
                     wr_data_state = `INVALID; 
@@ -1195,7 +1198,8 @@ module l2_fsm(
                 if (!ready_bits[0]) begin 
                     l2_inval_valid_int = 1'b1;
                 end
-                l2_inval_o = (tags_buf[evict_way_tmp] << `L2_SET_BITS) | addr_br.set;
+                l2_inval_o.addr = (tags_buf[evict_way_tmp] << `L2_SET_BITS) | addr_br.set;
+                l2_inval_o.hprot = hprots_buf[evict_way_tmp];
                 if (!ready_bits[1]) begin 
                     l2_req_out_valid_int = 1'b1;
                 end

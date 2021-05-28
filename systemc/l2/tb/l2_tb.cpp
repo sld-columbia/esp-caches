@@ -1399,7 +1399,7 @@ void l2_tb::get_inval(addr_t addr)
     
     l2_inval_tb.get(inval);
 
-    if (inval != addr.range(TAG_RANGE_HI, SET_RANGE_LO)) {
+    if (inval.addr != addr.range(TAG_RANGE_HI, SET_RANGE_LO)) {
 	CACHE_REPORT_ERROR("get inval", inval);
 	CACHE_REPORT_ERROR("get inval gold", addr.range(TAG_RANGE_HI, SET_RANGE_LO));
     }
