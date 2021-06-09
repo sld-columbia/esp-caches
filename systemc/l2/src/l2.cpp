@@ -369,7 +369,7 @@ void l2::ctrl()
 		    if (fwd_in.coh_msg == FWD_INV)
 			send_rsp_out(RSP_INVACK, fwd_in.req_id, 1, fwd_in.addr, 0);
 
-		    send_inval(fwd_in.addr);
+		    send_inval(fwd_in.addr, reqs[reqs_hit_i].hprot);
 
 		    reqs[reqs_hit_i].state -= 4; // TODO remove hardcoding, also in other places
 
@@ -446,7 +446,7 @@ void l2::ctrl()
 		    FWD_NOHIT_GETM;
 
 		    if (!ongoing_flush)
-			send_inval(fwd_in.addr);
+			send_inval(fwd_in.addr, hprot_buf[way_hit]);
 
 		    send_rsp_out(RSP_DATA, fwd_in.req_id, 1, fwd_in.addr, line_buf[way_hit]);
 
@@ -460,7 +460,7 @@ void l2::ctrl()
 		    FWD_NOHIT_INV;
 
 		    if (!ongoing_flush)
-			send_inval(fwd_in.addr);
+			send_inval(fwd_in.addr, hprot_buf[way_hit]);
 
 		    send_rsp_out(RSP_INVACK, fwd_in.req_id, 1, fwd_in.addr, 0);
 
@@ -474,7 +474,7 @@ void l2::ctrl()
  		    FWD_NOHIT_GETM_LLC;
  
  		    if (!ongoing_flush)
- 			send_inval(fwd_in.addr);
+ 			send_inval(fwd_in.addr, hprot_buf[way_hit]);
  
  		    if (state_buf[way_hit] == EXCLUSIVE)
  			send_rsp_out(RSP_INVACK, 0, 0, fwd_in.addr, 0);
@@ -491,7 +491,7 @@ void l2::ctrl()
  		    FWD_NOHIT_INV_LLC;
  
  		    if (!ongoing_flush)
- 			send_inval(fwd_in.addr);
+ 			send_inval(fwd_in.addr, hprot_buf[way_hit]);
  
  		    states.port1[0][(line_br.set << L2_WAY_BITS) + way_hit] = INVALID;
  
@@ -891,7 +891,7 @@ void l2::ctrl()
 			EVICT_DEFAULT;
 		    }
 
-		    send_inval(line_addr_evict);
+		    send_inval(line_addr_evict, hprot_buf[evict_way_tmp]);
 		    send_req_out(coh_msg_tmp, 0, line_addr_evict, line_buf[evict_way_tmp]);
 		    fill_reqs(cpu_req.cpu_msg, addr_br, tag_tmp, evict_way_tmp, cpu_req.hsize, state_tmp, 
 			      cpu_req.hprot, cpu_req.word, line_buf[evict_way_tmp], reqs_hit_i);
@@ -1145,11 +1145,13 @@ void l2::send_rd_rsp(line_t line)
     l2_rd_rsp.put(rd_rsp);
 }
 
-void l2::send_inval(line_addr_t addr_inval)
+void l2::send_inval(line_addr_t addr_inval, hprot_t hprot_inval)
 {
     SEND_INVAL;
-
-    l2_inval.put(addr_inval);
+    l2_inval_t inval_out;
+    inval_out.addr = addr_inval;
+    inval_out.hprot = hprot_inval;
+    l2_inval.put(inval_out);
 }
 
 void l2::send_bresp(bresp_t resp)

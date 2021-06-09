@@ -166,7 +166,7 @@ public:
 
     /* Functions to send output messages */
     void send_rd_rsp(line_t lines);
-    void send_inval(line_addr_t addr_inval);
+    void send_inval(line_addr_t addr_inval, hprot_t hprot_inval);
     void send_bresp(bresp_t resp);
     void send_req_out(coh_msg_t coh_msg, hprot_t hprot, line_addr_t line_addr, line_t lines);
     void send_rsp_out(coh_msg_t coh_msg, cache_id_t req_id, bool to_req, line_addr_t line_addr, line_t line);
