@@ -395,15 +395,11 @@ module l2_fsm(
                 end
             end
             CPU_REQ_REQS_LOOKUP : begin 
-                if (!ongoing_atomic && l2_cpu_req.cpu_msg == `WRITE_ATOMIC) begin 
-                    if (l2_bresp_ready_int) begin
-                        next_state = DECODE;
-                    end
-                end else if (ongoing_atomic 
+                 if (ongoing_atomic
 `ifdef LLSC
                 && l2_cpu_req.hprot == `DATA
 `endif
-                ) begin 
+                ) begin
                     if (atomic_line_addr != addr_br.line_addr) begin 
                         next_state = CPU_REQ_ATOMIC_OVERRIDE;
                     end else begin 
@@ -423,6 +419,10 @@ module l2_fsm(
 `else
                     next_state = CPU_REQ_SET_CONFLICT;
 `endif
+                end else if (!ongoing_atomic && l2_cpu_req.cpu_msg == `WRITE_ATOMIC) begin
+                    if (l2_bresp_ready_int) begin
+                        next_state = DECODE;
+                    end
                 end else begin 
                     next_state = CPU_REQ_TAG_LOOKUP;
                 end
@@ -974,10 +974,11 @@ module l2_fsm(
                     set_ongoing_atomic_set_conflict_instr = 1'b1;
                 end
 `endif
-
-                if (l2_cpu_req.cpu_msg == `WRITE_ATOMIC && !ongoing_atomic) begin
-                    l2_bresp_valid_int = 1'b1;
-                    l2_bresp_o = `BRESP_OKAY;
+                if (!((set_conflict | set_set_conflict_reqs) && !clr_set_conflict_reqs)) begin
+                    if (l2_cpu_req.cpu_msg == `WRITE_ATOMIC && !ongoing_atomic) begin
+                        l2_bresp_valid_int = 1'b1;
+                        l2_bresp_o = `BRESP_OKAY;
+                    end
                 end
             end
             CPU_REQ_ATOMIC_OVERRIDE : begin 
