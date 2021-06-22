@@ -31,7 +31,11 @@ void l2::ctrl()
                 }
             }
         }
-
+        wait();
+        for (int i=0; i<N_REQS; i++) {
+            HLS_UNROLL_LOOP(ON);
+            reqs[i].state = INVALID;
+        }
         wait();
     }
 
