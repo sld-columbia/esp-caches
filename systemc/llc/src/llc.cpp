@@ -207,6 +207,16 @@ inline void llc::reset_state()
 	hprots_buf[i] = 0;
     }
 
+    // Reset state memory
+    wait();
+    for (int i=0; i<LLC_SETS; i++) { // do not unroll
+        for (int j=0; j<LLC_WAYS; j++) { // do not unroll
+            {
+                wait();
+                states.port1[0][(i << LLC_WAY_BITS) + j] = INVALID;
+            }
+        }
+    }
 
 #ifdef LLC_DEBUG
     dbg_asserts.write(0);
