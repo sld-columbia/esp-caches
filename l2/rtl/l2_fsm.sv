@@ -50,7 +50,7 @@ module l2_fsm(
     input var hprot_t rd_data_hprot[`L2_NUM_PORTS],
     input var line_t lines_buf[`L2_WAYS],
     input var l2_tag_t tags_buf[`L2_WAYS],
-        
+
     line_breakdown_l2_t.in line_br, 
     line_breakdown_l2_t.in line_br_next, 
     addr_breakdown_t.in addr_br, 
@@ -58,7 +58,7 @@ module l2_fsm(
     l2_rsp_in_t.in l2_rsp_in,
     l2_fwd_in_t.in l2_fwd_in, 
     l2_cpu_req_t.in l2_cpu_req, 
-    
+
     output logic decode_en,
     output logic lookup_en,
     output logic rd_mem_en,
@@ -117,7 +117,7 @@ module l2_fsm(
     output byte_offset_t b_off_in, 
     output hsize_t hsize_in, 
     output line_t line_in,
-    
+
     addr_breakdown_t.out addr_br_reqs,
     l2_rd_rsp_t.out l2_rd_rsp_o, 
     l2_rsp_out_t.out l2_rsp_out_o, 
@@ -143,9 +143,9 @@ module l2_fsm(
     localparam RSP_DATA_XMAD = 5'b00100;
     localparam RSP_DATA_XMADW = 5'b00101;
     localparam RSP_INVACK = 5'b00110; 
-    localparam FWD_REQS_LOOKUP = 5'b00111;
-    localparam FWD_TAG_LOOKUP = 5'b01000;
-    localparam FWD_PUTACK = 5'b01001;
+    localparam RSP_PUTACK = 5'b00111;
+    localparam FWD_REQS_LOOKUP = 5'b01000;
+    localparam FWD_TAG_LOOKUP = 5'b01001;
     localparam FWD_STALL = 5'b01010; 
     localparam FWD_HIT = 5'b01011; 
     localparam FWD_HIT_2 = 5'b01100;
@@ -165,8 +165,25 @@ module l2_fsm(
     localparam CPU_REQ_EMPTY_WAY = 5'b11010; 
     localparam CPU_REQ_EVICT = 5'b11011; 
 
-    logic [1:0] probe;
-    assign probe = l2_cpu_req.cpu_msg;
+    cpu_msg_t cpu_msg;
+    assign cpu_msg = l2_cpu_req.cpu_msg;
+    addr_t cpu_addr;
+    assign cpu_addr = l2_cpu_req.addr;
+
+    mix_msg_t fwd_msg;
+    assign fwd_msg = l2_fwd_in.coh_msg;
+    line_addr_t fwd_addr;
+    assign fwd_addr = l2_fwd_in.addr;
+    cache_id_t fwd_id;
+    assign fwd_id = l2_fwd_in.req_id;
+
+    mix_msg_t rsp_msg;
+    assign rsp_msg = l2_rsp_in.coh_msg;
+    line_addr_t rsp_addr;
+    assign rsp_addr = l2_rsp_in.addr;
+    invack_cnt_t rsp_invack_cnt;
+    assign rsp_invack_cnt = l2_rsp_in.invack_cnt;
+
 
     logic [4:0] state, next_state;
     always_ff @(posedge clk or negedge rst) begin 
@@ -285,6 +302,9 @@ module l2_fsm(
                     `RSP_INVACK : begin 
                         next_state = RSP_INVACK; 
                     end
+                    `RSP_PUTACK : begin
+                        next_state = RSP_PUTACK;
+                    end
                     default : begin 
                         next_state = DECODE;
                     end
@@ -306,10 +326,13 @@ module l2_fsm(
             RSP_INVACK : begin 
                 next_state = DECODE;
             end
+            RSP_PUTACK : begin 
+                if (l2_req_out_ready_int || !evict_stall) begin 
+                    next_state  = DECODE;
+                end
+            end
             FWD_REQS_LOOKUP : begin 
-                if (l2_fwd_in.coh_msg == `FWD_PUTACK) begin 
-                    next_state = FWD_PUTACK;
-                end else if ((fwd_stall || set_fwd_stall) & !clr_fwd_stall) begin 
+                if ((fwd_stall || set_fwd_stall) & !clr_fwd_stall) begin 
                     next_state = FWD_STALL;
                 end else if (reqs_hit_next) begin 
                     next_state = FWD_HIT;
@@ -319,11 +342,6 @@ module l2_fsm(
             end
             FWD_TAG_LOOKUP : begin 
                 next_state = FWD_NO_HIT;    
-            end
-            FWD_PUTACK : begin 
-                if (l2_req_out_ready_int || !evict_stall) begin 
-                    next_state  = DECODE;
-                end
             end
             FWD_STALL : begin 
                 next_state = DECODE; 
@@ -716,17 +734,7 @@ module l2_fsm(
                     end
                 end
             end
-            FWD_REQS_LOOKUP : begin 
-                rd_mem_en = 1'b1; 
-                set_in = line_br.set; 
-                reqs_op_code = `L2_REQS_PEEK_FWD;
-                clr_fwd_stall_ended = 1'b1;
-            end
-            FWD_TAG_LOOKUP : begin 
-                lookup_en = 1'b1; 
-                lookup_mode = `L2_LOOKUP_FWD;
-            end
-            FWD_PUTACK : begin 
+            RSP_PUTACK : begin 
                 if (evict_stall) begin 
                     clr_evict_stall = 1'b1; 
                     case (reqs[reqs_i].cpu_msg) 
@@ -746,9 +754,8 @@ module l2_fsm(
                     wr_req_state = 1'b1;
                     wr_req_tag = 1'b1; 
                     tag_wr_data_req = reqs[reqs_i].tag_estall; 
-                    
+
                     wr_en_evict_way = 1'b1; 
-             
 `ifdef LLSC
                     if (ongoing_atomic_set_conflict_instr && reqs[reqs_atomic_i].way == evict_way_buf) begin 
                         wr_data_evict_way = reqs[reqs_i].way + 2;
@@ -769,6 +776,16 @@ module l2_fsm(
                     state_wr_data_req = `INVALID;
                     incr_reqs_cnt = 1'b1; 
                 end
+            end
+            FWD_REQS_LOOKUP : begin 
+                rd_mem_en = 1'b1; 
+                set_in = line_br.set; 
+                reqs_op_code = `L2_REQS_PEEK_FWD;
+                clr_fwd_stall_ended = 1'b1;
+            end
+            FWD_TAG_LOOKUP : begin 
+                lookup_en = 1'b1; 
+                lookup_mode = `L2_LOOKUP_FWD;
             end
             FWD_STALL : begin 
                 set_fwd_in_stalled = 1'b1; 

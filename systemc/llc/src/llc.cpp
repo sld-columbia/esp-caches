@@ -1124,7 +1124,7 @@ void llc::ctrl()
 
                 {
                     HLS_DEFINE_PROTOCOL("send_fwd_out-4");
-                    send_fwd_out(FWD_PUTACK, req_in.addr, req_in.req_id, req_in.req_id);
+                    send_rsp_out(RSP_PUTACK, req_in.addr, 0, req_in.req_id, req_in.req_id, 0, 0);
                 }
 
                 switch (states_buf[way]) {
@@ -1177,7 +1177,7 @@ void llc::ctrl()
 
                 {
                     HLS_DEFINE_PROTOCOL("send_fwd_out-5");
-                    send_fwd_out(FWD_PUTACK, req_in.addr, req_in.req_id, req_in.req_id);
+                    send_rsp_out(RSP_PUTACK, req_in.addr, 0, req_in.req_id, req_in.req_id, 0, 0);
                 }
 
                 switch (states_buf[way]) {

@@ -231,6 +231,7 @@
 `define RSP_EDATA	1
 `define RSP_INVACK	2
 `define RSP_DATA_DMA    3
+`define RSP_PUTACK	3
 
 // DMA burst
 `define DMA_BURST_LENGTH_BITS 32

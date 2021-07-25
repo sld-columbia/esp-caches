@@ -199,10 +199,7 @@ module l2_reqs(
                         
                         set_fwd_stall = 1'b1;
                         clr_fwd_stall = 1'b0; 
-                        if (fwd_in_coh_msg == `FWD_PUTACK) begin 
-                            set_fwd_stall = 1'b0; 
-                            clr_fwd_stall = 1'b1; 
-                        end else if (fwd_in_coh_msg == `FWD_INV || fwd_in_coh_msg == `FWD_INV_LLC) begin 
+                        if (fwd_in_coh_msg == `FWD_INV || fwd_in_coh_msg == `FWD_INV_LLC) begin 
                             if (reqs[i].state != `ISD) begin 
                                 set_fwd_stall = 1'b0; 
                                 clr_fwd_stall = 1'b1; 

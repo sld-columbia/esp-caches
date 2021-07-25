@@ -1158,13 +1158,13 @@ void llc_tb::op(mix_msg_t coh_msg, llc_state_t state, bool evict, addr_breakdown
 	break;
 
     case REQ_PUTS :
-	out_plane = FWD_PLANE;
-	out_msg = FWD_PUTACK;
+	out_plane = RSP_PLANE;
+	out_msg = RSP_PUTACK;
 	break;
 
     case REQ_PUTM :
-	out_plane = FWD_PLANE;
-	out_msg = FWD_PUTACK;
+	out_plane = RSP_PLANE;
+	out_msg = RSP_PUTACK;
 	break;
 
     default:
