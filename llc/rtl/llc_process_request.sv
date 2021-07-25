@@ -1001,11 +1001,11 @@ module llc_process_request(
                 sharers_buf_wr_data = 0; 
             end
             REQ_PUTS : begin 
-                llc_fwd_out_o.coh_msg = `FWD_PUTACK;
-                llc_fwd_out_o.addr = llc_req_in.addr; 
-                llc_fwd_out_o.req_id = llc_req_in.req_id; 
-                llc_fwd_out_o.dest_id = llc_req_in.req_id;
-                llc_fwd_out_valid_int = 1'b1; 
+                llc_rsp_out_o.coh_msg = `RSP_PUTACK;
+                llc_rsp_out_o.addr = llc_req_in.addr; 
+                llc_rsp_out_o.req_id = llc_req_in.req_id; 
+                llc_rsp_out_o.dest_id = llc_req_in.req_id;
+                llc_rsp_out_valid_int = 1'b1; 
                 if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     wr_en_sharers_buf = 1'b1; 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
@@ -1025,11 +1025,11 @@ module llc_process_request(
 `endif
             end
             REQ_PUTM : begin 
-                llc_fwd_out_o.coh_msg = `FWD_PUTACK; 
-                llc_fwd_out_o.addr = llc_req_in.addr; 
-                llc_fwd_out_o.req_id = llc_req_in.req_id; 
-                llc_fwd_out_o.dest_id = llc_req_in.req_id;
-                llc_fwd_out_valid_int = 1'b1; 
+                llc_rsp_out_o.coh_msg = `RSP_PUTACK; 
+                llc_rsp_out_o.addr = llc_req_in.addr; 
+                llc_rsp_out_o.req_id = llc_req_in.req_id; 
+                llc_rsp_out_o.dest_id = llc_req_in.req_id;
+                llc_rsp_out_valid_int = 1'b1; 
                 if (states_buf[way] == `SHARED || states_buf[way] == `SD) begin 
                     sharers_buf_wr_data = sharers_buf[way] & ~(1 << llc_req_in.req_id);
                     wr_en_sharers_buf = 1'b1;

@@ -232,6 +232,7 @@
 #define RSP_EDATA	1
 #define RSP_INVACK	2
 #define RSP_DATA_DMA    3
+#define RSP_PUTACK	3
 
 #define BRESP_OKAY 0
 #define BRESP_EXOKAY 1

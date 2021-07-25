@@ -273,8 +273,65 @@ void l2::ctrl()
 		}
 	    }
 	    break;
+        case RSP_PUTACK :
+        {
+		RSP_PUTACK_ALL;
 
-	    default:
+        if (evict_stall) {
+
+            unstable_state_t state_tmp;
+            mix_msg_t coh_msg_tmp;
+
+            evict_stall = false;
+
+            switch (reqs[reqs_hit_i].cpu_msg) {
+
+            case READ : 
+            state_tmp = ISD;
+            coh_msg_tmp = REQ_GETS;
+            break;
+
+            case READ_ATOMIC : 
+            state_tmp = IMADW;
+            coh_msg_tmp = REQ_GETM;
+            break;
+
+            case WRITE :
+            state_tmp = IMAD;
+            coh_msg_tmp = REQ_GETM;
+            break;
+
+            default :
+            PUTACK_DEFAULT;
+            }
+
+            l2_set_t set_tmp = reqs[reqs_hit_i].set;
+
+            // TODO
+                    l2_way_t way_inc = 1;
+#ifdef LLSC
+                    if (ongoing_atomic_set_conflict_instr && reqs[reqs_atomic_i].way == evict_way)
+                        way_inc = 2;
+#endif
+            evict_ways.port1[0][set_tmp] = (reqs[reqs_hit_i].way + way_inc) % L2_WAYS;
+            reqs[reqs_hit_i].state = state_tmp;
+            reqs[reqs_hit_i].tag = reqs[reqs_hit_i].tag_estall;
+
+            line_addr_t line_addr_tmp = (reqs[reqs_hit_i].tag_estall << L2_SET_BITS) | (line_br.set);
+
+            // send request to directory
+            send_req_out(coh_msg_tmp, reqs[reqs_hit_i].hprot, line_addr_tmp, 0);
+
+        } else {
+
+            reqs[reqs_hit_i].state = INVALID;
+            reqs_cnt++;
+
+        }
+        }
+        break;
+
+        default:
 		RSP_DEFAULT;
 
 	    }
@@ -295,63 +352,7 @@ void l2::ctrl()
 
 	    fwd_stall = reqs_peek_fwd(line_br, reqs_hit_i, reqs_hit, fwd_in.coh_msg);
 
-	    if (fwd_in.coh_msg == FWD_PUTACK) {
-		
-		FWD_PUTACK_ALL;
-
-		if (evict_stall) {
-
-		    unstable_state_t state_tmp;
-		    mix_msg_t coh_msg_tmp;
-
-		    evict_stall = false;
-
-		    switch (reqs[reqs_hit_i].cpu_msg) {
-
-		    case READ : 
-			state_tmp = ISD;
-			coh_msg_tmp = REQ_GETS;
-			break;
-
-		    case READ_ATOMIC : 
-			state_tmp = IMADW;
-			coh_msg_tmp = REQ_GETM;
-			break;
-
-		    case WRITE :
-			state_tmp = IMAD;
-			coh_msg_tmp = REQ_GETM;
-			break;
-
-		    default :
-			PUTACK_DEFAULT;
-		    }
-
-		    l2_set_t set_tmp = reqs[reqs_hit_i].set;
-
-		    // TODO
-                    l2_way_t way_inc = 1;
-#ifdef LLSC
-                    if (ongoing_atomic_set_conflict_instr && reqs[reqs_atomic_i].way == evict_way)
-                        way_inc = 2;
-#endif
-		    evict_ways.port1[0][set_tmp] = (reqs[reqs_hit_i].way + way_inc) % L2_WAYS;
-		    reqs[reqs_hit_i].state = state_tmp;
-		    reqs[reqs_hit_i].tag = reqs[reqs_hit_i].tag_estall;
-
-		    line_addr_t line_addr_tmp = (reqs[reqs_hit_i].tag_estall << L2_SET_BITS) | (line_br.set);
-
-		    // send request to directory
-		    send_req_out(coh_msg_tmp, reqs[reqs_hit_i].hprot, line_addr_tmp, 0);
-
-		} else {
-
-		    reqs[reqs_hit_i].state = INVALID;
-		    reqs_cnt++;
-
-		}
-
-	    } else if (fwd_stall) {
+	    if (fwd_stall) {
 
 		FWD_STALL_BEGIN;
 
@@ -1461,18 +1462,12 @@ bool l2::reqs_peek_fwd(line_breakdown_t<l2_tag_t, l2_set_t> line_br,
 
 	    fwd_stall_tmp = true;
 
-	    if (coh_msg == FWD_PUTACK) {
-
-		fwd_stall_tmp = false;		
-
-	    } else if (coh_msg == FWD_INV || coh_msg == FWD_INV_LLC) {
-
-		if (reqs[i].state != ISD)
-		    fwd_stall_tmp = false;
+        if (coh_msg == FWD_INV || coh_msg == FWD_INV_LLC) {
+		    if (reqs[i].state != ISD)
+		        fwd_stall_tmp = false;
 	    } else {
-
-		if (reqs[i].state == MIA)
-		    fwd_stall_tmp = false;
+		    if (reqs[i].state == MIA)
+		        fwd_stall_tmp = false;
 	    }
 	}
     }

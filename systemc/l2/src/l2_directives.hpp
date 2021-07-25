@@ -248,7 +248,7 @@
     if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Fwd nohit default.")
     // asserts_tmp |= AS_FWD_NOHIT_DEFAULT;				
 
-#define FWD_PUTACK_ALL							\
+#define RSP_PUTACK_ALL							\
     HLS_CONSTRAIN_LATENCY(0, HLS_ACHIEVABLE, "l2-fwd-putack-latency");			\
     if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Fwd putack all.")
     // bookmark_tmp |= BM_FWD_PUTACK;					

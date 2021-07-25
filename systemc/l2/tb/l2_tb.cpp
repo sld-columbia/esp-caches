@@ -265,7 +265,7 @@ void l2_tb::l2_test()
 	get_req_out(REQ_PUTS, addr.line, 0);
 	wait();
 
-	put_fwd_in(FWD_PUTACK, addr.line, 0);
+	put_rsp_in(RSP_PUTACK, addr.line, 0, 0);
 	wait();
 	
 	addr.tag_incr(1);
@@ -456,7 +456,7 @@ void l2_tb::l2_test()
     for (int i = 0; i < 4; ++i) {
 	l2_req_out_t req_out = l2_req_out_tb.get();
 	addr_t tmp_addr = req_out.addr << OFFSET_BITS;
-	put_fwd_in(FWD_PUTACK, tmp_addr, 0);
+	put_rsp_in(RSP_PUTACK, tmp_addr, 0, 0);
 	wait();
     }
 
@@ -516,7 +516,7 @@ void l2_tb::l2_test()
 
     put_cpu_req(cpu_req2, READ, WORD, addr2.word, 0, DATA);
 
-    put_fwd_in(FWD_PUTACK, addr_evict1.line, 0);
+    put_rsp_in(RSP_PUTACK, addr_evict1.line, 0, 0);
     get_req_out(REQ_GETS, addr1.line, cpu_req1.hprot);
 
     wait();
@@ -539,7 +539,7 @@ void l2_tb::l2_test()
     for (int i = 0; i < L2_WAYS + 1; ++i) {
 	l2_req_out_t req_out = l2_req_out_tb.get();
 	addr_t tmp_addr = req_out.addr << OFFSET_BITS;
-	put_fwd_in(FWD_PUTACK, tmp_addr, 0);
+	put_rsp_in(RSP_PUTACK, tmp_addr, 0, 0);
 	wait();
     }
 
@@ -614,7 +614,7 @@ void l2_tb::l2_test()
     for (int i = 0; i < n_reqs + 1; ++i) {
 	l2_req_out_t req_out = l2_req_out_tb.get();
 	addr_t tmp_addr = req_out.addr << OFFSET_BITS;
-	put_fwd_in(FWD_PUTACK, tmp_addr, 0);
+	put_rsp_in(RSP_PUTACK, tmp_addr, 0, 0);
 	wait();
     }
 
@@ -1502,7 +1502,7 @@ void l2_tb::op(cpu_msg_t cpu_msg, int beh, int rsp_beh, coh_msg_t rsp_msg, invac
 	    }
 	}
 
-	put_fwd_in(FWD_PUTACK, req_addr_tmp.line, 0);
+	put_rsp_in(RSP_PUTACK, req_addr_tmp.line, 0, 0);
 
 	wait();
     }
@@ -1602,7 +1602,7 @@ void l2_tb::op_flush(coh_msg_t coh_msg, addr_t addr)
 {
     get_req_out(coh_msg, addr, 0);
 
-    put_fwd_in(FWD_PUTACK, addr, 0);
+    put_rsp_in(RSP_PUTACK, addr, 0, 0);
 
     wait();
 }
@@ -1615,7 +1615,7 @@ void l2_tb::flush(int n_lines, bool is_flush_all)
     for (int i = 0; i < n_lines; ++i) {
 	l2_req_out_t req_out = l2_req_out_tb.get();
 	addr_t tmp_addr = req_out.addr << OFFSET_BITS;
-	put_fwd_in(FWD_PUTACK, tmp_addr, 0);
+	put_rsp_in(RSP_PUTACK, tmp_addr, 0, 0);
 	wait();
     }
 
