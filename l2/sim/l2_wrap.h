@@ -21,6 +21,7 @@ public:
     sc_in<hprot_t> l2_cpu_req_data_hprot;
     sc_in<addr_t> l2_cpu_req_data_addr;
     sc_in<word_t> l2_cpu_req_data_word;
+    sc_in<amo_t> l2_cpu_req_data_amo;
     sc_out<bool> l2_cpu_req_ready;
     
     sc_in<bool> l2_fwd_in_valid;
@@ -86,6 +87,7 @@ public:
     , l2_cpu_req_data_hprot("l2_cpu_req_data_hprot")
     , l2_cpu_req_data_addr("l2_cpu_req_data_addr")
     , l2_cpu_req_data_word("l2_cpu_req_data_word")
+    , l2_cpu_req_data_amo("l2_cpu_req_data_amo")
     , l2_cpu_req_ready("l2_cpu_req_ready")
     , l2_fwd_in_valid("l2_fwd_in_valid")
     , l2_fwd_in_data_coh_msg("l2_fwd_in_data_coh_msg")
@@ -177,6 +179,7 @@ public:
     , l2_cpu_req_data_conv_hprot("l2_cpu_req_data_conv_hprot")
     , l2_cpu_req_data_conv_addr("l2_cpu_req_data_conv_addr")
     , l2_cpu_req_data_conv_word("l2_cpu_req_data_conv_word")
+    , l2_cpu_req_data_conv_amo("l2_cpu_req_data_conv_amo")
     , l2_fwd_in_data_conv_coh_msg("l2_fwd_in_data_conv_coh_msg")
     , l2_fwd_in_data_conv_addr("l2_fwd_in_data_conv_addr")
     , l2_fwd_in_data_conv_req_id("l2_fwd_in_data_conv_req_id")
@@ -235,6 +238,7 @@ public:
     cosim.l2_cpu_req_data_hprot(l2_cpu_req_data_conv_hprot);
     cosim.l2_cpu_req_data_addr(l2_cpu_req_data_conv_addr);
     cosim.l2_cpu_req_data_word(l2_cpu_req_data_conv_word);
+    cosim.l2_cpu_req_data_amo(l2_cpu_req_data_conv_amo);
     cosim.l2_cpu_req_ready(l2_cpu_req.ready);
     cosim.l2_fwd_in_valid(l2_fwd_in.valid);
     cosim.l2_fwd_in_data_coh_msg(l2_fwd_in_data_conv_coh_msg);
@@ -287,6 +291,7 @@ public:
     sc_signal<hprot_t> l2_cpu_req_data_conv_hprot;
     sc_signal<addr_t> l2_cpu_req_data_conv_addr;
     sc_signal<word_t> l2_cpu_req_data_conv_word;
+    sc_signal<amo_t> l2_cpu_req_data_conv_amo;
     
     sc_signal<mix_msg_t> l2_fwd_in_data_conv_coh_msg;
     sc_signal<line_addr_t> l2_fwd_in_data_conv_addr;

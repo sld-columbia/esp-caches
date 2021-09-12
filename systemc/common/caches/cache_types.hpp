@@ -50,6 +50,7 @@ typedef sc_uint<MAX_N_L2_BITS>		owner_t;
 typedef sc_uint<MAX_N_L2>		sharers_t;
 typedef sc_uint<DMA_BURST_LENGTH_BITS>  dma_length_t;
 typedef sc_uint<BRESP_WIDTH>    bresp_t;
+typedef sc_uint<AMO_WIDTH>    amo_t;
 /*
  * L2 cache coherence channels types
  */
@@ -67,13 +68,15 @@ public:
     hprot_t	hprot;
     addr_t	addr;
     word_t	word;
+    amo_t	amo;
 
     l2_cpu_req_t() :
 	cpu_msg(0),
 	hsize(0),
 	hprot(0),
 	addr(0),
-	word(0)
+	word(0),
+	amo(0)
     {}
 
     inline l2_cpu_req_t& operator  = (const l2_cpu_req_t& x) {
@@ -82,6 +85,7 @@ public:
 	hprot   = x.hprot;
 	addr    = x.addr;
 	word    = x.word;
+	amo    = x.amo;
 	return *this;
     }
     inline bool operator  == (const l2_cpu_req_t& x) const {
@@ -89,7 +93,8 @@ public:
 		x.hsize   == hsize	&&
 		x.hprot   == hprot	&&
 		x.addr    == addr	&&
-		x.word    == word);
+		x.word    == word   &&
+		x.amo    == amo);
     }
     inline friend void sc_trace(sc_trace_file *tf, const l2_cpu_req_t& x, const std::string & name) {
 	sc_trace(tf, x.cpu_msg , name + ".cpu_msg ");
@@ -97,6 +102,7 @@ public:
 	sc_trace(tf, x.hprot,    name + ".hprot");
 	sc_trace(tf, x.addr,     name + ".addr");
 	sc_trace(tf, x.word,     name + ".word");
+	sc_trace(tf, x.amo,     name + ".amo");
     }
     inline friend ostream & operator<<(ostream& os, const l2_cpu_req_t& x) {
 	os << hex << "("
@@ -104,7 +110,8 @@ public:
 	   << ", hsize: "   << x.hsize
 	   << ", hprot: "   << x.hprot
 	   << ", addr: "    << x.addr
-	   << ", word: "    << x.word << ")";
+	   << ", word: "    << x.word
+	   << ", amo: "    << x.amo << ")";
 	return os;
     }
 };

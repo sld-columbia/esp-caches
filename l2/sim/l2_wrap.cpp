@@ -10,6 +10,7 @@ void l2_wrapper_conv::thread_l2_cpu_req_data_conv(){
     l2_cpu_req_data_conv_addr = tmp.addr;
     l2_cpu_req_data_conv_hsize = tmp.hsize;
     l2_cpu_req_data_conv_word = tmp.word;
+    l2_cpu_req_data_conv_amo = tmp.amo;
 }
 
 void l2_wrapper_conv::thread_l2_fwd_in_data_conv(){

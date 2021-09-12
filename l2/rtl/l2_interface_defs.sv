@@ -13,9 +13,10 @@ interface l2_cpu_req_t;
     hprot_t hprot;
     addr_t addr;
     word_t word;
+    amo_t amo;
 
-    modport in (input cpu_msg, hsize, hprot, addr, word); 
-    modport out (output cpu_msg, hsize, hprot, addr, word); 
+    modport in (input cpu_msg, hsize, hprot, addr, word, amo);
+    modport out (output cpu_msg, hsize, hprot, addr, word, amo);
 
 endinterface
 
@@ -26,7 +27,7 @@ interface l2_rd_rsp_t;
     line_t line;
 
     modport in (input line);
-    modport out (output line); 
+    modport out (output line);
 
 endinterface
 
@@ -36,8 +37,8 @@ interface  l2_fwd_in_t;
     line_addr_t addr;
     cache_id_t req_id;
 
-    modport in (input coh_msg, addr, req_id); 
-    modport out (output coh_msg, addr, req_id); 
+    modport in (input coh_msg, addr, req_id);
+    modport out (output coh_msg, addr, req_id);
 
 endinterface
 
@@ -49,7 +50,7 @@ interface l2_rsp_in_t;
     invack_cnt_t	invack_cnt;
 
     modport in (input coh_msg, addr, line, invack_cnt);
-    modport out (output coh_msg, addr, line, invack_cnt); 
+    modport out (output coh_msg, addr, line, invack_cnt);
 
 endinterface
 
@@ -63,8 +64,8 @@ interface l2_rsp_out_t;
     line_addr_t	addr;
     line_t	line;
 
-    modport in (input coh_msg, req_id, to_req, addr, line); 
-    modport out (output coh_msg, req_id, to_req, addr, line); 
+    modport in (input coh_msg, req_id, to_req, addr, line);
+    modport out (output coh_msg, req_id, to_req, addr, line);
 
 endinterface
 
@@ -75,8 +76,8 @@ interface l2_req_out_t;
     line_addr_t	addr;
     line_t	line;
 
-    modport in (input coh_msg, hprot, addr, line); 
-    modport out (output coh_msg, hprot, addr, line); 
+    modport in (input coh_msg, hprot, addr, line);
+    modport out (output coh_msg, hprot, addr, line);
 
 endinterface
 
@@ -84,8 +85,8 @@ interface line_breakdown_l2_t;
     l2_tag_t tag;
     l2_set_t set;
 
-    modport in (input tag, set); 
-    modport out (output tag, set); 
+    modport in (input tag, set);
+    modport out (output tag, set);
 
 endinterface
 
@@ -98,16 +99,16 @@ interface addr_breakdown_t;
     l2_set_t            set;
     word_offset_t       w_off;
     byte_offset_t       b_off;
-    
-    modport in (input line, line_addr, word, tag, set, w_off, b_off); 
-    modport out (output line, line_addr, word, tag, set, w_off, b_off); 
+
+    modport in (input line, line_addr, word, tag, set, w_off, b_off);
+    modport out (output line, line_addr, word, tag, set, w_off, b_off);
 
 endinterface
 
 interface l2_inval_t;
     l2_inval_addr_t     addr;
     hprot_t             hprot;
-    
+
     modport in(input addr, hprot);
     modport out(output addr, hprot);
 endinterface

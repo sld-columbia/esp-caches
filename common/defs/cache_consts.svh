@@ -78,6 +78,7 @@
 `define CACHE_ID_WIDTH          `MAX_N_L2_BITS
 `define LLC_COH_DEV_ID_WIDTH    `MAX_N_LLC_BITS
 `define BRESP_WIDTH 2
+`define AMO_WIDTH 6
 //
 // L2
 //
