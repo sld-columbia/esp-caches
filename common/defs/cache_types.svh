@@ -45,6 +45,8 @@ typedef logic[(`MAX_N_L2_BITS-1):0]		owner_t;
 typedef logic[(`MAX_N_L2-1):0]		sharers_t;
 typedef logic[(`DMA_BURST_LENGTH_BITS-1):0]  dma_length_t;
 typedef logic[(`BRESP_WIDTH-1):0]   bresp_t;
+typedef logic[(`AMO_WIDTH-1):0] amo_t;
+
 // invalidate address
 typedef line_addr_t l2_inval_addr_t;
 
@@ -63,6 +65,7 @@ typedef struct packed{
     invack_cnt_calc_t	invack_cnt;
     word_t		word;
     line_t		line;
-} reqs_buf_t; 
+    amo_t       amo;
+} reqs_buf_t;
 
 `endif // __CACHE_TYPES_HPP__
