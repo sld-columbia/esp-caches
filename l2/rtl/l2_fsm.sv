@@ -868,7 +868,10 @@ module l2_fsm(
                         l2_rsp_out_o.to_req = 1'b0;
                     end
 
-                    wr_req_state = 1'b1;
+                    if (l2_rsp_out_ready_int) begin
+                        wr_req_state = 1'b1;
+                    end
+
                     if (l2_fwd_in.coh_msg == `FWD_GETS) begin
                         state_wr_data_req = `SIA;
                     end else begin
@@ -878,8 +881,13 @@ module l2_fsm(
                     if (!ready_bits[1]) begin
                         l2_rsp_out_valid_int = 1'b1;
                         l2_rsp_out_o.coh_msg = `RSP_DATA;
-                        l2_rsp_out_o.req_id = l2_fwd_in.req_id;
-                        l2_rsp_out_o.to_req = 1'b1;
+                        if (l2_fwd_in.coh_msg == `FWD_GETS || l2_fwd_in.coh_msg == `FWD_GETM) begin
+                            l2_rsp_out_o.req_id = l2_fwd_in.req_id;
+                            l2_rsp_out_o.to_req = 1'b1;
+                        end else begin
+                            l2_rsp_out_o.req_id = 0;
+                            l2_rsp_out_o.to_req = 1'b0;
+                        end
                         l2_rsp_out_o.addr = l2_fwd_in.addr;
                         l2_rsp_out_o.line = reqs[reqs_i].line;
                     end
@@ -963,7 +971,7 @@ module l2_fsm(
                     end
                 end
 
-                if (l2_fwd_in.coh_msg != `FWD_GETS) begin
+                if (l2_fwd_in.coh_msg != `FWD_GETS && tag_hit) begin
                     wr_en_state = 1'b1;
                     wr_data_state = `INVALID;
                     way = way_hit;
