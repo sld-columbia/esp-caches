@@ -375,6 +375,7 @@ module l2_fsm(
                     end else if (l2_fwd_in.coh_msg != `FWD_INV) begin
                         next_state = DECODE;
                     end
+`ifdef LLSC
                 end else if (reqs[reqs_i].state == `XMW) begin
                     if (l2_fwd_in.coh_msg == `FWD_GETS) begin
                         if (l2_rsp_out_ready_int) begin
@@ -389,6 +390,7 @@ module l2_fsm(
                             next_state = DECODE;
                         end
                     end
+`endif
                 end else begin
                     next_state = DECODE;
                 end
@@ -726,9 +728,11 @@ module l2_fsm(
                 if (invack_cnt_wr_data_req == `MAX_N_L2) begin
                     set_ongoing_atomic = 1'b1;
                     state_wr_data_req = `XMW;
+`ifdef LLSC
                     if (reqs[reqs_i].amo == 0) begin
                         lr_to_xmw = 1'b1;
                     end
+`endif
                 end else begin
                     state_wr_data_req = reqs[reqs_i].state + 2;
                 end
@@ -752,9 +756,11 @@ module l2_fsm(
                         set_ongoing_atomic = 1'b1;
                         wr_req_state = 1'b1;
                         state_wr_data_req = `XMW;
+`ifdef LLSC
                         if (reqs[reqs_i].amo == 0) begin
                             lr_to_xmw = 1'b1;
                         end
+`endif
                     end
                 end
             end
@@ -877,6 +883,7 @@ module l2_fsm(
                     end else begin
                         state_wr_data_req = `IIA;
                     end
+`ifdef LLSC
                 end else if (reqs[reqs_i].state == `XMW) begin
                     if (!ready_bits[1]) begin
                         l2_rsp_out_valid_int = 1'b1;
@@ -922,6 +929,7 @@ module l2_fsm(
                             wr_req_state = 1'b1;
                         end
                     end
+`endif
                 end
             end
             FWD_HIT_2 : begin

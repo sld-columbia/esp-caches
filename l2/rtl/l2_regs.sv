@@ -127,7 +127,10 @@ module l2_regs (
             fwd_stall_ended <= 1'b0;
         end else if ((wr_en_put_reqs && fwd_stall && (fwd_stall_i == reqs_i
                     || (put_reqs_atomic  && fwd_stall_i == reqs_atomic_i)))
-                    || (fwd_stall && lr_to_xmw && (fwd_stall_i == reqs_i))) begin
+`ifdef LLSC
+                    || (fwd_stall && lr_to_xmw && (fwd_stall_i == reqs_i))
+`endif
+        ) begin
             fwd_stall_ended <= 1'b1;
         end
     end
