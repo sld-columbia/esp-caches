@@ -209,7 +209,11 @@ module l2_reqs(
                                 clr_fwd_stall = 1'b1;
                             end
                         end else begin
-                            if (reqs[i].state == `MIA || (reqs[i].state == `XMW && reqs[i].amo == 0)) begin
+                            if (reqs[i].state == `MIA
+`ifdef LLSC
+                                || (reqs[i].state == `XMW && reqs[i].amo == 0)
+`endif
+                            ) begin
                                 set_fwd_stall = 1'b0;
                                 clr_fwd_stall = 1'b1;
                             end
