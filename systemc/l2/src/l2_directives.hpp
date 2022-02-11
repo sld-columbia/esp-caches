@@ -215,6 +215,10 @@
     // bookmark_tmp |= BM_FWD_HIT_SIA;					
     // if (fwd_in.coh_msg != FWD_INV) asserts_tmp |= AS_HIT_SMADX;		
 
+#define FWD_HIT_XMW							\
+    HLS_CONSTRAIN_LATENCY(0, HLS_ACHIEVABLE, "l2-fwd-hit-xmw-latency");			\
+    if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Fwd hit xmw.")
+
 #define FWD_HIT_DEFAULT							\
     if (RPT_RTL) CACHE_REPORT_TIME(sc_time_stamp(), "Fwd hit default.")
     // asserts_tmp |= AS_FWD_HIT_DEFAULT;					
