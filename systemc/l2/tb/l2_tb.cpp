@@ -413,39 +413,23 @@ void l2_tb::l2_test()
 
     addr = addr1;
     line = line_of_addr(addr.line);
-    off_tmp0 = addr.w_off * BYTES_PER_WORD + addr.b_off;
-    off_tmp1 = off_tmp0 + BYTES_PER_WORD - 2 * addr.b_off - 1;
-    line.range(off_tmp1 * 8 + 7, off_tmp1 * 8) = 0;
+    write_word(line, 0, addr.w_off, addr.b_off, BYTE);
     op(READ, HIT, 0, 0, 0, 0, WORD, addr, 0, line, 0, 0, 0, 0, 0, DATA);
 
     addr.tag_incr(1);
-    off_tmp0 = addr.w_off * BYTES_PER_WORD + addr.b_off;
-    off_tmp0.range(B_OFF_RANGE_HI-1,0) = 0;
-    if (off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) == 0)
-	off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) = 1;
-    else
-	off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) = 0;
     line = line_of_addr(addr.line);
-    line.range(off_tmp0 * 8 + BITS_PER_HALFWORD - 1, off_tmp0 * 8) = 0;
+    write_word(line, 0, addr.w_off, addr.b_off, HALFWORD);
     op(READ, HIT, 0, 0, 0, 0, WORD, addr, 0, line, 0, 0, 0, 0, 0, DATA);
 
     addr = addr1;
     addr.set_incr(1);
     line = line_of_addr(addr.line);
-    off_tmp0 = addr.w_off * BYTES_PER_WORD + addr.b_off;
-    off_tmp1 = off_tmp0 + BYTES_PER_WORD - 2 * addr.b_off - 1;
-    line.range(off_tmp1 * 8 + 7, off_tmp1 * 8) = 0;
+    write_word(line, 0, addr.w_off, addr.b_off, BYTE);
     op(READ, HIT, 0, 0, 0, 0, WORD, addr, 0, line, 0, 0, 0, 0, 0, DATA);
 
     addr.tag_incr(1);
-    off_tmp0 = addr.w_off * BYTES_PER_WORD + addr.b_off;
-    off_tmp0.range(B_OFF_RANGE_HI-1,0) = 0;
-    if (off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) == 0)
-	off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) = 1;
-    else
-	off_tmp0.range(B_OFF_RANGE_HI,B_OFF_RANGE_HI) = 0;
     line = line_of_addr(addr.line);   
-    line.range(off_tmp0 * 8 + BITS_PER_HALFWORD - 1, off_tmp0 * 8) = 0;
+    write_word(line, 0, addr.w_off, addr.b_off, HALFWORD);
     op(READ, HIT, 0, 0, 0, 0, WORD, addr, 0, line, 0, 0, 0, 0, 0, DATA);
 
     CACHE_REPORT_INFO("T4.5) Flush.");    
@@ -1292,6 +1276,7 @@ void l2_tb::put_cpu_req(l2_cpu_req_t &cpu_req, cpu_msg_t cpu_msg, hsize_t hsize,
     cpu_req.hprot = hprot;
     cpu_req.addr = addr;
     cpu_req.word = word;
+    cpu_req.amo = 1; // 0 is RISC-V LR/SC, so use non-zero for AMO
 
     rand_wait();
 

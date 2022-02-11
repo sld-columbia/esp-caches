@@ -3,13 +3,32 @@
 `ifndef __CACHES_CFG_SVH__
 `define __CACHES_CFG_SVH__
 
-//set LITTLE_ENDIAN for Ariane, BIG_ENDIAN for Leon
+//define CPU ARCH here
+`define LEON
+
+`ifdef LEON
 `define BIG_ENDIAN
-//3 for Ariane, 2 for Leon
 `define BYTE_BITS    2
-//1 for Ariane, 2 for Leon
 `define WORD_BITS    2
-`define L2_WAYS      8
+`define L2_WAYS      4
 `define L2_SETS      256
+`endif
+
+`ifdef ARIANE
+`define LLSC
+`define LITTLE_ENDIAN
+`define BYTE_BITS    3
+`define WORD_BITS    1
+`define L2_WAYS      4
+`define L2_SETS      256
+`endif
+
+`ifdef IBEX
+`define LITTLE_ENDIAN
+`define BYTE_BITS    2
+`define WORD_BITS    2
+`define L2_WAYS      4
+`define L2_SETS      256
+`endif
 
 `endif // __CACHES_CFG_SVH__
