@@ -215,12 +215,18 @@ void l2::ctrl()
 		    reqs[reqs_hit_i].invack_cnt += rsp_in.invack_cnt;
 
 		    if (reqs[reqs_hit_i].invack_cnt == MAX_N_L2) {
-			ongoing_atomic = true;
-			// update unstable state
-			reqs[reqs_hit_i].state = XMW;
-		    } else {
+                ongoing_atomic = true;
+                // update unstable state
+                reqs[reqs_hit_i].state = XMW;
+#ifdef LLSC
+                //end forward stall once we get the response for LR instruction
+                if (reqs[reqs_hit_i].amo == 0 && fwd_stall && reqs_hit_i == reqs_fwd_stall_i) {
+                    fwd_stall_ended = true;
+                }
+#endif
+            } else {
 			// update unstable state (+=2 is an optimization)
-			reqs[reqs_hit_i].state += 2;
+		    reqs[reqs_hit_i].state += 2;
 		    }
 		}
 
@@ -258,7 +264,13 @@ void l2::ctrl()
 		    {
 			ongoing_atomic = true;
 			reqs[reqs_hit_i].state = XMW;
-		    }
+#ifdef LLSC
+                //end forward stall once we get the response for LR instruction
+                if (reqs[reqs_hit_i].amo == 0 && fwd_stall && reqs_hit_i == reqs_fwd_stall_i) {
+                    fwd_stall_ended = true;
+                }
+#endif
+            }
 		    break;
 
 		    case IMAD :
@@ -419,6 +431,34 @@ void l2::ctrl()
 		    break;
 		}
 
+//allow forwards between RISC-V LR/SC instructions
+#ifdef LLSC
+        case XMW :
+        {
+            FWD_HIT_XMW;
+            if (fwd_in.coh_msg == FWD_GETS || fwd_in.coh_msg == FWD_GETM)
+                send_rsp_out(RSP_DATA, fwd_in.req_id, 1, fwd_in.addr, reqs[reqs_hit_i].line);
+            else
+                send_rsp_out(RSP_DATA, 0, 0, fwd_in.addr, reqs[reqs_hit_i].line);
+
+            if (fwd_in.coh_msg == FWD_GETS)
+                send_rsp_out(RSP_DATA, fwd_in.req_id, 0, fwd_in.addr, reqs[reqs_hit_i].line);
+
+            reqs[reqs_hit_i].state = INVALID;
+            reqs_cnt++;
+            ongoing_atomic = false;
+
+            if (fwd_in.coh_msg == FWD_GETS) {
+                put_reqs(reqs[reqs_hit_i].set, reqs[reqs_hit_i].way, reqs[reqs_hit_i].tag,
+                         reqs[reqs_hit_i].line, reqs[reqs_hit_i].hprot, SHARED, reqs_hit_i);
+            } else {
+                send_inval(fwd_in.addr, reqs[reqs_hit_i].hprot);
+		        states.port1[0][(reqs[reqs_hit_i].set << L2_WAY_BITS) + reqs[reqs_hit_i].way] = INVALID;
+            }
+            break;
+        }
+#endif
+
 		default :
 		    FWD_HIT_DEFAULT;
 		}
@@ -553,7 +593,7 @@ void l2::ctrl()
                 }
 
                 fill_reqs(0, addr_br, 0, flush_way, 0, state_tmp,
-                          0, 0, line_buf[flush_way], reqs_hit_i);
+                          0, 0, line_buf[flush_way], 0, reqs_hit_i);
 
                 send_req_out(coh_msg_tmp, 0, line_addr_tmp,
                              line_buf[flush_way]);
@@ -674,10 +714,6 @@ void l2::ctrl()
 
 		    }
 		}
-            } else if (!ongoing_atomic && cpu_req.cpu_msg == WRITE_ATOMIC) {
-
-                // Fail LLSC write atomic if paired read atomic was interrupted
-                send_bresp(BRESP_OKAY);
 #ifdef LLSC
 	    } else if (set_conflict && !(ongoing_atomic && cpu_req.hprot == INSTR)) {
 #else
@@ -686,6 +722,11 @@ void l2::ctrl()
 		SET_CONFLICT;
 
 		cpu_req_conflict = cpu_req;
+
+        } else if (!set_conflict && !ongoing_atomic && cpu_req.cpu_msg == WRITE_ATOMIC) {
+
+                // Fail LLSC write atomic if paired read atomic was interrupted
+                send_bresp(BRESP_OKAY);
 
 	    } else {
 
@@ -736,7 +777,7 @@ void l2::ctrl()
 
 			    // save request in intermediate state
 			    fill_reqs(cpu_req.cpu_msg, addr_br, 0, way_hit, cpu_req.hsize, SMADW, 
-				      cpu_req.hprot, cpu_req.word, line_buf[way_hit], reqs_hit_i);
+				      cpu_req.hprot, cpu_req.word, line_buf[way_hit], cpu_req.amo, reqs_hit_i);
 
 			    // send request to directory
 			    send_req_out(REQ_GETM, cpu_req.hprot,
@@ -753,7 +794,7 @@ void l2::ctrl()
 
 			    // save request in intermediate state
 			    fill_reqs(cpu_req.cpu_msg, addr_br, 0, way_hit, cpu_req.hsize, XMW, 
-				      cpu_req.hprot, cpu_req.word, line_buf[way_hit], reqs_hit_i);
+				      cpu_req.hprot, cpu_req.word, line_buf[way_hit], cpu_req.amo, reqs_hit_i);
 
                             // read response 
 			    send_rd_rsp(line_buf[way_hit]);
@@ -776,7 +817,7 @@ void l2::ctrl()
 
 			    // save request in intermediate state
 			    fill_reqs(cpu_req.cpu_msg, addr_br, 0, way_hit, cpu_req.hsize, SMAD, cpu_req.hprot,
-				      cpu_req.word, line_buf[way_hit], reqs_hit_i);
+				      cpu_req.word, line_buf[way_hit], cpu_req.amo, reqs_hit_i);
 
 			    // send request to directory
 			    send_req_out(REQ_GETM, cpu_req.hprot,
@@ -849,7 +890,7 @@ void l2::ctrl()
 
 		    // save request in intermediate state
 		    fill_reqs(cpu_req.cpu_msg, addr_br, 0, empty_way, cpu_req.hsize, 
-			      state_tmp, cpu_req.hprot, cpu_req.word, 0, reqs_hit_i);
+			      state_tmp, cpu_req.hprot, cpu_req.word, 0, cpu_req.amo, reqs_hit_i);
 
 		    // send request to directory
 		    send_req_out(coh_msg_tmp, cpu_req.hprot, addr_br.line_addr, 0);
@@ -895,7 +936,7 @@ void l2::ctrl()
 		    send_inval(line_addr_evict, hprot_buf[evict_way_tmp]);
 		    send_req_out(coh_msg_tmp, 0, line_addr_evict, line_buf[evict_way_tmp]);
 		    fill_reqs(cpu_req.cpu_msg, addr_br, tag_tmp, evict_way_tmp, cpu_req.hsize, state_tmp, 
-			      cpu_req.hprot, cpu_req.word, line_buf[evict_way_tmp], reqs_hit_i);
+			      cpu_req.hprot, cpu_req.word, line_buf[evict_way_tmp], cpu_req.amo, reqs_hit_i);
 		}
 	    }
 	}
@@ -1208,7 +1249,7 @@ void l2::send_stats(bool stats)
 /* Functions to move around buffered lines */
 
 void l2::fill_reqs(cpu_msg_t cpu_msg, addr_breakdown_t addr_br, l2_tag_t tag_estall, l2_way_t way_hit, 
-		   hsize_t hsize, unstable_state_t state, hprot_t hprot, word_t word, line_t line,
+		   hsize_t hsize, unstable_state_t state, hprot_t hprot, word_t word, line_t line, amo_t amo,
 		   sc_uint<REQS_BITS> reqs_i)
 {
     FILL_REQS;
@@ -1226,6 +1267,7 @@ void l2::fill_reqs(cpu_msg_t cpu_msg, addr_breakdown_t addr_br, l2_tag_t tag_est
     reqs[reqs_i].invack_cnt  = MAX_N_L2;
     reqs[reqs_i].word	     = word;
     reqs[reqs_i].line	     = line;
+    reqs[reqs_i].amo	     = amo;
 
     reqs_cnt--;
 }
@@ -1466,7 +1508,11 @@ bool l2::reqs_peek_fwd(line_breakdown_t<l2_tag_t, l2_set_t> line_br,
 		    if (reqs[i].state != ISD)
 		        fwd_stall_tmp = false;
 	    } else {
-		    if (reqs[i].state == MIA)
+		    if (reqs[i].state == MIA
+#ifdef LLSC
+                || (reqs[i].state == XMW && reqs[i].amo == 0)
+#endif
+            )
 		        fwd_stall_tmp = false;
 	    }
 	}

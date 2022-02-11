@@ -173,7 +173,7 @@ public:
 
     /* Functions to move around buffered lines */
     void fill_reqs(cpu_msg_t cpu_msg, addr_breakdown_t addr_br, l2_tag_t tag_estall, l2_way_t way_hit, 
-		   hsize_t hsize, unstable_state_t state, hprot_t hprot, word_t word, line_t line,
+		   hsize_t hsize, unstable_state_t state, hprot_t hprot, word_t word, line_t line, amo_t amo,
 		   sc_uint<REQS_BITS> reqs_i);
     void put_reqs(l2_set_t set, l2_way_t way, l2_tag_t tag, line_t lines, hprot_t hprot, state_t state,
 		  sc_uint<REQS_BITS> reqs_i);

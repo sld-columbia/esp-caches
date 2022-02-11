@@ -732,6 +732,7 @@ public:
     invack_cnt_calc_t	invack_cnt;
     word_t		word;
     line_t		line;
+    amo_t       amo;
 
     reqs_buf_t() :
 	cpu_msg(0),
@@ -745,8 +746,9 @@ public:
 	state(0),
 	hprot(0),
 	invack_cnt(0),
-    	word(0),
-    	line(0)
+	word(0),
+	line(0),
+	amo(0)
     {}
 
     inline reqs_buf_t& operator = (const reqs_buf_t& x) {
@@ -763,7 +765,8 @@ public:
 	invack_cnt		= x.invack_cnt;
 	word			= x.word;
 	line			= x.line;
-	return *this;
+	amo             = x.amo;
+    return *this;
     }
     inline bool operator     == (const reqs_buf_t& x) const {
 	return (x.cpu_msg    == cpu_msg		&&
@@ -778,7 +781,8 @@ public:
 		x.hprot	     == hprot		&&
 		x.invack_cnt == invack_cnt	&&
 		x.word	     == word		&&
-		x.line	     == line);
+		x.line	     == line        &&
+        x.amo        == amo);
     }
     inline friend void sc_trace(sc_trace_file *tf, const reqs_buf_t& x, const std::string & name) {
 	sc_trace(tf, x.cpu_msg , name + ".cpu_msg ");
@@ -794,6 +798,7 @@ public:
 	sc_trace(tf, x.invack_cnt , name + ".invack_cnt");
 	sc_trace(tf, x.word , name + ".word");
 	sc_trace(tf, x.line , name + ".line");
+	sc_trace(tf, x.amo , name + ".amo");
     }
     inline friend ostream & operator<<(ostream& os, const reqs_buf_t& x) {
 	os << hex << "("
@@ -809,6 +814,7 @@ public:
 	   << ", hprot: " << x.hprot
 	   << ", invack_cnt: " << x.invack_cnt
 	   << ", word: " << x.word
+	   << ", amo: " << x.amo
 	   << ", line: ";
 	for (int i = WORDS_PER_LINE-1; i >= 0; --i) {
 	    int base = i*BITS_PER_WORD;
