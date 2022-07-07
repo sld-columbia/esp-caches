@@ -5,11 +5,11 @@
 `include "cache_consts.svh"
 `include "cache_types.svh"
 
-// l2_localmem_gf12.sv 
-// l2 memory for gf12 process
+// l2_localmem_asic.sv 
+// l2 memory for asic process
 // author: Joseph Zuckerman
 
-module l2_localmem_gf12 (
+module l2_localmem_asic (
     input logic clk, 
     input logic rst, 
     input logic rd_en,
@@ -33,8 +33,8 @@ module l2_localmem_gf12 (
     output state_t rd_data_state[`L2_NUM_PORTS]
     );
     
-    logic [23:0] rd_data_mixed_tmp[`L2_NUM_PORTS][`L2_GF12_SRAMS_PER_WAY]; 
-    line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_GF12_SRAMS_PER_WAY]; 
+    logic [23:0] rd_data_mixed_tmp[`L2_NUM_PORTS][`L2_ASIC_SRAMS_PER_WAY]; 
+    line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_ASIC_SRAMS_PER_WAY]; 
     
     //write enable decoder for ways 
     logic wr_en_port[0:(`L2_NUM_PORTS-1)];
@@ -49,8 +49,8 @@ module l2_localmem_gf12 (
         end
     end
 
-    logic wr_en_mixed_bank[`L2_GF12_SRAMS_PER_WAY];
-    logic wr_en_line_bank[`L2_GF12_SRAMS_PER_WAY];
+    logic wr_en_mixed_bank[`L2_ASIC_SRAMS_PER_WAY];
+    logic wr_en_line_bank[`L2_ASIC_SRAMS_PER_WAY];
     
     logic [23:0] wr_data_mixed, wr_mixed_mask;
     assign wr_data_mixed = {wr_data_hprot, wr_data_state, {(24 - 1 - `STABLE_STATE_BITS - `L2_TAG_BITS){1'b0}}, wr_data_tag};
@@ -62,41 +62,41 @@ module l2_localmem_gf12 (
         wr_mixed_mask = 24'b0;
         
         if (wr_en_put_reqs) begin 
-            wr_mixed_mask[`L2_GF12_MIXED_SRAM_HPROT_INDEX] = 1'b1;
-            wr_mixed_mask[`L2_GF12_MIXED_SRAM_TAG_INDEX_HI:`L2_GF12_MIXED_SRAM_TAG_INDEX_LO] = {`L2_TAG_BITS{1'b1}};
+            wr_mixed_mask[`L2_ASIC_MIXED_SRAM_HPROT_INDEX] = 1'b1;
+            wr_mixed_mask[`L2_ASIC_MIXED_SRAM_TAG_INDEX_HI:`L2_ASIC_MIXED_SRAM_TAG_INDEX_LO] = {`L2_TAG_BITS{1'b1}};
         end 
 
         if (wr_en_put_reqs | wr_en_state | wr_rst) begin 
-            wr_mixed_mask[`L2_GF12_MIXED_SRAM_STATE_INDEX_HI:`L2_GF12_MIXED_SRAM_STATE_INDEX_LO] = {`STABLE_STATE_BITS{1'b1}};
+            wr_mixed_mask[`L2_ASIC_MIXED_SRAM_STATE_INDEX_HI:`L2_ASIC_MIXED_SRAM_STATE_INDEX_LO] = {`STABLE_STATE_BITS{1'b1}};
         end
 
     end
 
     generate 
-        if (`L2_GF12_SRAMS_PER_WAY == 1) begin 
+        if (`L2_ASIC_SRAMS_PER_WAY == 1) begin 
             always_comb begin 
                 wr_en_mixed_bank[0] = wr_en_put_reqs | wr_rst | wr_en_state;
             end
         end else begin 
             always_comb begin 
-                for (int j = 0; j < `L2_GF12_SRAMS_PER_WAY; j++) begin 
+                for (int j = 0; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin 
                     wr_en_mixed_bank[j] = 1'b0;
-                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS)]) begin 
+                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS)]) begin 
                         wr_en_mixed_bank[j] = wr_en_put_reqs | wr_rst | wr_en_state;
                     end
                 end
             end
         end 
         
-        if (`L2_GF12_SRAMS_PER_WAY == 1) begin 
+        if (`L2_ASIC_SRAMS_PER_WAY == 1) begin 
             always_comb begin 
                 wr_en_line_bank[0] = wr_en_line | wr_en_put_reqs;
             end
         end else begin 
             always_comb begin 
-                for (int j = 0; j < `L2_GF12_SRAMS_PER_WAY; j++) begin 
+                for (int j = 0; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin 
                     wr_en_line_bank[j] = 1'b0;
-                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS)]) begin 
+                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS)]) begin 
                         wr_en_line_bank[j] = wr_en_line | wr_en_put_reqs;
                     end
                 end
@@ -108,13 +108,13 @@ module l2_localmem_gf12 (
     generate 
         for (i = 0; i < `L2_NUM_PORTS; i++) begin
             //shared memory for tag, state, hprot 
-            for (j = 0; j < `L2_GF12_SRAMS_PER_WAY; j++) begin
-                if (`GF12_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS) + 1) begin 
+            for (j = 0; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin
+                if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
                     
-                    GF12_SRAM_SP_512x24 mixed_sram( 
+                    L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
-                        .A0({{(`GF12_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS) - 1){1'b0}}, 
-                                set_in[(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS - 1):0]}),
+                        .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
+                                set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_mixed), 
                         .Q0(rd_data_mixed_tmp[i][j]),
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
@@ -123,9 +123,9 @@ module l2_localmem_gf12 (
                 
                 end else begin 
                     
-                    GF12_SRAM_SP_512x24 mixed_sram( 
+                    L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
-                        .A0(set_in[(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS - 1):0]),
+                        .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_mixed), 
                         .Q0(rd_data_mixed_tmp[i][j]),
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
@@ -135,13 +135,13 @@ module l2_localmem_gf12 (
                 
                 //line memory 
                 //128 bits - using 512x64 SRAM, need 2 SRAMs per line 
-                for (k = 0; k < `L2_GF12_SRAMS_PER_LINE; k++) begin 
-                    if (`GF12_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS) + 1) begin 
+                for (k = 0; k < `L2_ASIC_SRAMS_PER_LINE; k++) begin 
+                    if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
                         
-                        GF12_SRAM_SP_512x64 line_sram( 
+                        L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
-                            .A0({{(`GF12_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS) - 1){1'b0}}, 
-                                    set_in[(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS - 1):0]}),
+                            .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
+                                    set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
                             .Q0(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]),
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
@@ -150,9 +150,9 @@ module l2_localmem_gf12 (
                     
                     end else begin 
                         
-                        GF12_SRAM_SP_512x64 line_sram( 
+                        L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
-                            .A0(set_in[(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS - 1):0]),
+                            .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
                             .Q0(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]),
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
@@ -165,27 +165,27 @@ module l2_localmem_gf12 (
     endgenerate
 
     generate
-        if (`L2_GF12_SRAMS_PER_WAY == 1) begin 
+        if (`L2_ASIC_SRAMS_PER_WAY == 1) begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    rd_data_hprot[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_HPROT_INDEX];
-                    rd_data_state[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_STATE_INDEX_HI:`L2_GF12_MIXED_SRAM_STATE_INDEX_LO];
-                    rd_data_tag[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_TAG_INDEX_HI:`L2_GF12_MIXED_SRAM_TAG_INDEX_LO];
+                    rd_data_hprot[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_HPROT_INDEX];
+                    rd_data_state[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_STATE_INDEX_HI:`L2_ASIC_MIXED_SRAM_STATE_INDEX_LO];
+                    rd_data_tag[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_TAG_INDEX_HI:`L2_ASIC_MIXED_SRAM_TAG_INDEX_LO];
                     rd_data_line[i] = rd_data_line_tmp[i][0]; 
                 end
             end
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    rd_data_hprot[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_HPROT_INDEX];
-                    rd_data_state[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_STATE_INDEX_HI:`L2_GF12_MIXED_SRAM_STATE_INDEX_LO];
-                    rd_data_tag[i] = rd_data_mixed_tmp[i][0][`L2_GF12_MIXED_SRAM_TAG_INDEX_HI:`L2_GF12_MIXED_SRAM_TAG_INDEX_LO];
+                    rd_data_hprot[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_HPROT_INDEX];
+                    rd_data_state[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_STATE_INDEX_HI:`L2_ASIC_MIXED_SRAM_STATE_INDEX_LO];
+                    rd_data_tag[i] = rd_data_mixed_tmp[i][0][`L2_ASIC_MIXED_SRAM_TAG_INDEX_HI:`L2_ASIC_MIXED_SRAM_TAG_INDEX_LO];
                     rd_data_line[i] = rd_data_line_tmp[i][0];
-                    for (int j = 1; j < `L2_GF12_SRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_GF12_SRAM_INDEX_BITS)]) begin 
-                            rd_data_hprot[i] = rd_data_mixed_tmp[i][j][`L2_GF12_MIXED_SRAM_HPROT_INDEX];
-                            rd_data_state[i] = rd_data_mixed_tmp[i][j][`L2_GF12_MIXED_SRAM_STATE_INDEX_HI:`L2_GF12_MIXED_SRAM_STATE_INDEX_LO];
-                            rd_data_tag[i] = rd_data_mixed_tmp[i][j][`L2_GF12_MIXED_SRAM_TAG_INDEX_HI:`L2_GF12_MIXED_SRAM_TAG_INDEX_LO];
+                    for (int j = 1; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin 
+                        if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS)]) begin 
+                            rd_data_hprot[i] = rd_data_mixed_tmp[i][j][`L2_ASIC_MIXED_SRAM_HPROT_INDEX];
+                            rd_data_state[i] = rd_data_mixed_tmp[i][j][`L2_ASIC_MIXED_SRAM_STATE_INDEX_HI:`L2_ASIC_MIXED_SRAM_STATE_INDEX_LO];
+                            rd_data_tag[i] = rd_data_mixed_tmp[i][j][`L2_ASIC_MIXED_SRAM_TAG_INDEX_HI:`L2_ASIC_MIXED_SRAM_TAG_INDEX_LO];
                             rd_data_line[i] = rd_data_line_tmp[i][j];
                         end
                     end 
