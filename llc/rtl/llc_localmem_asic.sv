@@ -142,7 +142,7 @@ module llc_localmem_asic (
             for (j = 0; j < `LLC_ASIC_SRAMS_PER_WAY; j++) begin
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
                     
-                    LLC_SRAM_SP_MIXED mixed_sram( 
+                    `LLC_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
@@ -154,7 +154,7 @@ module llc_localmem_asic (
                 
                 end else begin 
                     
-                    LLC_SRAM_SP_MIXED mixed_sram( 
+                    `LLC_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_mixed), 
@@ -167,7 +167,7 @@ module llc_localmem_asic (
                 //sharers memory
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
                     
-                    LLC_SRAM_SP_SHARED sharers_sram( 
+                    `LLC_SRAM_SP_SHARED sharers_sram( 
                         .CLK(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
@@ -179,7 +179,7 @@ module llc_localmem_asic (
                 
                 end else begin 
                     
-                    LLC_SRAM_SP_SHARED sharers_sram( 
+                    `LLC_SRAM_SP_SHARED sharers_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_sharers), 
@@ -194,7 +194,7 @@ module llc_localmem_asic (
                 for (k = 0; k < `LLC_ASIC_SRAMS_PER_LINE; k++) begin 
                     if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
                         
-                        LLC_SRAM_SP_LINE line_sram( 
+                        `LLC_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                     set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
@@ -206,7 +206,7 @@ module llc_localmem_asic (
                     
                     end else begin 
                         
-                        LLC_SRAM_SP_LINE line_sram( 
+                        `LLC_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 

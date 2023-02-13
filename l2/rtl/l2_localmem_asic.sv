@@ -111,7 +111,7 @@ module l2_localmem_asic (
             for (j = 0; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin
                 if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
                     
-                    L2_SRAM_SP_MIXED mixed_sram( 
+                    `L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
@@ -123,7 +123,7 @@ module l2_localmem_asic (
                 
                 end else begin 
                     
-                    L2_SRAM_SP_MIXED mixed_sram( 
+                    `L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_mixed), 
@@ -138,7 +138,7 @@ module l2_localmem_asic (
                 for (k = 0; k < `L2_ASIC_SRAMS_PER_LINE; k++) begin 
                     if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
                         
-                        L2_SRAM_SP_LINE line_sram( 
+                        `L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                     set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
@@ -150,7 +150,7 @@ module l2_localmem_asic (
                     
                     end else begin 
                         
-                        L2_SRAM_SP_LINE line_sram( 
+                        `L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
