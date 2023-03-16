@@ -8,14 +8,6 @@
 
 `ifdef ASIC
 `include "cache_def_mem_asic.sv"
-`else
-`define LLC_ASIC_SRAM_SIZE 512 
-`define LLC_SRAM_SP_LINE llc_unused_fpga_flow 
-`define LLC_SRAM_SP_MIXED llc_unused_fpga_flow 
-`define LLC_SRAM_SP_SHARED llc_unused_fpga_flow 
-`define L2_ASIC_SRAM_SIZE 512 
-`define L2_SRAM_SP_LINE l2_unused_fpga_flow 
-`define L2_SRAM_SP_MIXED l2_unused_fpga_flow
 `endif
 
 /*
@@ -371,9 +363,9 @@
 `define BRESP_DECERR 2'b11
 
 //ASIC DEFINES
-//`ifndef L2_ASIC_SRAM_SIZE
-//  `define L2_ASIC_SRAM_SIZE 512
-//`endif
+`ifndef L2_ASIC_SRAM_SIZE
+  `define L2_ASIC_SRAM_SIZE 512
+`endif
 
 `define L2_ASIC_SRAM_ADDR_WIDTH $clog2(`L2_ASIC_SRAM_SIZE)
 `define L2_ASIC_SRAMS_PER_WAY ((`L2_SETS + `L2_ASIC_SRAM_SIZE - 1)  / `L2_ASIC_SRAM_SIZE)
@@ -385,9 +377,9 @@
 `define L2_ASIC_MIXED_SRAM_TAG_INDEX_HI (`L2_TAG_BITS - 1)
 `define L2_ASIC_MIXED_SRAM_TAG_INDEX_LO 0 
 
-//`ifndef LLC_ASIC_SRAM_SIZE
-//  `define LLC_ASIC_SRAM_SIZE 512
-//`endif
+`ifndef LLC_ASIC_SRAM_SIZE
+  `define LLC_ASIC_SRAM_SIZE 512
+`endif
 
 `define LLC_ASIC_SRAM_SIZE 512
 `define LLC_ASIC_SRAM_ADDR_WIDTH $clog2(`LLC_ASIC_SRAM_SIZE)
