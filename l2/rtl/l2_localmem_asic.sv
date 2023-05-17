@@ -110,7 +110,7 @@ module l2_localmem_asic (
             //shared memory for tag, state, hprot 
             for (j = 0; j < `L2_ASIC_SRAMS_PER_WAY; j++) begin
                 if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
-                    
+    `ifdef ASIC                
                     `L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -120,9 +120,19 @@ module l2_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
-                
+    `else
+                    sram_behav #(.DATA_WIDTH(24), .NUM_WORDS(512)) mixed_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
+                        .addr_i({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}},
+                                set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
+                        .wdata_i(wr_data_mixed),
+                        .be_i(wr_mixed_mask),
+                        .rdata_o(rd_data_mixed_tmp[i][j]));
+    `endif            
                 end else begin 
-                    
+    `ifdef ASIC                
                     `L2_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
@@ -131,13 +141,23 @@ module l2_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
+    `else
+                    sram_behav #(.DATA_WIDTH(24), .NUM_WORDS(512)) mixed_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
+                        .addr_i(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
+                        .wdata_i(wr_data_mixed),
+                        .be_i(wr_mixed_mask),
+                        .rdata_o(rd_data_mixed_tmp[i][j]));
+    `endif
                 end
                 
                 //line memory 
                 //128 bits - using 512x64 SRAM, need 2 SRAMs per line 
                 for (k = 0; k < `L2_ASIC_SRAMS_PER_LINE; k++) begin 
                     if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
-                        
+    `ifdef ASIC                    
                         `L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -147,9 +167,19 @@ module l2_localmem_asic (
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
                             .WEM0({64{1'b1}}));
-                    
+    `else
+                        sram_behav #(.DATA_WIDTH(64), .NUM_WORDS(512)) line_sram(
+                            .clk_i(clk),
+                            .req_i(rd_en),
+                            .we_i(wr_en_port[i] & wr_en_line_bank[j]),
+                            .addr_i({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}},
+                                    set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
+                            .wdata_i(wr_data_line[(64*(k+1)-1):(64*k)]),
+                            .be_i({64{1'b1}}),
+                            .rdata_o(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]));
+    `endif      
                     end else begin 
-                        
+    `ifdef ASIC                    
                         `L2_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
@@ -158,6 +188,16 @@ module l2_localmem_asic (
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
                             .WEM0({64{1'b1}}));
+    `else
+                        sram_behav #(.DATA_WIDTH(64), .NUM_WORDS(512)) line_sram(
+                            .clk_i(clk),
+                            .req_i(rd_en),
+                            .we_i(wr_en_port[i] & wr_en_line_bank[j]),
+                            .addr_i(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
+                            .wdata_i(wr_data_line[(64*(k+1)-1):(64*k)]),
+                            .be_i({64{1'b1}}),
+                            .rdata_o(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]));
+    `endif
                     end
                 end 
             end

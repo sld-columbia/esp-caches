@@ -141,7 +141,7 @@ module llc_localmem_asic (
             //shared memory for tag, state, hprot 
             for (j = 0; j < `LLC_ASIC_SRAMS_PER_WAY; j++) begin
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
-                    
+    `ifdef ASIC 
                     `LLC_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -151,9 +151,19 @@ module llc_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
-                
+    `else
+                    sram_behav #(.DATA_WIDTH(28), .NUM_WORDS(512)) mixed_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
+                        .addr_i({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}},
+                                set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
+                        .wdata_i(wr_data_mixed),
+                        .be_i(wr_mixed_mask),
+                        .rdata_o(rd_data_mixed_tmp[i][j]));
+    `endif 
                 end else begin 
-                    
+    `ifdef ASIC   
                     `LLC_SRAM_SP_MIXED mixed_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
@@ -162,11 +172,21 @@ module llc_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_mixed_bank[j]),
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
+    `else
+                    sram_behav #(.DATA_WIDTH(28), .NUM_WORDS(512)) mixed_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
+                        .addr_i(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
+                        .wdata_i(wr_data_mixed),
+                        .be_i(wr_mixed_mask),
+                        .rdata_o(rd_data_mixed_tmp[i][j]));
+    `endif
                 end
                
                 //sharers memory
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
-                    
+    `ifdef ASIC  
                     `LLC_SRAM_SP_SHARED sharers_sram( 
                         .CLK(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -176,9 +196,19 @@ module llc_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_sharers_bank[j]),
                         .CE0(rd_en),
                         .WEM0({16{1'b1}}));
-                
+    `else
+                    sram_behav #(.DATA_WIDTH(16), .NUM_WORDS(512)) sharers_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_sharers_bank[j]),
+                        .addr_i({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}},
+                                set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
+                        .wdata_i(wr_data_sharers),
+                        .be_i({16{1'b1}}),
+                        .rdata_o(rd_data_sharers_tmp[i][j]));
+    `endif
                 end else begin 
-                    
+    `ifdef ASIC    
                     `LLC_SRAM_SP_SHARED sharers_sram( 
                         .CLK(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
@@ -187,13 +217,23 @@ module llc_localmem_asic (
                         .WE0(wr_en_port[i] & wr_en_sharers_bank[j]),
                         .CE0(rd_en),
                         .WEM0({16{1'b1}}));
+    `else
+                     sram_behav #(.DATA_WIDTH(16), .NUM_WORDS(512)) sharers_sram(
+                        .clk_i(clk),
+                        .req_i(rd_en),
+                        .we_i(wr_en_port[i] & wr_en_sharers_bank[j]),
+                        .addr_i(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
+                        .wdata_i(wr_data_sharers),
+                        .be_i({16{1'b1}}),
+                        .rdata_o(rd_data_sharers_tmp[i][j]));
+    `endif
                 end
  
                 //line memory 
                 //128 bits - using 512x64 SRAM, need 2 SRAMs per line 
                 for (k = 0; k < `LLC_ASIC_SRAMS_PER_LINE; k++) begin 
                     if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
-                        
+    `ifdef ASIC
                         `LLC_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
@@ -203,9 +243,19 @@ module llc_localmem_asic (
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
                             .WEM0({64{1'b1}}));
-                    
+    `else
+                        sram_behav #(.DATA_WIDTH(64), .NUM_WORDS(512)) line_sram(
+                            .clk_i(clk),
+                            .req_i(rd_en),
+                            .we_i(wr_en_port[i] & wr_en_line_bank[j]),
+                            .addr_i({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}},
+                                    set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
+                            .wdata_i(wr_data_line[(64*(k+1)-1):(64*k)]),
+                            .be_i({64{1'b1}}),
+                            .rdata_o(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]));
+    `endif
                     end else begin 
-                        
+    `ifdef ASIC  
                         `LLC_SRAM_SP_LINE line_sram( 
                             .CLK(clk), 
                             .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
@@ -214,6 +264,17 @@ module llc_localmem_asic (
                             .WE0(wr_en_port[i] & wr_en_line_bank[j]),
                             .CE0(rd_en),
                             .WEM0({64{1'b1}}));
+    `else
+                        sram_behav #(.DATA_WIDTH(64), .NUM_WORDS(512)) line_sram(
+                            .clk_i(clk),
+                            .req_i(rd_en),
+                            .we_i(wr_en_port[i] & wr_en_line_bank[j]),
+                            .addr_i(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
+                            .wdata_i(wr_data_line[(64*(k+1)-1):(64*k)]),
+                            .be_i({64{1'b1}}),
+                            .rdata_o(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]));
+
+    `endif
                     end
                 end 
             end
