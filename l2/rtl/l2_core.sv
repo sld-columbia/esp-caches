@@ -146,8 +146,7 @@ module l2_core(
     l2_input_decoder decode_u (.*);
 `ifdef XILINX_FPGA
     l2_localmem localmem_u (.*);
-`endif
-`ifdef ASIC
+`else
     l2_localmem_asic localmem_u(.*);
 `endif
     l2_lookup lookup_u(.*);
