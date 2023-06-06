@@ -141,7 +141,6 @@ void llc_tb::llc_test()
 	/*
 	 * Reset
 	 */
-
 	CACHE_REPORT_INFO("Reset LLC.");
 
 	reset_llc_test();
@@ -1209,7 +1208,7 @@ void llc_tb::op_dma(mix_msg_t coh_msg, llc_state_t state, bool evict, bool dirty
 		req_line.range(BITS_PER_LINE - 1, BITS_PER_LINE - ADDR_BITS) = word;
 	wlength = word;
 	} else if (coh_msg == REQ_DMA_WRITE_BURST) {
-	wlength = (rsp_line * 4 + (BYTES_PER_WORD-4)) / BYTES_PER_WORD;
+	wlength = (rsp_line * ((1 << WORD_BITS) * (1 << BYTE_BITS) / 4) + (BYTES_PER_WORD-4)) / BYTES_PER_WORD;
 	}
 
 	word_t llength = (word_t) ((wlength + init_offset + WORDS_PER_LINE - 1) / WORDS_PER_LINE);

@@ -85,7 +85,7 @@
 `define MIX_MSG_TYPE_WIDTH	(`COH_MSG_TYPE_WIDTH + `DMA_MSG_TYPE_WIDTH)
 `define HSIZE_WIDTH		3
 `define HPROT_WIDTH	    1	
-`define INVACK_CNT_WIDTH	`MAX_N_L2_BITS
+`define INVACK_CNT_WIDTH        (`WORD_BITS + 1 < `MAX_N_L2_BITS ? `MAX_N_L2_BITS : `WORD_BITS + 1)
 `define INVACK_CNT_CALC_WIDTH   (`INVACK_CNT_WIDTH + 1)
 `define CACHE_ID_WIDTH          `MAX_N_L2_BITS
 `define LLC_COH_DEV_ID_WIDTH    `MAX_N_LLC_BITS
@@ -111,6 +111,7 @@
 `define L2_TAG_RANGE_LO	(`ADDR_BITS - `L2_TAG_BITS)
 `define L2_SET_RANGE_HI	(`L2_TAG_RANGE_LO - 1)
 `define L2_TAG_OFFSET	(1 << `L2_TAG_RANGE_LO)
+`define L2_LINE_BITS $clog2(`BITS_PER_LINE)
 
 // Ongoing transaction buffers
 `define N_REQS		4	// affects REQS_BITS

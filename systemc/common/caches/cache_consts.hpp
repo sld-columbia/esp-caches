@@ -73,7 +73,7 @@
 #define HSIZE_WIDTH		3
 // TODO: HPROT_WIDTH should be 1, but that triggers a bug of the memory generator
 #define HPROT_WIDTH		2
-#define INVACK_CNT_WIDTH	MAX_N_L2_BITS
+#define INVACK_CNT_WIDTH        (WORD_BITS + 1 < MAX_N_L2_BITS ? MAX_N_L2_BITS : WORD_BITS + 1)
 #define INVACK_CNT_CALC_WIDTH   (INVACK_CNT_WIDTH + 1)
 #define CACHE_ID_WIDTH          MAX_N_L2_BITS
 #define LLC_COH_DEV_ID_WIDTH    MAX_N_LLC_BITS

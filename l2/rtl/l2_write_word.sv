@@ -17,7 +17,7 @@ module l2_write_word(
     output line_t line_out 
     );
 
-    logic[6:0] size, b_off_tmp, w_off_bits, b_off_bits, off_bits, word_range_hi, line_range_hi;
+    logic[`L2_LINE_BITS:0] size, b_off_tmp, w_off_bits, b_off_bits, off_bits, word_range_hi, line_range_hi;
 
     always_comb begin 
         size = `BITS_PER_WORD;
