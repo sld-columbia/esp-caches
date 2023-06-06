@@ -43,7 +43,8 @@ RTL_SRC += ../common/rtl/*.sv
 
 l2-sim: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
 	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
-	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`//g' ../systemc/common/caches/cache_cfg.hpp
 	sed -i 's/BIG_ENDIAN/ENDIAN_BIG_ENDIAN/g' ../systemc/common/caches/cache_cfg.hpp
 	sed -i 's/LITTLE_ENDIAN/ENDIAN_LITTLE_ENDIAN/g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
@@ -51,7 +52,8 @@ l2-sim: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
 
 l2-sim-gui: $(L2_TB) $(L2_COSIM_SRC) $(RTL_SRC) $(L2_SRC)
 	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
-	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`//g' ../systemc/common/caches/cache_cfg.hpp
 	sed -i 's/BIG_ENDIAN/ENDIAN_BIG_ENDIAN/g' ../systemc/common/caches/cache_cfg.hpp
 	sed -i 's/LITTLE_ENDIAN/ENDIAN_LITTLE_ENDIAN/g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^

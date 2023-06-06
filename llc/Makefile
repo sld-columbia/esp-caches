@@ -42,13 +42,15 @@ RTL_SRC += ../common/rtl/*.sv
 
 llc-sim: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
 	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
-	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`//g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) $^
 	rm ../systemc/common/caches/cache_cfg.hpp
 
 llc-sim-gui: $(LLC_TB) $(LLC_COSIM_SRC) $(RTL_SRC) $(LLC_SRC)
 	cp cache_cfg.svh ../systemc/common/caches/cache_cfg.hpp
-	sed -i 's/`/#/g' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`/#/' ../systemc/common/caches/cache_cfg.hpp
+	sed -i 's/`//g' ../systemc/common/caches/cache_cfg.hpp
 	ncsc_run -DRTL_SIM $(INCDIR) $(FLAGS) -GUI $^
 	rm ../systemc/common/caches/cache_cfg.hpp
 
