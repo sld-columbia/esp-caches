@@ -52,6 +52,9 @@
 `ifndef WORD_BITS
 `define WORD_BITS	1 // defined in l2,llc/stratus/project.tcl
 `endif
+`ifndef NOC_WIDTH
+`define NOC_WIDTH	64 // defined in l2,llc/stratus/project.tcl
+`endif
 
 `define OFFSET_BITS	(`BYTE_BITS + `WORD_BITS)
 
@@ -77,6 +80,8 @@
 `define BITS_PER_DOUBLEWORD (`BITS_PER_WORD << 1)
 `define BITS_PER_LINE		(`BITS_PER_WORD * `WORDS_PER_LINE)
 `define WORDS_PER_LINE		(1 << `WORD_BITS)
+`define DMA_WORDS_PER_LINE (`BITS_PER_LINE / `NOC_WIDTH)
+`define DMA_WORD_BITS (`DMA_WORDS_PER_LINE > 1 ? $clog2(`DMA_WORDS_PER_LINE) : 1)
 
 // Cache data types width
 `define CPU_MSG_TYPE_WIDTH	2
@@ -91,6 +96,7 @@
 `define LLC_COH_DEV_ID_WIDTH    `MAX_N_LLC_BITS
 `define BRESP_WIDTH 2
 `define AMO_WIDTH 6
+
 //
 // L2
 //
