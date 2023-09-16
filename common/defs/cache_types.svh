@@ -35,6 +35,7 @@ typedef logic[(`L2_WAY_BITS-1):0] l2_way_t;
 typedef logic[(`LLC_WAY_BITS-1):0]		llc_way_t;
 typedef logic[(`OFFSET_BITS-1):0]		offset_t;
 typedef logic[(`WORD_BITS-1):0]		word_offset_t;
+typedef logic[(`DMA_WORD_BITS-1):0] dma_word_offset_t;
 typedef logic[(`BYTE_BITS-1):0]		byte_offset_t;
 typedef logic[(`STABLE_STATE_BITS-1):0]	state_t;
 typedef logic[(`LLC_STATE_BITS-1):0]	        llc_state_t;
