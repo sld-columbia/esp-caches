@@ -358,7 +358,7 @@
 `define L2_LINE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define L2_LINE_BRAM_INDEX_BITS $clog2(`L2_LINE_BRAMS_PER_WAY)
 
-//each line is 128 bits, so need to split data across multiple BRAMs
+//each line is >= 128 bits, so need to split data across multiple BRAMs
 `define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
 `define L2_BRAMS_PER_TAG ((`L2_TAG_BITS + 8 - 1) / 8)
 
@@ -376,6 +376,11 @@
 `define BRESP_EXOKAY 2'b01
 `define BRESP_SLVERR 2'b10
 `define BRESP_DECERR 2'b11
+
+//number of invalidates to send to Ariane per cache line
+//Ariane L1 is 128 bits by default
+`define NUM_INVALS (`BITS_PER_LINE / 128)
+`define L1_LINE_INCR 5'h10
 
 //ASIC DEFINES
 

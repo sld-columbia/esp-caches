@@ -49,7 +49,7 @@ typedef logic[(`BRESP_WIDTH-1):0]   bresp_t;
 typedef logic[(`AMO_WIDTH-1):0] amo_t;
 
 // invalidate address
-typedef line_addr_t l2_inval_addr_t;
+typedef addr_t l2_inval_addr_t;
 
 // ongoing request buffer
 typedef struct packed{

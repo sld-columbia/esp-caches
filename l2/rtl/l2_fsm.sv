@@ -228,17 +228,31 @@ module l2_fsm(
     end
 
     logic[1:0] ready_bits;
+    logic[2:0] inval_cnt;
     always_ff @(posedge clk or negedge rst) begin
         if (!rst) begin
-            ready_bits <= 0;
+            ready_bits[0] <= 0;
+            inval_cnt <= 0;
         end else if (state == DECODE) begin
-            ready_bits <= 0;
+            ready_bits[0] <= 0;
+            inval_cnt <= 0;
         end else if ((state == CPU_REQ_EVICT || state == FWD_NO_HIT || state == FWD_HIT) && l2_inval_ready_int) begin
-            ready_bits[0] <= 1'b1;
+            if (inval_cnt < `NUM_INVALS) begin
+                inval_cnt <= inval_cnt + 1;
+            end
+            if (inval_cnt == `NUM_INVALS - 1) begin
+                ready_bits[0] <= 1'b1;
+            end
+        end
+
+        if (!rst) begin
+            ready_bits[1] <= 0;
+        end else if (state == DECODE) begin
+            ready_bits[1] <= 0;
         end else if ((state == CPU_REQ_EVICT && l2_req_out_ready_int) || ((state == FWD_NO_HIT || state == FWD_HIT) && l2_rsp_out_ready_int)) begin
             ready_bits[1] <= 1'b1;
         end
-    end
+end
 
     l2_way_t evict_way_tmp;
 
@@ -351,15 +365,15 @@ module l2_fsm(
             FWD_HIT : begin
                 if (reqs[reqs_i].state == `SMAD || reqs[reqs_i].state == `SMADW) begin
                     if (l2_fwd_in.coh_msg == `FWD_INV) begin
-                        if (l2_rsp_out_ready_int && l2_inval_ready_int) begin
+                        if (l2_rsp_out_ready_int && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int) begin
                             next_state = DECODE;
                         end else if (ready_bits[0] && l2_rsp_out_ready_int) begin
                             next_state = DECODE;
-                        end else if (ready_bits[1] && l2_inval_ready_int) begin
+                        end else if (ready_bits[1] && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int) begin
                             next_state = DECODE;
                         end
                     end else begin
-                        if (l2_inval_ready_int) begin
+                        if (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1) begin
                             next_state = DECODE;
                         end
                     end
@@ -382,11 +396,11 @@ module l2_fsm(
                             next_state = FWD_HIT_2;
                         end
                     end else begin
-                        if (l2_rsp_out_ready_int && l2_inval_ready_int) begin
+                        if (l2_rsp_out_ready_int && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int) begin
                             next_state = DECODE;
                         end else if (ready_bits[0] && l2_rsp_out_ready_int) begin
                             next_state = DECODE;
-                        end else if (ready_bits[1] && l2_inval_ready_int) begin
+                        end else if (ready_bits[1] && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int) begin
                             next_state = DECODE;
                         end
                     end
@@ -401,10 +415,10 @@ module l2_fsm(
                 end
             end
             FWD_NO_HIT : begin
-                if ((l2_inval_ready_int && l2_rsp_out_ready_int) ||
-                    (l2_inval_ready_int && ready_bits[1]) ||
+                if ((l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1 && l2_rsp_out_ready_int) ||
+                    (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1 && ready_bits[1]) ||
                     (ready_bits[0] && l2_rsp_out_ready_int) ||
-                    (l2_inval_ready_int && l2_fwd_in.coh_msg == `FWD_INV_LLC) ||
+                    (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1 && l2_fwd_in.coh_msg == `FWD_INV_LLC) ||
                     (l2_rsp_out_ready_int && l2_fwd_in.coh_msg == `FWD_GETS)) begin
                     if (l2_fwd_in.coh_msg == `FWD_GETS) begin
                         next_state = FWD_NO_HIT_2;
@@ -518,11 +532,11 @@ module l2_fsm(
                 end
             end
             CPU_REQ_EVICT : begin
-                if (l2_inval_ready_int && l2_req_out_ready_int) begin
+                if (l2_inval_ready_int && l2_req_out_ready_int && inval_cnt == `NUM_INVALS - 1) begin
                     next_state = DECODE;
                 end else if (ready_bits[0] && l2_req_out_ready_int) begin
                     next_state = DECODE;
-                end else if (l2_inval_ready_int && ready_bits[1]) begin
+                end else if (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1 && ready_bits[1]) begin
                     next_state = DECODE;
                 end
             end
@@ -832,22 +846,22 @@ module l2_fsm(
                     end
 
                     if (!ready_bits[0] && reqs[reqs_i].state != `SIA) begin
-                        l2_inval_o.addr = l2_fwd_in.addr;
+                        l2_inval_o.addr = {l2_fwd_in.addr, {`OFFSET_BITS{1'b0}}} + inval_cnt * `L1_LINE_INCR;
                         l2_inval_o.hprot = reqs[reqs_i].hprot;
                         l2_inval_valid_int = 1'b1;
                     end
 
                     if (reqs[reqs_i] != `SIA) begin
                         if (l2_fwd_in.coh_msg == `FWD_INV) begin
-                            if (l2_rsp_out_ready_int && l2_inval_ready_int) begin
+                            if (l2_rsp_out_ready_int && l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1) begin
                                 wr_req_state = 1'b1;
                             end else if (ready_bits[0] && l2_rsp_out_ready_int) begin
                                 wr_req_state = 1'b1;
-                            end else if (ready_bits[1] && l2_inval_ready_int) begin
+                            end else if (ready_bits[1] && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int) begin
                                 wr_req_state = 1'b1;
                             end
                         end else begin
-                            if (l2_inval_ready_int) begin
+                            if (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1) begin
                                 wr_req_state = 1'b1;
                             end
                         end
@@ -916,15 +930,15 @@ module l2_fsm(
                         end
                     end else begin
                         if (!ready_bits[0]) begin
-                            l2_inval_o.addr = l2_fwd_in.addr;
+                            l2_inval_o.addr = {l2_fwd_in.addr, {`OFFSET_BITS{1'b0}}} + inval_cnt * `L1_LINE_INCR;
                             l2_inval_o.hprot = reqs[reqs_i].hprot;
                             l2_inval_valid_int = 1'b1;
                         end
                         wr_en_state = 1'b1;
                         wr_data_state = `INVALID;
-                        if ((l2_rsp_out_ready_int && l2_inval_ready_int)
+                        if ((l2_rsp_out_ready_int && l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1)
                             || (ready_bits[0] && l2_rsp_out_ready_int)
-                            || (ready_bits[1] && l2_inval_ready_int)) begin
+                            || (ready_bits[1] && inval_cnt == `NUM_INVALS - 1 && l2_inval_ready_int)) begin
                             incr_reqs_cnt = 1'b1;
                             wr_req_state = 1'b1;
                         end
@@ -945,7 +959,7 @@ module l2_fsm(
                     if (!ready_bits[0]) begin
                         l2_inval_valid_int = 1'b1;
                     end
-                    l2_inval_o.addr = l2_fwd_in.addr;
+                    l2_inval_o.addr = {l2_fwd_in.addr, {`OFFSET_BITS{1'b0}}} + inval_cnt * `L1_LINE_INCR;
                     l2_inval_o.hprot = hprots_buf[way_hit];
                 end
 
@@ -1300,7 +1314,8 @@ module l2_fsm(
                 if (!ready_bits[0]) begin
                     l2_inval_valid_int = 1'b1;
                 end
-                l2_inval_o.addr = (tags_buf[evict_way_tmp] << `L2_SET_BITS) | addr_br.set;
+                line_addr_tmp = (tags_buf[evict_way_tmp] << `L2_SET_BITS) | addr_br.set;
+                l2_inval_o.addr = {line_addr_tmp, {`OFFSET_BITS{1'b0}}} + inval_cnt * `L1_LINE_INCR;
                 l2_inval_o.hprot = hprots_buf[evict_way_tmp];
                 if (!ready_bits[1]) begin
                     l2_req_out_valid_int = 1'b1;
@@ -1321,10 +1336,10 @@ module l2_fsm(
                 endcase
 
                 l2_req_out_o.hprot = 0;
-                l2_req_out_o.addr = (tags_buf[evict_way_tmp] << `L2_SET_BITS) | addr_br.set;
+                l2_req_out_o.addr = line_addr_tmp;
                 l2_req_out_o.line = lines_buf[evict_way_tmp];
 
-                if (l2_inval_ready_int && l2_req_out_ready_int) begin
+                if (l2_inval_ready_int && l2_req_out_ready_int && inval_cnt == `NUM_INVALS - 1) begin
                     fill_reqs = 1'b1;
 `ifdef STATS_ENABLE
                     l2_stats_valid_int = 1'b1;
@@ -1336,7 +1351,7 @@ module l2_fsm(
                     l2_stats_valid_int = 1'b1;
                     l2_stats_o = 1'b0;
 `endif
-                end else if (l2_inval_ready_int && ready_bits[1]) begin
+                end else if (l2_inval_ready_int && inval_cnt == `NUM_INVALS - 1 && ready_bits[1]) begin
                     fill_reqs = 1'b1;
 `ifdef STATS_ENABLE
                     l2_stats_valid_int = 1'b1;
