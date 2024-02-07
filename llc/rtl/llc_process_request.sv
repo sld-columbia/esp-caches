@@ -452,13 +452,13 @@ module llc_process_request(
                     end
                 end
                 REQ_PUTS : begin 
-                    if (llc_fwd_out_ready_int) begin 
+                    if (llc_rsp_out_ready_int) begin
                         next_state = IDLE;
                         process_done = 1'b1;
                     end
                 end
                 REQ_PUTM : begin 
-                    if (llc_fwd_out_ready_int) begin 
+                    if (llc_rsp_out_ready_int) begin
                         next_state = IDLE;
                         process_done = 1'b1;
                     end
