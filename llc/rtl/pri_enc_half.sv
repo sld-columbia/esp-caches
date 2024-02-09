@@ -1,4 +1,4 @@
-// Copyright(c) 2011-2023 Columbia University, System Level Design Group
+// Copyright(c) 2011-2024 Columbia University, System Level Design Group
 // SPDC-License-Identifier: Apache-2.0
 
 module pri_enc_half #(parameter WIDTH = 8, parameter LOG_WIDTH = 3)(
