@@ -25,7 +25,7 @@ interface llc_dma_rsp_out_t;
    invack_cnt_t        invack_cnt;     // used to mark last line of RSP_DATA_DMA
    llc_coh_dev_id_t    req_id;
    cache_id_t          dest_id;
-   word_offset_t       word_offset;
+   dma_word_offset_t   word_offset;
 
    modport in (input coh_msg, addr, line, invack_cnt, req_id, dest_id, word_offset);
    modport out (output coh_msg, addr, line, invack_cnt, req_id, dest_id, word_offset);
@@ -63,8 +63,8 @@ interface llc_dma_req_in_t;
    line_addr_t      addr;
    line_t           line;      // used for dma burst length too
    llc_coh_dev_id_t req_id;
-   word_offset_t    word_offset;
-   word_offset_t    valid_words;
+   dma_word_offset_t    word_offset;
+   dma_word_offset_t    valid_words;
 
    modport in (input coh_msg, hprot, addr, line, req_id, word_offset, valid_words);
    modport out (output coh_msg, hprot, addr, line, req_id, word_offset, valid_words);
