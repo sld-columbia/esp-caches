@@ -189,8 +189,8 @@ module llc_process_request(
 
     line_addr_t line_addr;
     dma_length_t valid_words;
-    word_offset_t dma_read_woffset;
-    word_offset_t dma_write_woffset;
+    dma_word_offset_t dma_read_woffset;
+    dma_word_offset_t dma_write_woffset;
     invack_cnt_t dma_info; 
     llc_way_t cur_way;
     logic misaligned_next, misaligned; 
@@ -634,8 +634,8 @@ module llc_process_request(
         end
     end
 
-    logic [`WORDS_PER_LINE-1:0] words_to_write;
-    logic [`WORD_BITS-1:0] words_to_write_sum;
+    logic [`DMA_WORDS_PER_LINE-1:0] words_to_write;
+    logic [`DMA_WORD_BITS-1:0] words_to_write_sum;
     always_comb begin 
         //imterfaces
         llc_mem_req_o.hwrite = 0; 
@@ -710,7 +710,7 @@ module llc_process_request(
         set_is_dma_read_to_resume_process = 1'b0;
         set_dma_write_pending = 1'b0; 
         set_is_dma_write_to_resume_process = 1'b0;
-        valid_words = `WORDS_PER_LINE;
+        valid_words = `DMA_WORDS_PER_LINE;
         dma_read_woffset = 0;
         dma_write_woffset = 0; 
         dma_info = 0; 
@@ -739,7 +739,7 @@ module llc_process_request(
             IDLE : begin  
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
             end
             PROCESS_FLUSH_RESUME :  begin 
                 line_addr = (tags_buf[cur_way] << `LLC_SET_BITS) | set; 
@@ -1057,7 +1057,7 @@ module llc_process_request(
             DMA_REQ_TO_GET : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
                 if (llc_dma_req_in.coh_msg == `REQ_DMA_READ_BURST) begin 
                     set_dma_read_pending = 1'b1; 
                     set_is_dma_read_to_resume_process = 1'b1; 
@@ -1069,7 +1069,7 @@ module llc_process_request(
             DMA_RECALL_EM : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
                 set_recall_evict_addr = 1'b1;
                 set_recall_pending = 1'b1;
                 llc_fwd_out_o.coh_msg = `FWD_GETM_LLC; 
@@ -1087,7 +1087,7 @@ module llc_process_request(
             DMA_RECALL_SSD : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
                 set_recall_evict_addr = 1'b1;
                 if (states_buf[way] == `SHARED) begin 
                     set_recall_valid = 1'b1;
@@ -1121,7 +1121,7 @@ module llc_process_request(
                 sharers_buf_wr_data = 0; 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
  
                 if (evict) begin 
                     if (way == evict_way_buf) begin 
@@ -1186,7 +1186,7 @@ module llc_process_request(
 
                 //only increment once
                 if (llc_dma_rsp_out_ready_int) begin 
-                    dma_length_next = dma_length + (`WORDS_PER_LINE - dma_read_woffset); 
+                    dma_length_next = dma_length + (`DMA_WORDS_PER_LINE - dma_read_woffset); 
                 end else begin 
                     dma_length_next = dma_length;
                 end
@@ -1201,13 +1201,13 @@ module llc_process_request(
                 end else if (dma_start) begin 
                     valid_words = dma_length_next;
                 end else if (dma_length_next > dma_read_length) begin 
-                    valid_words = `WORDS_PER_LINE - (dma_length_next - dma_read_length);
+                    valid_words = `DMA_WORDS_PER_LINE - (dma_length_next - dma_read_length);
                 end else begin 
-                    valid_words = `WORDS_PER_LINE;
+                    valid_words = `DMA_WORDS_PER_LINE;
                 end 
 
                 dma_info[0] = dma_done; 
-                dma_info[`WORD_BITS:1] = valid_words - 1;
+                dma_info[`DMA_WORD_BITS:1] = valid_words - 1;
                 
                 llc_dma_rsp_out_o.coh_msg = `RSP_DATA_DMA;
                 llc_dma_rsp_out_o.addr = dma_addr; 
@@ -1250,7 +1250,7 @@ module llc_process_request(
             DMA_WRITE_RESUME_MEM_RSP : begin 
                 dma_write_woffset = llc_dma_req_in.word_offset;
                 valid_words = llc_dma_req_in.valid_words + 1; 
-                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `WORDS_PER_LINE));
+                misaligned_next = ((dma_write_woffset != 0) || (valid_words != `DMA_WORDS_PER_LINE));
                 llc_mem_rsp_ready_int = 1'b1;  
             end
             DMA_WRITE_RESUME_WRITE : begin 
@@ -1259,20 +1259,20 @@ module llc_process_request(
                 if (misaligned) begin 
                     lines_buf_wr_data = lines_buf[way]; 
                     
-                    for (int i = 0; i < `WORDS_PER_LINE; i++) begin
+                    for (int i = 0; i < `DMA_WORDS_PER_LINE; i++) begin
                         if (i >= dma_write_woffset) begin
                             words_to_write[i] = 1'b1; 
                         end
                     end
                    
-                    for (int i = 0; i < `WORDS_PER_LINE; i++) begin
+                    for (int i = 0; i < `DMA_WORDS_PER_LINE; i++) begin
                         words_to_write_sum = 0; 
                         for (int j = 0; j < i; j++) begin 
                             words_to_write_sum = words_to_write_sum + words_to_write[j];
                         end 
                         if (words_to_write[i] && (valid_words > words_to_write_sum)) begin 
-                            lines_buf_wr_data[(`BITS_PER_WORD*i + `BITS_PER_WORD -1) -: (`BITS_PER_WORD)] 
-                                = llc_dma_req_in.line[(`BITS_PER_WORD*i + `BITS_PER_WORD - 1) -: (`BITS_PER_WORD)];
+                            lines_buf_wr_data[(`DMA_BITS_PER_WORD*i + `DMA_BITS_PER_WORD -1) -: (`DMA_BITS_PER_WORD)] 
+                                = llc_dma_req_in.line[(`DMA_BITS_PER_WORD*i + `DMA_BITS_PER_WORD - 1) -: (`DMA_BITS_PER_WORD)];
                         end
                     end
 
