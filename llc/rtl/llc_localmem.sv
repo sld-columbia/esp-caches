@@ -76,8 +76,8 @@ module llc_localmem (
     //extend to the appropriate BRAM width 
     logic [3:0] wr_data_state_extended;
     assign wr_data_state_extended = {{(4-`LLC_STATE_BITS){1'b0}}, wr_data_state};
-    logic [23:0] wr_data_tag_extended;
-    assign wr_data_tag_extended = {{(24-`LLC_TAG_BITS){1'b0}}, wr_data_tag};
+    logic [`EXTENDED_TAG_BITS-1:0] wr_data_tag_extended;
+    assign wr_data_tag_extended = {{(`EXTENDED_TAG_BITS-`LLC_TAG_BITS){1'b0}}, wr_data_tag};
     logic [3:0] wr_data_evict_way_extended; 
 
     always_comb begin 

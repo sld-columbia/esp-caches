@@ -33,7 +33,7 @@ module l2_localmem_asic (
     output state_t rd_data_state[`L2_NUM_PORTS]
     );
 
-    logic [23:0] rd_data_mixed_tmp[`L2_NUM_PORTS][`L2_ASIC_SRAMS_PER_WAY];
+    logic [`ADDR_BITS-8-1:0] rd_data_mixed_tmp[`L2_NUM_PORTS][`L2_ASIC_SRAMS_PER_WAY];
     line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_ASIC_SRAMS_PER_WAY];
 
     //write enable decoder for ways
@@ -52,14 +52,14 @@ module l2_localmem_asic (
     logic wr_en_mixed_bank[`L2_ASIC_SRAMS_PER_WAY];
     logic wr_en_line_bank[`L2_ASIC_SRAMS_PER_WAY];
 
-    logic [23:0] wr_data_mixed, wr_mixed_mask;
-    assign wr_data_mixed = {wr_data_hprot, wr_data_state, {(24 - 1 - `STABLE_STATE_BITS - `L2_TAG_BITS){1'b0}}, wr_data_tag};
+    logic [`EXTENDED_TAG_BITS-1:0] wr_data_mixed, wr_mixed_mask;
+    assign wr_data_mixed = {wr_data_hprot, wr_data_state, {(`EXTENDED_TAG_BITS-1 - `STABLE_STATE_BITS - `L2_TAG_BITS){1'b0}}, wr_data_tag};
 
     l2_way_t evict_way_arr [`L2_SETS];
 
     //determine mask for writing to shared SRAM
     always_comb begin
-        wr_mixed_mask = 24'b0;
+        wr_mixed_mask = {`EXTENDED_TAG_BITS{1'b0}};
 
         if (wr_en_put_reqs) begin
             wr_mixed_mask[`L2_ASIC_MIXED_SRAM_HPROT_INDEX] = 1'b1;
@@ -121,7 +121,7 @@ module l2_localmem_asic (
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
 `else
-                    sram_behav #(.DATA_WIDTH(24), .NUM_WORDS(512)) mixed_sram(
+                    sram_behav #(.DATA_WIDTH(`EXTENDED_TAG_BITS), .NUM_WORDS(512)) mixed_sram(
                         .clk_i(clk),
                         .req_i(rd_en),
                         .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
@@ -142,7 +142,7 @@ module l2_localmem_asic (
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
 `else
-                    sram_behav #(.DATA_WIDTH(24), .NUM_WORDS(512)) mixed_sram(
+                    sram_behav #(.DATA_WIDTH(`EXTENDED_TAG_BITS), .NUM_WORDS(512)) mixed_sram(
                         .clk_i(clk),
                         .req_i(rd_en),
                         .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),

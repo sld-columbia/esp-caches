@@ -34,7 +34,7 @@ module l2_localmem (
     );
     
     //for following 2 use BRAM data width to aviod warnings, only copy relevant bits to output data 
-    logic [23:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
+    logic [`EXTENDED_TAG_BITS-1:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
     logic [3:0] rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
     state_t rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
     line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY]; 
@@ -60,8 +60,8 @@ module l2_localmem (
     logic wr_en_line_bank[`L2_LINE_BRAMS_PER_WAY];
 
     //extend to the appropriate BRAM width 
-    logic [23:0] wr_data_tag_extended;
-    assign wr_data_tag_extended = {{(24-`L2_TAG_BITS){1'b0}}, wr_data_tag};
+    logic [`EXTENDED_TAG_BITS-1:0] wr_data_tag_extended;
+    assign wr_data_tag_extended = {{(`EXTENDED_TAG_BITS-`L2_TAG_BITS){1'b0}}, wr_data_tag};
     logic [3:0] wr_data_evict_way_extended;
     assign wr_data_evict_way_extended = {{(4-`L2_WAY_BITS){1'b0}}, wr_data_evict_way};
 
