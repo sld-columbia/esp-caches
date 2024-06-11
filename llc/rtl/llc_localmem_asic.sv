@@ -1,4 +1,4 @@
-// Copyright (c) 2011-2022 Columbia University, System Level Design Group
+// Copyright (c) 2011-2024 Columbia University, System Level Design Group
 // SPDC-License-Identifier: Apache-2.0
 
 `timescale 1ps / 1ps 
@@ -143,7 +143,7 @@ module llc_localmem_asic (
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
     `ifdef ASIC 
                     `LLC_SRAM_SP_MIXED mixed_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_mixed), 
@@ -165,7 +165,7 @@ module llc_localmem_asic (
                 end else begin 
     `ifdef ASIC   
                     `LLC_SRAM_SP_MIXED mixed_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_mixed), 
                         .Q0(rd_data_mixed_tmp[i][j]),
@@ -188,7 +188,7 @@ module llc_localmem_asic (
                 if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
     `ifdef ASIC  
                     `LLC_SRAM_SP_SHARED sharers_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_sharers), 
@@ -210,7 +210,7 @@ module llc_localmem_asic (
                 end else begin 
     `ifdef ASIC    
                     `LLC_SRAM_SP_SHARED sharers_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_sharers), 
                         .Q0(rd_data_sharers_tmp[i][j]),
@@ -235,7 +235,7 @@ module llc_localmem_asic (
                     if (`LLC_ASIC_SRAM_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) + 1) begin 
     `ifdef ASIC
                         `LLC_SRAM_SP_LINE line_sram( 
-                            .CLK(clk), 
+                            .CLK0(clk), 
                             .A0({{(`LLC_ASIC_SRAM_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                     set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
@@ -257,7 +257,7 @@ module llc_localmem_asic (
                     end else begin 
     `ifdef ASIC  
                         `LLC_SRAM_SP_LINE line_sram( 
-                            .CLK(clk), 
+                            .CLK0(clk), 
                             .A0(set_in[(`LLC_SET_BITS - `LLC_ASIC_SRAM_INDEX_BITS - 1):0]),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
                             .Q0(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]),
