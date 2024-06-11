@@ -112,7 +112,7 @@ module l2_localmem_asic (
                 if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
     `ifdef ASIC                
                     `L2_SRAM_SP_MIXED mixed_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                 set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
                         .D0(wr_data_mixed), 
@@ -134,7 +134,7 @@ module l2_localmem_asic (
                 end else begin 
     `ifdef ASIC                
                     `L2_SRAM_SP_MIXED mixed_sram( 
-                        .CLK(clk), 
+                        .CLK0(clk), 
                         .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                         .D0(wr_data_mixed), 
                         .Q0(rd_data_mixed_tmp[i][j]),
@@ -159,7 +159,7 @@ module l2_localmem_asic (
                     if (`L2_ASIC_SRAM_ADDR_WIDTH > (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) + 1) begin 
     `ifdef ASIC                    
                         `L2_SRAM_SP_LINE line_sram( 
-                            .CLK(clk), 
+                            .CLK0(clk), 
                             .A0({{(`L2_ASIC_SRAM_ADDR_WIDTH - (`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS) - 1){1'b0}}, 
                                     set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
@@ -181,7 +181,7 @@ module l2_localmem_asic (
                     end else begin 
     `ifdef ASIC                    
                         `L2_SRAM_SP_LINE line_sram( 
-                            .CLK(clk), 
+                            .CLK0(clk), 
                             .A0(set_in[(`L2_SET_BITS - `L2_ASIC_SRAM_INDEX_BITS - 1):0]),
                             .D0(wr_data_line[(64*(k+1)-1):(64*k)]), 
                             .Q0(rd_data_line_tmp[i][j][(64*(k+1)-1):(64*k)]),
