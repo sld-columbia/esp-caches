@@ -152,7 +152,7 @@ module llc_localmem_asic (
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
 `else
-                    sram_behav #(.DATA_WIDTH(28), .NUM_WORDS(512)) mixed_sram(
+                    sram_behav #(.DATA_WIDTH(28 + `ADDR_BITS - 32), .NUM_WORDS(512)) mixed_sram(
                         .clk_i(clk),
                         .req_i(rd_en),
                         .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),
@@ -173,7 +173,7 @@ module llc_localmem_asic (
                         .CE0(rd_en),
                         .WEM0(wr_mixed_mask));
 `else
-                    sram_behav #(.DATA_WIDTH(28), .NUM_WORDS(512)) mixed_sram(
+                    sram_behav #(.DATA_WIDTH(28 + `ADDR_BITS - 32), .NUM_WORDS(512)) mixed_sram(
                         .clk_i(clk),
                         .req_i(rd_en),
                         .we_i(wr_en_port[i] & wr_en_mixed_bank[j]),

@@ -58,7 +58,8 @@
 `define WORD_OFFSET	(1 << `BYTE_BITS)
 `define LINE_ADDR_BITS  (`ADDR_BITS - `SET_RANGE_LO)
 
-`define EXTENDED_TAG_BITS (`ADDR_BITS-8)
+`define MIN_SET_BITS    5
+`define EXTENDED_TAG_BITS (((`ADDR_BITS-`OFFSET_BITS-`MIN_SET_BITS+8-1)/8)*8)
 
 // Cache sizes
 `define BYTES_PER_WORD		(1 << `BYTE_BITS)
