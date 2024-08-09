@@ -64,6 +64,8 @@
 #define BITS_PER_DOUBLEWORD (BITS_PER_WORD << 1)
 #define BITS_PER_LINE		(BITS_PER_WORD * WORDS_PER_LINE)
 #define WORDS_PER_LINE		(1 << WORD_BITS)
+#define DMA_WORDS_PER_LINE  (BITS_PER_LINE / 32)
+#define DMA_WORD_BITS       ilog2(DMA_WORDS_PER_LINE)
 
 // Cache data types width
 #define CPU_MSG_TYPE_WIDTH	2

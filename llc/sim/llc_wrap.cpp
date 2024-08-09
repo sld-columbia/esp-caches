@@ -15,7 +15,7 @@ void llc_wrapper_conv::thread_llc_req_in_data_conv(){
 }
 
 void llc_wrapper_conv::thread_llc_dma_req_in_data_conv(){
-    llc_req_in_t<LLC_COH_DEV_ID_WIDTH> tmp = llc_dma_req_in.data.read();
+    llc_dma_req_in_t<LLC_COH_DEV_ID_WIDTH> tmp = llc_dma_req_in.data.read();
     llc_dma_req_in_data_conv_coh_msg = tmp.coh_msg;
     llc_dma_req_in_data_conv_hprot = tmp.hprot;
     llc_dma_req_in_data_conv_addr = tmp.addr;
@@ -55,7 +55,7 @@ void llc_wrapper_conv::thread_llc_rsp_out_data_conv(){
 }
 
 void llc_wrapper_conv::thread_llc_dma_rsp_out_data_conv(){
-    llc_rsp_out_t<LLC_COH_DEV_ID_WIDTH> tmp;
+    llc_dma_rsp_out_t<LLC_COH_DEV_ID_WIDTH> tmp;
     tmp.coh_msg = llc_dma_rsp_out_data_conv_coh_msg.read();
     tmp.addr = llc_dma_rsp_out_data_conv_addr.read();
     tmp.line = llc_dma_rsp_out_data_conv_line.read();
