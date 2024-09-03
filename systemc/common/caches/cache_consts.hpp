@@ -19,7 +19,7 @@
 #define MAX_N_L2 16
 #define MAX_N_L2_BITS ilog2(MAX_N_L2)
 
-#define MAX_N_LLC 64
+#define MAX_N_LLC 256
 #define MAX_N_LLC_BITS ilog2(MAX_N_LLC)
 
 /*
