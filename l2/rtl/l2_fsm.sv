@@ -244,7 +244,9 @@ module l2_fsm(
                 ready_bits[0] <= 1'b1;
             end
         end
+    end
 
+    always_ff @(posedge clk or negedge rst) begin
         if (!rst) begin
             ready_bits[1] <= 0;
         end else if (state == DECODE) begin
@@ -252,7 +254,7 @@ module l2_fsm(
         end else if ((state == CPU_REQ_EVICT && l2_req_out_ready_int) || ((state == FWD_NO_HIT || state == FWD_HIT) && l2_rsp_out_ready_int)) begin
             ready_bits[1] <= 1'b1;
         end
-end
+    end
 
     l2_way_t evict_way_tmp;
 
