@@ -291,7 +291,7 @@
 `define BRAM_16384_ADDR_WIDTH 14
 
 //LLC
-`define LLC_NUM_PORTS ((`LLC_WAYS >= 16) ? 16 : ((`LLC_WAYS >= 8) ? 8 : 4))
+`define LLC_NUM_PORTS `LLC_WAYS
 //each BRAM is split between 2 ways
 //each way has LLC_SETS entries
 //this is the number of banks needed to hold each way
