@@ -60,7 +60,7 @@ module llc_localmem_asic (
     logic [27:0] wr_data_mixed, wr_mixed_mask;
     
     generate
-        if (`LLC_SET_BITS == 9) begin 
+        if (`LLC_TAG_BITS == 19) begin
             assign wr_data_mixed = {wr_data_hprot, wr_data_dirty_bit, wr_data_state, wr_data_owner, wr_data_tag};
         end else begin 
             assign wr_data_mixed = {wr_data_hprot, wr_data_dirty_bit, wr_data_state, wr_data_owner, {(28 - 2 - `LLC_STATE_BITS - `MAX_N_L2_BITS -`LLC_TAG_BITS){1'b0}}, wr_data_tag};
