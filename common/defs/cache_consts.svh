@@ -290,6 +290,8 @@
 `define BRAM_8192_ADDR_WIDTH 13
 `define BRAM_16384_ADDR_WIDTH 14
 
+`define URAM_4096_ADDR_WIDTH 12
+
 //LLC
 `define LLC_NUM_PORTS `LLC_WAYS
 //each BRAM is split between 2 ways
@@ -316,9 +318,12 @@
 
 `define LLC_LINE_BRAMS_PER_WAY ((`LLC_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define LLC_LINE_BRAM_INDEX_BITS $clog2(`LLC_LINE_BRAMS_PER_WAY)
+`define LLC_LINE_URAMS_PER_WAY ((`LLC_SETS + 2047) / 2048)
+`define LLC_LINE_URAM_INDEX_BITS $clog2(`LLC_LINE_URAMS_PER_WAY)
 
 //each line is 128 bits, so need to split data across multiple BRAMs
 `define LLC_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
+`define LLC_URAMS_PER_LINE ((`BITS_PER_LINE + 71) / 72)
 `define LLC_BRAMS_PER_TAG  ((`LLC_TAG_BITS + 8 - 1) / 8)
 
 //assuming sets <= 4096, so tag > 16
@@ -346,9 +351,12 @@
 
 `define L2_LINE_BRAMS_PER_WAY ((`L2_SETS + (`BRAM_SIZE_16_BITS /2) -1)  / (`BRAM_SIZE_16_BITS / 2))
 `define L2_LINE_BRAM_INDEX_BITS $clog2(`L2_LINE_BRAMS_PER_WAY)
+`define L2_LINE_URAMS_PER_WAY ((`L2_SETS + 2047) / 2048)
+`define L2_LINE_URAM_INDEX_BITS $clog2(`L2_LINE_URAMS_PER_WAY)
 
-//each line is >= 128 bits, so need to split data across multiple BRAMs
+//each line is >= 128 bits, so need to split data across multiple BRAMs/URAMs
 `define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
+`define L2_URAMS_PER_LINE ((`BITS_PER_LINE + 71) / 72)
 `define L2_BRAMS_PER_TAG ((`L2_TAG_BITS + 8 - 1) / 8)
 
 //L2 REQ DEFINES

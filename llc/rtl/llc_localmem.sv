@@ -46,7 +46,10 @@ module llc_localmem (
     logic [`LLC_STATE_BRAM_WIDTH-1:0] rd_data_state_tmp[`LLC_NUM_PORTS][`LLC_STATE_BRAMS_PER_WAY]; 
     logic [`LLC_TAG_BRAM_WIDTH-1:0] rd_data_tag_tmp[`LLC_NUM_PORTS][`LLC_TAG_BRAMS_PER_WAY]; 
     logic [`LLC_EVICT_WAY_BRAM_WIDTH-1:0] rd_data_evict_way_tmp[`LLC_EVICT_WAY_BRAMS]; 
-    line_t rd_data_line_tmp[`LLC_NUM_PORTS][`LLC_LINE_BRAMS_PER_WAY]; 
+    line_t rd_data_line_bram[`LLC_NUM_PORTS][`LLC_LINE_BRAMS_PER_WAY];
+    logic [`LLC_URAMS_PER_LINE*72-1:0] rd_data_line_uram[`LLC_NUM_PORTS][`LLC_LINE_URAMS_PER_WAY];
+    logic [`LLC_URAMS_PER_LINE*72-1:0] wr_data_line_padded;
+    assign wr_data_line_padded = {{(`LLC_URAMS_PER_LINE*72 - `BITS_PER_LINE){1'b0}}, wr_data_line};
     
     //write enable decoder for ways 
     logic wr_en_port[0:(`LLC_NUM_PORTS-1)];
@@ -68,7 +71,8 @@ module llc_localmem (
     logic wr_en_state_bank[`LLC_STATE_BRAMS_PER_WAY];
     logic wr_en_tag_bank[`LLC_TAG_BRAMS_PER_WAY];
     logic wr_en_evict_way_bank[`LLC_EVICT_WAY_BRAMS];
-    logic wr_en_line_bank[`LLC_LINE_BRAMS_PER_WAY];
+    logic wr_en_line_bank_bram[`LLC_LINE_BRAMS_PER_WAY];
+    logic wr_en_line_bank_uram[`LLC_LINE_URAMS_PER_WAY];
 
     logic wr_rst_flush_or; 
     assign wr_rst_flush_or = |(wr_rst_flush); 
@@ -193,20 +197,38 @@ module llc_localmem (
             end
         end
 
-        if (`LLC_LINE_BRAMS_PER_WAY == 1) begin 
-            always_comb begin 
-                wr_en_line_bank[0] = wr_en;
+// Only line can be implemented either URAM or BRAM
+`ifdef LLC_LINE_USE_URAM
+        if (`LLC_LINE_URAMS_PER_WAY == 1) begin
+            always_comb begin
+                wr_en_line_bank_uram[0] = wr_en;
             end
-        end else begin 
-            always_comb begin 
-                for (int j = 0; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
-                    wr_en_line_bank[j] = 1'b0;
-                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS)]) begin 
-                        wr_en_line_bank[j] = wr_en;
+        end else begin
+            always_comb begin
+                for (int j = 0; j < `LLC_LINE_URAMS_PER_WAY; j++) begin
+                    wr_en_line_bank_uram[j] = 1'b0;
+                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS)]) begin
+                        wr_en_line_bank_uram[j] = wr_en;
                     end
                 end
             end
         end
+`else
+        if (`LLC_LINE_BRAMS_PER_WAY == 1) begin 
+            always_comb begin 
+                wr_en_line_bank_bram[0] = wr_en;
+            end
+        end else begin 
+            always_comb begin 
+                for (int j = 0; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
+                    wr_en_line_bank_bram[j] = 1'b0;
+                    if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS)]) begin 
+                        wr_en_line_bank_bram[j] = wr_en;
+                    end
+                end
+            end
+        end
+`endif
     endgenerate
 
     genvar i, j, k; 
@@ -450,6 +472,47 @@ module llc_localmem (
             end
             //line memory 
             //128 bits - using 1024x16 BRAM, need 4 BRAMs per line 
+`ifdef LLC_LINE_USE_URAM
+            for (j = 0; j < `LLC_LINE_URAMS_PER_WAY; j++) begin
+                for (k = 0; k < `LLC_URAMS_PER_LINE; k++) begin
+                    if (`URAM_4096_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS) + 1) begin
+                        URAM_4096x72 line_uram(
+                            .CLK0(clk),
+                            .A0({{(`URAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS) - 1){1'b0}},
+                                    1'b0, set_in[(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_line_padded[(72*(k+1)-1):(72*k)]),
+                            .Q0(rd_data_line_uram[2*i][j][(72*(k+1)-1):(72*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_uram[j]),
+                            .CE0(rd_en),
+                            .CLK1(clk),
+                            .A1({{(`URAM_4096_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS) - 1){1'b0}},
+                                    1'b1, set_in[(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_line_padded[(72*(k+1)-1):(72*k)]),
+                            .Q1(rd_data_line_uram[2*i+1][j][(72*(k+1)-1):(72*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_uram[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end else begin
+                        URAM_4096x72 line_uram(
+                            .CLK0(clk),
+                            .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_line_padded[(72*(k+1)-1):(72*k)]),
+                            .Q0(rd_data_line_uram[2*i][j][(72*(k+1)-1):(72*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_uram[j]),
+                            .CE0(rd_en),
+                            .CLK1(clk),
+                            .A1({1'b1, set_in[(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_line_padded[(72*(k+1)-1):(72*k)]),
+                            .Q1(rd_data_line_uram[2*i+1][j][(72*(k+1)-1):(72*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_uram[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end
+                end
+            end
+`else
             for (j = 0; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `LLC_BRAMS_PER_LINE; k++) begin 
                     if (`BRAM_1024_ADDR_WIDTH > (`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS) + 1) begin 
@@ -458,15 +521,15 @@ module llc_localmem (
                             .A0({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                     1'b0, set_in[(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
-                            .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
+                            .Q0(rd_data_line_bram[2*i][j][(16*(k+1)-1):(16*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_bram[j]),
                             .CE0(rd_en),
                             .CLK1(clk), 
                             .A1({{(`BRAM_1024_ADDR_WIDTH - (`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                     1'b1, set_in[(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
-                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
+                            .Q1(rd_data_line_bram[2*i+1][j][(16*(k+1)-1):(16*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_bram[j]),
                             .CE1(rd_en),
                             .WEM0(),
                             .WEM1());
@@ -475,20 +538,21 @@ module llc_localmem (
                             .CLK0(clk), 
                             .A0({1'b0, set_in[(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
-                            .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
+                            .Q0(rd_data_line_bram[2*i][j][(16*(k+1)-1):(16*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_bram[j]),
                             .CE0(rd_en),
                             .CLK1(clk), 
                             .A1({1'b1, set_in[(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
-                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
+                            .Q1(rd_data_line_bram[2*i+1][j][(16*(k+1)-1):(16*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_bram[j]),
                             .CE1(rd_en),
                             .WEM0(),
                             .WEM1());
                     end
                 end 
             end
+`endif
         end
             //evict ways memory 
             //need 2-5 bits for eviction  - 4096x4 BRAM
@@ -645,25 +709,46 @@ module llc_localmem (
             end
         end 
         
-        if (`LLC_LINE_BRAMS_PER_WAY == 1) begin 
+`ifdef LLC_LINE_USE_URAM
+        if (`LLC_LINE_URAMS_PER_WAY == 1) begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_tmp[i][0]; 
+                    rd_data_line[i] = rd_data_line_uram[i][0]; 
                 end
             end
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_tmp[i][0];
-                    for (int j = 1; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS)]) begin 
-                            rd_data_line[i] = rd_data_line_tmp[i][j];
+                    rd_data_line[i] = rd_data_line_uram[i][0];
+                    for (int j = 1; j < `LLC_LINE_URAMS_PER_WAY; j++) begin 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS)]) begin 
+                            rd_data_line[i] = rd_data_line_uram[i][j];
                         end
                     end 
                 end
             end
         end 
-        
+`else
+        if (`LLC_LINE_BRAMS_PER_WAY == 1) begin 
+            always_comb begin
+                for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
+                    rd_data_line[i] = rd_data_line_bram[i][0]; 
+                end
+            end
+        end else begin 
+            always_comb begin
+                for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
+                    rd_data_line[i] = rd_data_line_bram[i][0];
+                    for (int j = 1; j < `LLC_LINE_BRAMS_PER_WAY; j++) begin 
+                        if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_BRAM_INDEX_BITS)]) begin 
+                            rd_data_line[i] = rd_data_line_bram[i][j];
+                        end
+                    end 
+                end
+            end
+        end 
+`endif
+
         if (`LLC_EVICT_WAY_BRAMS == 1) begin 
             always_comb begin
                 rd_data_evict_way = rd_data_evict_way_tmp[0]; 
