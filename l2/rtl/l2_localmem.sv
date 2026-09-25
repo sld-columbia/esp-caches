@@ -37,8 +37,17 @@ module l2_localmem (
     logic [23:0] rd_data_tag_tmp[`L2_NUM_PORTS][`L2_TAG_BRAMS_PER_WAY]; 
     logic [3:0] rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
     state_t rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
-    line_t rd_data_line_tmp[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY]; 
     hprot_t rd_data_hprot_tmp[`L2_NUM_PORTS][`L2_HPROT_BRAMS_PER_WAY]; 
+`ifdef L2_LINE_USE_URAM
+    // URAM is 72b wide; 2 URAMs cover 144b but line is only BITS_PER_LINE (128b).
+    // Use wider intermediates and zero-pad on write / truncate on read.
+    localparam L2_URAM_LINE_BITS = `L2_URAMS_PER_LINE * 72;
+    logic [L2_URAM_LINE_BITS-1:0] wr_data_line_uram_ext;
+    logic [L2_URAM_LINE_BITS-1:0] rd_data_line_uram_ext[`L2_NUM_PORTS][`L2_LINE_URAMS_PER_WAY];
+`else
+    line_t rd_data_line_bram[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY];
+    logic wr_en_line_bank_bram[`L2_LINE_BRAMS_PER_WAY];
+`endif
     
     //write enable decoder for ways 
     logic wr_en_port[0:(`L2_NUM_PORTS-1)];
@@ -57,13 +66,16 @@ module l2_localmem (
     logic wr_en_state_bank[`L2_STATE_BRAMS_PER_WAY];
     logic wr_en_tag_bank[`L2_TAG_BRAMS_PER_WAY];
     logic wr_en_evict_way_bank[`L2_EVICT_WAY_BRAMS];
-    logic wr_en_line_bank[`L2_LINE_BRAMS_PER_WAY];
+    logic wr_en_line_bank_uram[`L2_LINE_URAMS_PER_WAY];
 
     //extend to the appropriate BRAM width 
     logic [23:0] wr_data_tag_extended;
     assign wr_data_tag_extended = {{(24-`L2_TAG_BITS){1'b0}}, wr_data_tag};
     logic [3:0] wr_data_evict_way_extended;
     assign wr_data_evict_way_extended = {{(4-`L2_WAY_BITS){1'b0}}, wr_data_evict_way};
+`ifdef L2_LINE_USE_URAM
+    assign wr_data_line_uram_ext = {{(L2_URAM_LINE_BITS - `BITS_PER_LINE){1'b0}}, wr_data_line}; // zero-pads upper (144-128=16) bits
+`endif
 
     generate 
         if (`L2_HPROT_BRAMS_PER_WAY == 1) begin 
@@ -126,20 +138,37 @@ module l2_localmem (
             end
         end
 
-        if (`L2_LINE_BRAMS_PER_WAY == 1) begin 
+`ifdef L2_LINE_USE_URAM
+        if (`L2_LINE_URAMS_PER_WAY == 1) begin 
             always_comb begin 
-                wr_en_line_bank[0] = wr_en_line | wr_en_put_reqs;
+                wr_en_line_bank_uram[0] = wr_en_line | wr_en_put_reqs;
             end
         end else begin 
             always_comb begin 
-                for (int j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
-                    wr_en_line_bank[j] = 1'b0;
-                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
-                        wr_en_line_bank[j] = wr_en_line | wr_en_put_reqs;
+                for (int j = 0; j < `L2_LINE_URAMS_PER_WAY; j++) begin 
+                    wr_en_line_bank_uram[j] = 1'b0;
+                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS)]) begin 
+                        wr_en_line_bank_uram[j] = wr_en_line | wr_en_put_reqs;
                     end
                 end
             end
         end
+`else
+        if (`L2_LINE_BRAMS_PER_WAY == 1) begin 
+            always_comb begin 
+                wr_en_line_bank_bram[0] = wr_en_line | wr_en_put_reqs;
+            end
+        end else begin 
+            always_comb begin 
+                for (int j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
+                    wr_en_line_bank_bram[j] = 1'b0;
+                    if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
+                        wr_en_line_bank_bram[j] = wr_en_line | wr_en_put_reqs;
+                    end
+                end
+            end
+        end
+`endif
     endgenerate
 
     genvar i, j, k; 
@@ -267,6 +296,47 @@ module l2_localmem (
                 end 
             end
             //line memory 
+`ifdef L2_LINE_USE_URAM
+            for (j = 0; j < `L2_LINE_URAMS_PER_WAY; j++) begin 
+                for (k = 0; k < `L2_URAMS_PER_LINE; k++) begin 
+                    if (`URAM_4096_ADDR_WIDTH > (`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS) + 1) begin 
+                        URAM_4096x72 line_uram( 
+                            .CLK0(clk), 
+                            .A0({{(`URAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS) - 1){1'b0}}, 
+                                    1'b0, set_in[(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_line_uram_ext[(72*(k+1)-1):(72*k)]), 
+                            .Q0(rd_data_line_uram_ext[2*i][j][(72*(k+1)-1):(72*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_uram[j]),
+                            .CE0(rd_en),
+                            .CLK1(clk), 
+                            .A1({{(`URAM_4096_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS) - 1){1'b0}} , 
+                                    1'b1, set_in[(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_line_uram_ext[(72*(k+1)-1):(72*k)]), 
+                            .Q1(rd_data_line_uram_ext[2*i+1][j][(72*(k+1)-1):(72*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_uram[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end else begin 
+                        URAM_4096x72 line_uram( 
+                            .CLK0(clk), 
+                            .A0({1'b0, set_in[(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D0(wr_data_line_uram_ext[(72*(k+1)-1):(72*k)]), 
+                            .Q0(rd_data_line_uram_ext[2*i][j][(72*(k+1)-1):(72*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_uram[j]),
+                            .CE0(rd_en),
+                            .CLK1(clk), 
+                            .A1({1'b1, set_in[(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS - 1):0]}),
+                            .D1(wr_data_line_uram_ext[(72*(k+1)-1):(72*k)]), 
+                            .Q1(rd_data_line_uram_ext[2*i+1][j][(72*(k+1)-1):(72*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_uram[j]),
+                            .CE1(rd_en),
+                            .WEM0(),
+                            .WEM1());
+                    end
+                end 
+            end
+`else
             //128 bits - using 1024x16 BRAM, need 4 BRAMs per line 
             for (j = 0; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
                 for (k = 0; k < `L2_BRAMS_PER_LINE; k++) begin 
@@ -276,15 +346,15 @@ module l2_localmem (
                             .A0({{(`BRAM_1024_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}}, 
                                     1'b0, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
-                            .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
+                            .Q0(rd_data_line_bram[2*i][j][(16*(k+1)-1):(16*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_bram[j]),
                             .CE0(rd_en),
                             .CLK1(clk), 
                             .A1({{(`BRAM_1024_ADDR_WIDTH - (`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS) - 1){1'b0}} , 
                                     1'b1, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
-                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
+                            .Q1(rd_data_line_bram[2*i+1][j][(16*(k+1)-1):(16*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_bram[j]),
                             .CE1(rd_en),
                             .WEM0(),
                             .WEM1());
@@ -293,20 +363,21 @@ module l2_localmem (
                             .CLK0(clk), 
                             .A0({1'b0, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D0(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q0(rd_data_line_tmp[2*i][j][(16*(k+1)-1):(16*k)]),
-                            .WE0(wr_en_port[2*i] & wr_en_line_bank[j]),
+                            .Q0(rd_data_line_bram[2*i][j][(16*(k+1)-1):(16*k)]),
+                            .WE0(wr_en_port[2*i] & wr_en_line_bank_bram[j]),
                             .CE0(rd_en),
                             .CLK1(clk), 
                             .A1({1'b1, set_in[(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS - 1):0]}),
                             .D1(wr_data_line[(16*(k+1)-1):(16*k)]), 
-                            .Q1(rd_data_line_tmp[2*i+1][j][(16*(k+1)-1):(16*k)]),
-                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank[j]),
+                            .Q1(rd_data_line_bram[2*i+1][j][(16*(k+1)-1):(16*k)]),
+                            .WE1(wr_en_port[2*i+1] & wr_en_line_bank_bram[j]),
                             .CE1(rd_en),
                             .WEM0(),
                             .WEM1());
                     end
                 end 
             end
+`endif
         end
         //evict ways memory 
         //need 2-5 bits for eviction  - 4096x4 BRAM
@@ -406,26 +477,46 @@ module l2_localmem (
                 end
             end
         end 
-        
-        if (`L2_LINE_BRAMS_PER_WAY == 1) begin 
+
+`ifdef L2_LINE_USE_URAM
+        if (`L2_LINE_URAMS_PER_WAY == 1) begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_tmp[i][0]; 
+                    rd_data_line[i] = rd_data_line_uram_ext[i][0][`BITS_PER_LINE-1:0]; 
                 end
             end
         end else begin 
             always_comb begin
                 for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_tmp[i][0];
-                    for (int j = 1; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
-                        if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
-                            rd_data_line[i] = rd_data_line_tmp[i][j];
+                    rd_data_line[i] = rd_data_line_uram_ext[i][0][`BITS_PER_LINE-1:0];
+                    for (int j = 1; j < `L2_LINE_URAMS_PER_WAY; j++) begin 
+                        if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_URAM_INDEX_BITS)]) begin 
+                            rd_data_line[i] = rd_data_line_uram_ext[i][j][`BITS_PER_LINE-1:0];
                         end
                     end 
                 end
             end
         end 
-        
+`else
+        if (`L2_LINE_BRAMS_PER_WAY == 1) begin 
+            always_comb begin
+                for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
+                    rd_data_line[i] = rd_data_line_bram[i][0]; 
+                end
+            end
+        end else begin 
+            always_comb begin
+                for (int i = 0; i < `L2_NUM_PORTS; i++) begin 
+                    rd_data_line[i] = rd_data_line_bram[i][0];
+                    for (int j = 1; j < `L2_LINE_BRAMS_PER_WAY; j++) begin 
+                        if (j == set_in[(`L2_SET_BITS-1):(`L2_SET_BITS - `L2_LINE_BRAM_INDEX_BITS)]) begin 
+                            rd_data_line[i] = rd_data_line_bram[i][j];
+                        end
+                    end 
+                end
+            end
+        end 
+`endif
         if (`L2_EVICT_WAY_BRAMS == 1) begin 
             always_comb begin
                 rd_data_evict_way = rd_data_evict_way_tmp[0]; 
