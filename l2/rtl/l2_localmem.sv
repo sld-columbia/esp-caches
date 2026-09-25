@@ -38,13 +38,15 @@ module l2_localmem (
     logic [3:0] rd_data_evict_way_tmp[`L2_EVICT_WAY_BRAMS]; 
     state_t rd_data_state_tmp[`L2_NUM_PORTS][`L2_STATE_BRAMS_PER_WAY]; 
     hprot_t rd_data_hprot_tmp[`L2_NUM_PORTS][`L2_HPROT_BRAMS_PER_WAY]; 
-    line_t rd_data_line_bram[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY];
 `ifdef L2_LINE_USE_URAM
     // URAM is 72b wide; 2 URAMs cover 144b but line is only BITS_PER_LINE (128b).
     // Use wider intermediates and zero-pad on write / truncate on read.
     localparam L2_URAM_LINE_BITS = `L2_URAMS_PER_LINE * 72;
     logic [L2_URAM_LINE_BITS-1:0] wr_data_line_uram_ext;
     logic [L2_URAM_LINE_BITS-1:0] rd_data_line_uram_ext[`L2_NUM_PORTS][`L2_LINE_URAMS_PER_WAY];
+`else
+    line_t rd_data_line_bram[`L2_NUM_PORTS][`L2_LINE_BRAMS_PER_WAY];
+    logic wr_en_line_bank_bram[`L2_LINE_BRAMS_PER_WAY];
 `endif
     
     //write enable decoder for ways 
@@ -64,7 +66,6 @@ module l2_localmem (
     logic wr_en_state_bank[`L2_STATE_BRAMS_PER_WAY];
     logic wr_en_tag_bank[`L2_TAG_BRAMS_PER_WAY];
     logic wr_en_evict_way_bank[`L2_EVICT_WAY_BRAMS];
-    logic wr_en_line_bank_bram[`L2_LINE_BRAMS_PER_WAY];
     logic wr_en_line_bank_uram[`L2_LINE_URAMS_PER_WAY];
 
     //extend to the appropriate BRAM width 
@@ -73,7 +74,7 @@ module l2_localmem (
     logic [3:0] wr_data_evict_way_extended;
     assign wr_data_evict_way_extended = {{(4-`L2_WAY_BITS){1'b0}}, wr_data_evict_way};
 `ifdef L2_LINE_USE_URAM
-    assign wr_data_line_uram_ext = wr_data_line; // zero-pads upper (144-128=16) bits
+    assign wr_data_line_uram_ext = {{(L2_URAM_LINE_BITS - `BITS_PER_LINE){1'b0}}, wr_data_line}; // zero-pads upper (144-128=16) bits
 `endif
 
     generate 

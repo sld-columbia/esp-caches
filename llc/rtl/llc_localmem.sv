@@ -713,16 +713,16 @@ module llc_localmem (
         if (`LLC_LINE_URAMS_PER_WAY == 1) begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_uram[i][0]; 
+                    rd_data_line[i] = rd_data_line_uram[i][0][`BITS_PER_LINE-1:0]; 
                 end
             end
         end else begin 
             always_comb begin
                 for (int i = 0; i < `LLC_NUM_PORTS; i++) begin 
-                    rd_data_line[i] = rd_data_line_uram[i][0];
+                    rd_data_line[i] = rd_data_line_uram[i][0][`BITS_PER_LINE-1:0];
                     for (int j = 1; j < `LLC_LINE_URAMS_PER_WAY; j++) begin 
                         if (j == set_in[(`LLC_SET_BITS-1):(`LLC_SET_BITS - `LLC_LINE_URAM_INDEX_BITS)]) begin 
-                            rd_data_line[i] = rd_data_line_uram[i][j];
+                            rd_data_line[i] = rd_data_line_uram[i][j][`BITS_PER_LINE-1:0];
                         end
                     end 
                 end
