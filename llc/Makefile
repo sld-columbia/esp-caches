@@ -13,7 +13,7 @@ FLAGS += -DRTL_CACHE
 FLAGS += -DSTATS_ENABLE
 FLAGS += -TOP glbl
 FLAGS += -access +R
-FLAGS += -ncvlog_args,"-define XILINX_FPGA"
+FLAGS += -ncvlog_args,"-define FPGA_CACHE_MEM"
 
 INCDIR ?=
 INCDIR += -I$(ACCEL)
