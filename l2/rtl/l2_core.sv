@@ -144,7 +144,7 @@ module l2_core(
     l2_fsm fsm_u(.*);
     l2_interfaces interfaces_u(.*);
     l2_input_decoder decode_u (.*);
-`ifdef XILINX_FPGA
+`ifdef FPGA_CACHE_MEM
     l2_localmem localmem_u (.*);
 `else
     l2_localmem_asic localmem_u(.*);
