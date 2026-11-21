@@ -350,6 +350,7 @@
 //each line is >= 128 bits, so need to split data across multiple BRAMs
 `define L2_BRAMS_PER_LINE (`BITS_PER_LINE / 16)
 `define L2_BRAMS_PER_TAG ((`L2_TAG_BITS + 8 - 1) / 8)
+`define L2_TAG_BRAM_WIDTH (`L2_BRAMS_PER_TAG * 8)
 
 //L2 REQ DEFINES
 `define L2_REQS_LOOKUP 3'b000
